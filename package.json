@@ -1,0 +1,31 @@
+{
+  "name": "@osmargm1202/pi-harness",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Pi harness extensions, agents, prompts, themes, and widgets used by osmargm1202.",
+  "keywords": ["pi-package", "pi", "extensions", "agents", "skills", "widgets"],
+  "license": "MIT",
+  "files": [
+    "extensions",
+    "agents",
+    "assets",
+    "lib",
+    "prompts",
+    "themes",
+    "README.md"
+  ],
+  "pi": {
+    "extensions": ["./extensions"],
+    "prompts": ["./prompts"],
+    "themes": ["./themes"]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*",
+    "@mariozechner/pi-ai": "*",
+    "@mariozechner/pi-coding-agent": "*",
+    "@mariozechner/pi-tui": "*",
+    "typebox": "*"
+  }
+}
