@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getAgentDir, parseFrontmatter } from "@mariozechner/pi-coding-agent";
+import { findInstalledSkillPath } from "./package-paths";
 
 export const CAVEMAN_STATE_ENTRY = "caveman-level";
 export const CAVEMAN_STATE_EVENT = "caveman:state-changed";
@@ -31,7 +32,7 @@ export interface CavemanState {
 }
 
 export function getDefaultCavemanSkillPath(): string {
-	return join(getAgentDir(), "skills", "caveman", "SKILL.md");
+	return findInstalledSkillPath("caveman") ?? join(getAgentDir(), "skills", "caveman", "SKILL.md");
 }
 
 export function getDefaultCavemanConfigPath(): string {

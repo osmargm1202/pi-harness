@@ -1,7 +1,7 @@
 import { existsSync, lstatSync, readFileSync, readdirSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { dirname, join, parse, relative } from "node:path";
 import { getAgentDir, parseFrontmatter } from "@mariozechner/pi-coding-agent";
+import { getCurrentPackageAgentDirs, getCurrentPackageAgentsDir } from "./package-paths";
 
 export type AgentSource = "user" | "project";
 export type AgentScope = "user" | "project" | "both";
@@ -69,20 +69,8 @@ export function findNearestProjectAgentsDir(cwd: string): string | null {
 	}
 }
 
-export function getPackageAgentsDir(): string | null {
-	try {
-		const extensionLibDir = dirname(fileURLToPath(import.meta.url));
-		const candidate = join(extensionLibDir, "..", "..", "agents");
-		return existsSync(candidate) ? candidate : null;
-	} catch {
-		return null;
-	}
-}
-
-export function getPackageAgentDirs(): string[] {
-	const dir = getPackageAgentsDir();
-	return dir ? [dir] : [];
-}
+export const getPackageAgentsDir = getCurrentPackageAgentsDir;
+export const getPackageAgentDirs = getCurrentPackageAgentDirs;
 
 function mergeByName<T extends { name: string }>(
 	userItems: T[],

@@ -12,7 +12,7 @@ import { DynamicBorder } from "@mariozechner/pi-coding-agent";
 import { Container, Key, matchesKey, SelectList, Text, type SelectItem } from "@mariozechner/pi-tui";
 import { discoverDeployableAgents, type AgentConfig } from "./lib/agent-discovery";
 
-function collectConfiguredAgentModels(ctx: ExtensionContext, preferredModel?: string): string[] {
+export function collectConfiguredAgentModels(ctx: ExtensionContext, preferredModel?: string): string[] {
 	const models = new Set<string>();
 
 	for (const model of ctx.modelRegistry.getAvailable()) {
