@@ -72,6 +72,10 @@ export function createProtocolMessage(
 	};
 }
 
+function serializeProtocolLine(message: FullSubagentProtocolMessage): string {
+	return `${JSON.stringify(message)}\n`;
+}
+
 export function parseProtocolLine(line: string): FullSubagentProtocolMessage {
 	let parsed: unknown;
 	try {
@@ -144,13 +148,13 @@ export class FullSubagentPool {
 		runtime.snapshot.state = "busy";
 		runtime.snapshot.activity = task;
 		runtime.snapshot.requestId = requestId;
-		runtime.config.transport.send(JSON.stringify(createProtocolMessage(agentId, "task.start", { requestId, task, cwd })));
+		runtime.config.transport.send(serializeProtocolLine(createProtocolMessage(agentId, "task.start", { requestId, task, cwd })));
 		return requestId;
 	}
 
 	cancelTask(agentId: string, reason: string): void {
 		const runtime = this.requireRuntime(agentId);
-		runtime.config.transport.send(JSON.stringify(createProtocolMessage(agentId, "task.cancel", {
+		runtime.config.transport.send(serializeProtocolLine(createProtocolMessage(agentId, "task.cancel", {
 			requestId: runtime.snapshot.requestId,
 			reason,
 		})));
@@ -158,7 +162,7 @@ export class FullSubagentPool {
 
 	shutdown(): void {
 		for (const runtime of this.runtimes.values()) {
-			runtime.config.transport.send(JSON.stringify(createProtocolMessage(runtime.config.agentId, "shutdown")));
+			runtime.config.transport.send(serializeProtocolLine(createProtocolMessage(runtime.config.agentId, "shutdown")));
 			runtime.config.transport.kill();
 		}
 	}

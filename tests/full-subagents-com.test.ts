@@ -52,6 +52,7 @@ assert.equal(pool.getSnapshot()[0].state, "idle");
 
 const requestId = pool.startTask("tdd-planner", "write a plan", "/repo");
 assert.equal(pool.getSnapshot()[0].state, "busy");
+assert.equal(fake.sent[0].endsWith("\n"), true);
 assert.equal(JSON.parse(fake.sent[0]).type, "task.start");
 assert.equal(JSON.parse(fake.sent[0]).requestId, requestId);
 
@@ -75,7 +76,12 @@ assert.equal(pool.getSnapshot()[0].state, "idle");
 assert.equal(pool.getSnapshot()[0].lastResult, "done");
 
 pool.cancelTask("tdd-planner", "manual");
-assert.equal(JSON.parse(fake.sent.at(-1)!).type, "task.cancel");
+const cancelLine = fake.sent.at(-1)!;
+assert.equal(cancelLine.endsWith("\n"), true);
+assert.equal(JSON.parse(cancelLine).type, "task.cancel");
 
-fake.kill();
+pool.shutdown();
+const shutdownLine = fake.sent.at(-1)!;
+assert.equal(shutdownLine.endsWith("\n"), true);
+assert.equal(JSON.parse(shutdownLine).type, "shutdown");
 assert.equal(pool.getSnapshot()[0].state, "dead");

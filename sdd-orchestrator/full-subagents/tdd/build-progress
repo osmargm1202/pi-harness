@@ -1,0 +1,19 @@
+{
+  "path": "sdd-orchestrator/full-subagents/tdd/build-progress",
+  "group": "Task 2 review fix - full subagents protocol message termination",
+  "status": "complete",
+  "files_changed": [
+    "extensions/lib/full-subagents-com.ts",
+    "tests/full-subagents-com.test.ts",
+    "sdd-orchestrator/full-subagents/tdd/build-progress"
+  ],
+  "tdd_applicability_reason": "Applicable: bug fix changes runtime protocol behavior, covered with regression assertions before production code changes.",
+  "verification": [
+    "Safety net: node --test tests/full-subagents-com.test.ts (pass before changes: 1/1)",
+    "RED: node --test tests/full-subagents-com.test.ts failed at tests/full-subagents-com.test.ts:55 because task.start line did not end with newline",
+    "GREEN: node --test tests/full-subagents-com.test.ts (pass after implementation: 1/1)"
+  ],
+  "risks": [
+    "Node emits pre-existing MODULE_TYPELESS_PACKAGE_JSON warning for TypeScript ES module tests."
+  ]
+}
