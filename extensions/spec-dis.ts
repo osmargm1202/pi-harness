@@ -16,6 +16,15 @@ type SpecDoc = {
 };
 
 type Snapshot = Map<string, number>;
+type ApprovalSender = (message: string) => void;
+
+export function buildSpecApprovalMessage(doc: Pick<SpecDoc, "relativePath">): string {
+	return `He aprobado este archivo: ${doc.relativePath}`;
+}
+
+export function isSpecApprovalKey(data: string): boolean {
+	return matchesKey(data, "enter");
+}
 
 const MAX_SCAN_DEPTH = 8;
 const MAX_SELECTOR_HEIGHT = 14;
@@ -242,7 +251,7 @@ function renderMarkdownContent(text: string, width: number): string[] {
 	return wrapPlainText(safeText, width);
 }
 
-async function openDocViewer(ctx: ExtensionContext, doc: SpecDoc): Promise<void> {
+async function openDocViewer(ctx: ExtensionContext, doc: SpecDoc, onApprove?: ApprovalSender): Promise<void> {
 	if (!ctx.hasUI) return;
 
 	let rawText: string;
@@ -267,6 +276,11 @@ async function openDocViewer(ctx: ExtensionContext, doc: SpecDoc): Promise<void>
 
 	await ctx.ui.custom<void>((tui, theme, _kb, done) => {
 		const close = () => done();
+		const approve = () => {
+			onApprove?.(buildSpecApprovalMessage(doc));
+			ctx.ui.notify(`Approved ${doc.relativePath}`, "info");
+			done();
+		};
 		return {
 			render: (width: number): string[] => {
 				const innerWidth = Math.max(24, width - 2);
@@ -281,7 +295,7 @@ async function openDocViewer(ctx: ExtensionContext, doc: SpecDoc): Promise<void>
 				const titleLine = `${doc.kind.toUpperCase()} · ${doc.name}`;
 				const metaLine = `${formatTimestamp(doc.modified)} · ${doc.relativePath}`;
 				const scrollLine = `Lines ${bodyLines.length === 0 ? 0 : rangeStart + 1}-${rangeEnd} of ${bodyLines.length} · offset ${scrollOffset}`;
-				const helpLine = "↑/↓ or j/k scroll • pageUp/pageDown jump • esc/q close";
+				const helpLine = "↑/↓ or j/k scroll • pageUp/pageDown jump • Enter approve • esc/q close";
 				const lines: string[] = [
 					theme.fg("accent", `╭${"─".repeat(innerWidth)}╮`),
 					theme.fg("accent", `│${padLine(theme.fg("text", titleLine), innerWidth)}│`),
@@ -297,6 +311,7 @@ async function openDocViewer(ctx: ExtensionContext, doc: SpecDoc): Promise<void>
 			},
 			invalidate: () => {},
 			handleInput: (data: string) => {
+				if (isSpecApprovalKey(data)) return approve();
 				if (matchesKey(data, "escape") || data === "q") return close();
 				const maxScroll = Math.max(0, currentBodyLineCount - VIEWER_BODY_LINES);
 				if (matchesKey(data, "up") || data === "k") {
@@ -331,11 +346,11 @@ async function openDocViewer(ctx: ExtensionContext, doc: SpecDoc): Promise<void>
 	});
 }
 
-async function openSpecDis(ctx: ExtensionContext, docs?: SpecDoc[], title = "Open Specification Document"): Promise<void> {
+async function openSpecDis(ctx: ExtensionContext, onApprove?: ApprovalSender, docs?: SpecDoc[], title = "Open Specification Document"): Promise<void> {
 	const entries = docs ?? await listSpecDocs(ctx.cwd);
 	const selected = await chooseDoc(ctx, entries, title);
 	if (!selected) return;
-	await openDocViewer(ctx, selected);
+	await openDocViewer(ctx, selected, onApprove);
 }
 
 function isSubagentToolResult(toolName: unknown): toolName is "deploy_agent" | "query_team" {
@@ -343,6 +358,7 @@ function isSubagentToolResult(toolName: unknown): toolName is "deploy_agent" | "
 }
 
 async function renderChangedDocs(
+	pi: ExtensionAPI,
 	ctx: ExtensionContext,
 	baseline: Snapshot,
 	setBaseline: (snapshot: Snapshot) => void,
@@ -360,12 +376,12 @@ async function renderChangedDocs(
 		const doc = changed[0];
 		if (!doc) return;
 		ctx.ui.notify(`1 spec artifact changed (${reason}): ${doc.name}`, "info");
-		await openDocViewer(ctx, doc);
+		await openDocViewer(ctx, doc, (message) => pi.sendUserMessage(message, { deliverAs: "followUp" }));
 		return;
 	}
 
 	ctx.ui.notify(`${changed.length} spec artifacts changed (${reason})`, "info");
-	await openSpecDis(ctx, changed, "Changed Spec / Design / Task Documents");
+	await openSpecDis(ctx, (message) => pi.sendUserMessage(message, { deliverAs: "followUp" }), changed, "Changed Spec / Design / Task Documents");
 }
 
 export default function (pi: ExtensionAPI) {
@@ -387,26 +403,26 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.on("agent_end", async (_event, ctx) => {
-		await renderChangedDocs(ctx, baseline, setBaseline, "completed spec artifact");
+		await renderChangedDocs(pi, ctx, baseline, setBaseline, "completed spec artifact");
 	});
 
 	pi.on("tool_result", async (event, ctx) => {
 		if (!isSubagentToolResult(event.toolName)) return;
-		await renderChangedDocs(ctx, baseline, setBaseline, "subagent spec artifact");
+		await renderChangedDocs(pi, ctx, baseline, setBaseline, "subagent spec artifact");
 	});
 
 	pi.registerCommand("orgm-spec-dis", {
 		description: "List local spec/design/task/doc files and open a reader",
 		handler: async (_args, ctx) => {
 			await ctx.waitForIdle();
-			await openSpecDis(ctx);
+			await openSpecDis(ctx, (message) => pi.sendUserMessage(message, { deliverAs: "followUp" }));
 		},
 	});
 
 	pi.registerShortcut("alt+4", {
 		description: "Open latest spec document viewer",
 		handler: async (ctx) => {
-			await openSpecDis(ctx);
+			await openSpecDis(ctx, (message) => pi.sendUserMessage(message, { deliverAs: "followUp" }));
 		},
 	});
 }
