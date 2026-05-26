@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getAgentDir, parseFrontmatter } from "@earendil-works/pi-coding-agent";
-import { loadOrgmConfig, orgmConfigPath } from "./orgm-config";
+import { loadOrgmConfig, orgmConfigPath, saveOrgmConfigSlice } from "./orgm-config";
 import { findInstalledSkillPath } from "./package-paths";
 
 export const CAVEMAN_STATE_ENTRY = "caveman-level";
@@ -47,6 +47,7 @@ export function isCavemanLevel(value: unknown): value is CavemanLevel {
 export function normalizeCavemanLevel(value: unknown): CavemanLevel | undefined {
 	if (typeof value !== "string") return undefined;
 	const normalized = value.trim().toLowerCase();
+	if (normalized === "wenyan") return "wenyan-full";
 	return isCavemanLevel(normalized) ? normalized : undefined;
 }
 
@@ -68,6 +69,11 @@ export function loadCavemanConfig(configPath?: string): CavemanConfig {
 			? config.skillPath.trim()
 			: defaults.skillPath,
 	};
+}
+
+export function saveCavemanConfig(config: Partial<CavemanConfig>, configPath?: string): void {
+	const current = loadCavemanConfig(configPath);
+	saveOrgmConfigSlice("caveman", { ...current, ...config }, configPath);
 }
 
 export function resolveInitialCavemanState(entries: readonly any[]): CavemanState {

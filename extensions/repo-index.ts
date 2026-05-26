@@ -1,6 +1,6 @@
 import type { ExtensionAPI, ExtensionContext, SessionStartEvent } from "@earendil-works/pi-coding-agent";
 import { Text } from "@earendil-works/pi-tui";
-import { loadOrgmConfig } from "./lib/orgm-config.ts";
+import { loadOrgmConfig, saveOrgmConfigSlice } from "./lib/orgm-config.ts";
 import { buildProjectTreeText } from "./lib/repo-tree.ts";
 
 const CUSTOM_TYPE = "repo-tree";
@@ -33,9 +33,16 @@ function shouldInjectRepoTree(reason: SessionStartEvent["reason"], ctx: Extensio
 	return false;
 }
 
+function configuredRepoTree(options: RepoTreeExtensionOptions) {
+	const config = loadOrgmConfig(options.configPath).repoTree;
+	return {
+		enabled: config.enabled,
+		maxDepth: typeof options.maxDepth === "number" ? options.maxDepth : config.maxDepth,
+	};
+}
+
 function configuredMaxDepth(options: RepoTreeExtensionOptions): number {
-	if (typeof options.maxDepth === "number") return options.maxDepth;
-	return loadOrgmConfig(options.configPath).repoTree.maxDepth;
+	return configuredRepoTree(options).maxDepth;
 }
 
 export function buildRepoTreeMessageContent(
@@ -61,6 +68,7 @@ export default function repoIndexExtension(pi: ExtensionAPI, options: RepoTreeEx
 	});
 
 	pi.on("session_start", async (event, ctx) => {
+		if (!configuredRepoTree(options).enabled) return;
 		if (!shouldInjectRepoTree(event.reason, ctx, injectedThisLifecycle)) return;
 		const content = buildRepoTreeMessageContent(ctx, options);
 		if (!content) return;
@@ -77,8 +85,29 @@ export default function repoIndexExtension(pi: ExtensionAPI, options: RepoTreeEx
 	});
 
 	pi.registerCommand("orgm-repo-tree", {
-		description: "Show the current project tree context",
-		handler: async (_args, ctx) => {
+		description: "Show/manage project tree context: /orgm-repo-tree [on|off|depth <n>]",
+		handler: async (args, ctx) => {
+			const parts = args.trim().toLowerCase().split(/\s+/).filter(Boolean);
+			const current = configuredRepoTree(options);
+			if (parts[0] === "on" || parts[0] === "off") {
+				saveOrgmConfigSlice("repoTree", { ...current, enabled: parts[0] === "on" }, options.configPath);
+				ctx.ui.notify(`repo-tree ${parts[0]}`, parts[0] === "on" ? "success" : "warning");
+				return;
+			}
+			if (parts[0] === "depth" || parts[0] === "max-depth") {
+				const maxDepth = Number.parseInt(parts[1] ?? "", 10);
+				if (!Number.isInteger(maxDepth) || maxDepth < 0) {
+					ctx.ui.notify("Usage: /orgm-repo-tree depth <0+>", "warning");
+					return;
+				}
+				saveOrgmConfigSlice("repoTree", { ...current, maxDepth }, options.configPath);
+				ctx.ui.notify(`repo-tree depth: ${maxDepth}`, "success");
+				return;
+			}
+			if (parts.length > 0) {
+				ctx.ui.notify("Usage: /orgm-repo-tree [on|off|depth <n>]", "warning");
+				return;
+			}
 			const content = buildRepoTreeMessageContent(ctx, options);
 			ctx.ui.notify(content || "repo-tree unavailable for this project root", content ? "info" : "warning");
 		},

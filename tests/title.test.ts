@@ -10,6 +10,9 @@ assert.deepEqual(parseTitleCommand("regen"), { action: "regen" });
 assert.deepEqual(parseTitleCommand("name Sesión manual"), { action: "name", title: "Sesión manual" });
 assert.deepEqual(parseTitleCommand('name "Sesión manual"'), { action: "name", title: "Sesión manual" });
 assert.deepEqual(parseTitleCommand("clear"), { action: "clear" });
+assert.deepEqual(parseTitleCommand("auto off"), { action: "auto", enabled: false });
+assert.deepEqual(parseTitleCommand("auto on"), { action: "auto", enabled: true });
+assert.deepEqual(parseTitleCommand("auto toggle"), { action: "auto", toggle: true });
 assert.equal(parseTitleCommand("wat").action, "unknown");
 
 const ready = renderTitleLine({ state: "ready", title: "Mi sesión" }, 31, (kind, text) => text);

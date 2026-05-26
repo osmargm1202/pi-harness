@@ -11,6 +11,7 @@ import {
 	SYSTEM_AGENT,
 } from "./lib/agent-discovery";
 import { resolveConfiguredPrimary } from "./lib/orgm-flow";
+import { saveOrgmConfigSlice } from "./lib/orgm-config";
 
 const SUBAGENT_ENV_FLAG = "PI_PDD_SUBAGENT";
 const IS_SUBAGENT_RUNTIME = process.env[SUBAGENT_ENV_FLAG] === "1";
@@ -21,6 +22,7 @@ interface SelectorItem extends SelectItem {
 
 function setPrimaryAgent(pi: ExtensionAPI, name: string): void {
 	pi.appendEntry(PRIMARY_STATE_ENTRY, { selectedName: name });
+	saveOrgmConfigSlice("defaultPrimaryAgent", name);
 	pi.events.emit(PRIMARY_STATE_EVENT, { selectedName: name });
 }
 

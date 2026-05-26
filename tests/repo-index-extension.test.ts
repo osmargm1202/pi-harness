@@ -10,7 +10,7 @@ function makeProject() {
 	mkdirSync(join(root, "src"), { recursive: true });
 	writeFileSync(join(root, "package.json"), JSON.stringify({ name: "demo" }));
 	writeFileSync(join(root, "src", "main.ts"), "export const demo = true;\n");
-	return { home, root };
+	return { home, root, configPath: join(home, ".pi", "agent", "orgm.json") };
 }
 
 function createHarness(entries: unknown[] = []) {
@@ -62,11 +62,11 @@ function createHarness(entries: unknown[] = []) {
 }
 
 {
-	const { home, root } = makeProject();
+	const { home, root, configPath } = makeProject();
 	try {
 		const harness = createHarness();
 		harness.ctx.cwd = root;
-		repoIndexExtension(harness.pi as never, { home, configPath: join(home, ".pi", "agent", "orgm.json") } as never);
+		repoIndexExtension(harness.pi as never, { home, configPath } as never);
 
 		assert.deepEqual(Object.keys(harness.commands), ["orgm-repo-tree"], "only /orgm-repo-tree should be registered");
 		assert(!harness.commands["orgm-repo-tree"].description.includes(".pi-cache"), "command description must not mention cache files");
@@ -90,8 +90,16 @@ function createHarness(entries: unknown[] = []) {
 }
 
 {
-	const { home, root } = makeProject();
+	const { home, root, configPath } = makeProject();
 	try {
+		mkdirSync(join(home, ".pi", "agent"), { recursive: true });
+		writeFileSync(configPath, JSON.stringify({ repoTree: { enabled: false, maxDepth: 3 } }), "utf8");
+		const disabled = createHarness();
+		disabled.ctx.cwd = root;
+		repoIndexExtension(disabled.pi as never, { home, configPath } as never);
+		await disabled.handlers.session_start({ reason: "startup" }, disabled.ctx);
+		assert.equal(disabled.sentMessages.length, 0, "repo-tree should not inject when disabled in orgm.json");
+
 		const withConversation = createHarness([{ type: "message", message: { role: "user" } }]);
 		withConversation.ctx.cwd = root;
 		repoIndexExtension(withConversation.pi as never, { home } as never);

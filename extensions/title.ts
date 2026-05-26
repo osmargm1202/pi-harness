@@ -2,6 +2,7 @@ import type { AgentMessage } from "@earendil-works/pi-agent-core";
 import { complete, type Message } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionContext, SessionEntry } from "@earendil-works/pi-coding-agent";
 import { convertToLlm, serializeConversation } from "@earendil-works/pi-coding-agent";
+import { loadOrgmConfig, saveOrgmConfigSlice } from "./lib/orgm-config.ts";
 import {
 	parseTitleCommand,
 	sanitizeTitle,
@@ -96,6 +97,7 @@ export default function titleExtension(pi: ExtensionAPI) {
 	let spinnerIndex = 0;
 	let generation: AbortController | null = null;
 	let autoAttempted = false;
+	let autoGenerate = loadOrgmConfig().title.autoGenerate;
 
 	const emitTitleState = () => {
 		pi.events.emit(TITLE_STATE_EVENT, status);
@@ -156,6 +158,7 @@ export default function titleExtension(pi: ExtensionAPI) {
 	};
 
 	pi.on("session_start", async (_event, ctx) => {
+		autoGenerate = loadOrgmConfig().title.autoGenerate;
 		autoAttempted = false;
 		generation = null;
 		stopSpinner();
@@ -166,7 +169,7 @@ export default function titleExtension(pi: ExtensionAPI) {
 	});
 
 	pi.on("before_agent_start", async (event, ctx) => {
-		if (autoAttempted || status.state === "ready") return;
+		if (!autoGenerate || autoAttempted || status.state === "ready") return;
 		autoAttempted = true;
 		startGeneration(ctx, event.prompt, "initial");
 	});
@@ -179,12 +182,13 @@ export default function titleExtension(pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("orgm-title", {
-		description: "Manage session title: /orgm-title [regen|name <título>|clear]",
+		description: "Manage session title: /orgm-title [regen|name <título>|clear|auto <on|off|toggle>]",
 		getArgumentCompletions: (prefix) => {
 			const options = [
 				{ value: "regen", label: "regen — regenerate title with AI from current context" },
 				{ value: "name ", label: "name <title> — set title manually" },
 				{ value: "clear", label: "clear — hide current title footer line" },
+				{ value: "auto ", label: "auto <on|off|toggle> — persist automatic title generation" },
 			];
 			const value = prefix.trimStart().toLowerCase();
 			return options.filter((option) => option.value.startsWith(value));
@@ -198,6 +202,12 @@ export default function titleExtension(pi: ExtensionAPI) {
 			}
 			if (command.action === "unknown") {
 				ctx.ui.notify(command.message, "warning");
+				return;
+			}
+			if (command.action === "auto") {
+				autoGenerate = command.toggle ? !autoGenerate : command.enabled ?? autoGenerate;
+				saveOrgmConfigSlice("title", { autoGenerate });
+				ctx.ui.notify(`Auto title ${autoGenerate ? "enabled" : "disabled"}`, autoGenerate ? "success" : "warning");
 				return;
 			}
 			if (command.action === "clear") {

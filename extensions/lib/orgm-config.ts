@@ -1,6 +1,6 @@
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { isAbsolute, join, normalize, resolve } from "node:path";
+import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
 
 export type OrgmFlowName = "normal" | "pi-orchestrator" | "sdd-tdd" | string;
 
@@ -12,7 +12,12 @@ export interface OrgmGitConfig {
 }
 
 export interface OrgmRepoTreeConfig {
+	enabled: boolean;
 	maxDepth: number;
+}
+
+export interface OrgmTitleConfig {
+	autoGenerate: boolean;
 }
 
 export interface OrgmCavemanConfig {
@@ -41,6 +46,7 @@ export interface OrgmHostConfig {
 	flows: Record<string, OrgmFlowName>;
 	git: OrgmGitConfig;
 	repoTree: OrgmRepoTreeConfig;
+	title: OrgmTitleConfig;
 	caveman: OrgmCavemanConfig;
 	minimalSkills: OrgmMinimalSkillsConfig;
 	agentStatus: OrgmAgentStatusConfig;
@@ -60,7 +66,11 @@ export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
 		ignoreRoots: ["~", "~/Nextcloud", "~/Nextcloud/**"],
 	},
 	repoTree: {
+		enabled: true,
 		maxDepth: 3,
+	},
+	title: {
+		autoGenerate: true,
 	},
 	caveman: {
 		defaultLevel: "off",
@@ -104,9 +114,17 @@ function mergeGitConfig(value: unknown): OrgmGitConfig {
 function mergeRepoTreeConfig(value: unknown): OrgmRepoTreeConfig {
 	const raw = isRecord(value) ? value : {};
 	return {
+		enabled: typeof raw.enabled === "boolean" ? raw.enabled : DEFAULT_ORGM_CONFIG.repoTree.enabled,
 		maxDepth: typeof raw.maxDepth === "number" && Number.isInteger(raw.maxDepth) && raw.maxDepth >= 0
 			? raw.maxDepth
 			: DEFAULT_ORGM_CONFIG.repoTree.maxDepth,
+	};
+}
+
+function mergeTitleConfig(value: unknown): OrgmTitleConfig {
+	const raw = isRecord(value) ? value : {};
+	return {
+		autoGenerate: typeof raw.autoGenerate === "boolean" ? raw.autoGenerate : DEFAULT_ORGM_CONFIG.title.autoGenerate,
 	};
 }
 
@@ -153,6 +171,7 @@ function mergeOrgmConfig(raw: Record<string, unknown>): OrgmHostConfig {
 		flows: { ...DEFAULT_ORGM_CONFIG.flows, ...flows },
 		git: mergeGitConfig(raw.git),
 		repoTree: mergeRepoTreeConfig(raw.repoTree),
+		title: mergeTitleConfig(raw.title),
 		caveman: mergeCavemanConfig(raw.caveman),
 		minimalSkills: mergeMinimalSkillsConfig(raw.minimalSkills),
 		agentStatus: mergeAgentStatusConfig(raw.agentStatus),
@@ -200,7 +219,7 @@ export function loadOrgmConfig(configPath = orgmConfigPath()): OrgmHostConfig {
 	}
 }
 
-export function saveOrgmConfigSlice<K extends keyof Pick<OrgmHostConfig, "caveman" | "minimalSkills" | "agentStatus" | "repoTree">>(
+export function saveOrgmConfigSlice<K extends keyof Pick<OrgmHostConfig, "defaultPrimaryAgent" | "caveman" | "minimalSkills" | "agentStatus" | "repoTree" | "title">>(
 	slice: K,
 	value: OrgmHostConfig[K],
 	configPath = orgmConfigPath(),
@@ -212,5 +231,6 @@ export function saveOrgmConfigSlice<K extends keyof Pick<OrgmHostConfig, "cavema
 	} catch {
 		raw = {};
 	}
+	mkdirSync(dirname(configPath), { recursive: true });
 	writeFileSync(configPath, `${JSON.stringify({ ...raw, [slice]: value }, null, 2)}\n`, "utf8");
 }

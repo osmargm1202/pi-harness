@@ -28,6 +28,7 @@ export type TitleCommand =
 	| { action: "show" }
 	| { action: "regen" }
 	| { action: "name"; title: string }
+	| { action: "auto"; enabled?: boolean; toggle?: boolean }
 	| { action: "clear" }
 	| { action: "unknown"; message: string };
 
@@ -49,6 +50,13 @@ export function parseTitleCommand(args: string): TitleCommand {
 	const action = rawAction.toLowerCase();
 	if (action === "regen" || action === "regenerate") return { action: "regen" };
 	if (action === "clear" || action === "reset") return { action: "clear" };
+	if (action === "auto") {
+		const value = rest.join(" ").trim().toLowerCase();
+		if (value === "on" || value === "enable" || value === "enabled") return { action: "auto", enabled: true };
+		if (value === "off" || value === "disable" || value === "disabled") return { action: "auto", enabled: false };
+		if (value === "toggle") return { action: "auto", toggle: true };
+		return { action: "unknown", message: "Usage: /orgm-title auto <on|off|toggle>" };
+	}
 	if (action === "name" || action === "set") {
 		const title = sanitizeTitle(rest.join(" "));
 		if (!title) return { action: "unknown", message: "Usage: /orgm-title name <nombre del título>" };

@@ -7,12 +7,18 @@ import {
 	type CavemanLevel,
 	type CavemanState,
 	formatCavemanStatus,
+	loadCavemanConfig,
 	normalizeCavemanLevel,
 	readCavemanSkillBody,
 	resolveInitialCavemanState,
+	saveCavemanConfig,
 } from "./lib/caveman-state";
 
-const OFF_ALIASES = new Set(["off", "stop", "disable", "normal", "normal-mode", "stop-caveman"]);
+const OFF_ALIASES = new Set(["off", "stop", "disable", "normal", "normal-mode", "stop-caveman", "turn-off", "deactivate"]);
+const ON_ALIASES = new Set(["on", "start", "enable", "activate", "caveman"]);
+
+const ACTIVATION_RE = /^(?:please\s+)?(?:activate|enable|turn on|start|talk like|use)\b.*\bcaveman\b|^\s*caveman\s+mode\b/i;
+const DEACTIVATION_RE = /^(?:please\s+)?(?:stop|disable|deactivate|turn off)\b.*\bcaveman\b|^\s*caveman\b.*\b(stop|disable|deactivate|turn off)\b|^\s*normal mode\b/i;
 
 function buildUsage(): string {
 	return `Usage: /orgm-caveman <${CAVEMAN_LEVELS.join("|")}>`;
@@ -22,7 +28,13 @@ function normalizeCommandArg(args: string): CavemanLevel | undefined {
 	const normalized = args.trim().toLowerCase().replace(/\s+/g, "-");
 	if (!normalized) return undefined;
 	if (OFF_ALIASES.has(normalized)) return "off";
+	if (ON_ALIASES.has(normalized)) return "full";
 	return normalizeCavemanLevel(normalized);
+}
+
+function getActivationLevel(): CavemanLevel {
+	const configured = loadCavemanConfig().defaultLevel;
+	return configured === "off" ? "full" : configured;
 }
 
 function buildPromptOverlay(state: CavemanState, skillBody: string): string {
@@ -65,7 +77,10 @@ export default function (pi: ExtensionAPI) {
 			level,
 			enabled: level !== "off",
 		};
-		if (options?.persist !== false) persistState();
+		if (options?.persist !== false) {
+			persistState();
+			saveCavemanConfig({ defaultLevel: level });
+		}
 		emitState();
 
 		if (options?.notify !== false && options?.ctx?.hasUI) {
@@ -95,13 +110,20 @@ export default function (pi: ExtensionAPI) {
 
 	pi.on("input", async (event, ctx) => {
 		if (event.source === "extension") return { action: "continue" };
-		const normalized = event.text.trim().toLowerCase();
-		if (normalized !== "stop caveman" && normalized !== "normal mode") {
+		const text = event.text.trim();
+		if (!text) return { action: "continue" };
+
+		if (DEACTIVATION_RE.test(text)) {
+			setState("off", { ctx, notify: true });
+			return { action: "handled" };
+		}
+
+		if (ACTIVATION_RE.test(text)) {
+			setState(getActivationLevel(), { ctx, notify: true });
 			return { action: "continue" };
 		}
 
-		setState("off", { ctx, notify: true });
-		return { action: "handled" };
+		return { action: "continue" };
 	});
 
 	pi.on("before_agent_start", async (event, ctx) => {

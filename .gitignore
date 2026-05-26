@@ -1,0 +1,8 @@
+# Local/generated Pi cache
+.pi-cache/
+
+# Runtime/test dependency links
+node_modules/
+
+# Logs
+*.log
