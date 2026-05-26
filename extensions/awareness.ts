@@ -7,125 +7,143 @@ const execFileAsync = promisify(execFile);
 const CUSTOM_TYPE = "awareness";
 
 const AWARENESS_SCRIPT = String.raw`
-printf '\n===== CONTEXTO GENERAL =====\n'; \
-echo "Fecha: $(date)"; \
-echo "Usuario: $(whoami)"; \
-echo "Host: $(hostname)"; \
-echo "PWD: $(pwd)"; \
-echo "Shell actual: $SHELL"; \
-echo "Terminal: \${TERM:-N/A}"; \
-echo "Tmux: \${TMUX:+SI}\${TMUX:-NO}"; \
-echo "Distro: $(. /etc/os-release 2>/dev/null && echo "$PRETTY_NAME" || uname -a)"; \
-echo "Kernel: $(uname -srmo)"; \
-printf '\n===== PROYECTO =====\n'; \
-echo "Nombre carpeta: $(basename "$PWD")"; \
-echo "Ruta proyecto: $(pwd)"; \
-[ -f package.json ] && echo "Node project: $(node -p "require('./package.json').name || 'sin nombre'" 2>/dev/null)"; \
-[ -f pyproject.toml ] && echo "Python project: pyproject.toml detectado"; \
-[ -f go.mod ] && echo "Go module: $(head -n1 go.mod)"; \
-[ -f Cargo.toml ] && echo "Rust project: Cargo.toml detectado"; \
-printf '\n===== GIT =====\n'; \
-if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then \
-  echo "Repo root: $(git rev-parse --show-toplevel)"; \
-  echo "Branch: $(git branch --show-current)"; \
-  echo "Commit: $(git rev-parse --short HEAD)"; \
-  echo "Estado:"; git status --short; \
-  echo "Remotes:"; git remote -v; \
-else \
-  echo "No es un repositorio Git"; \
-fi; \
-printf '\n===== SHELLS Y HERRAMIENTAS =====\n'; \
-for c in bash fish zsh git docker podman distrobox tmux nvim vim code python python3 node npm pnpm bun go rustc cargo; do \
-  command -v "$c" >/dev/null 2>&1 && echo "$c: $(command -v "$c")"; \
-done; \
-printf '\n===== VERSIONES =====\n'; \
-bash --version 2>/dev/null | head -n1; \
-fish --version 2>/dev/null; \
-zsh --version 2>/dev/null; \
-git --version 2>/dev/null; \
-docker --version 2>/dev/null; \
-podman --version 2>/dev/null; \
-distrobox --version 2>/dev/null; \
-tmux -V 2>/dev/null; \
-python3 --version 2>/dev/null; \
-node --version 2>/dev/null; \
-go version 2>/dev/null; \
-printf '\n===== CONTENEDORES =====\n'; \
-echo "--- Docker ---"; docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}' 2>/dev/null || echo "Docker no disponible"; \
-echo "--- Podman ---"; podman ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}' 2>/dev/null || echo "Podman no disponible"; \
-echo "--- Distrobox ---"; distrobox list 2>/dev/null || echo "Distrobox no disponible"; \
-command -v distrobox-host-exec >/dev/null 2>&1 && echo "distrobox-host-exec: $(command -v distrobox-host-exec)" || echo "distrobox-host-exec: no disponible"; \
-printf '\n===== TMUX =====\n'; \
-tmux list-sessions 2>/dev/null || echo "No hay sesiones tmux o tmux no disponible"; \
-printf '\n===== ARCHIVOS CLAVE =====\n'; \
-find . -maxdepth 2 -type f \( \
--name 'package.json' -o \
--name 'pyproject.toml' -o \
--name 'requirements.txt' -o \
--name 'go.mod' -o \
--name 'Cargo.toml' -o \
--name 'Dockerfile' -o \
--name 'docker-compose.yml' -o \
--name 'compose.yml' -o \
--name '.env' -o \
--name '.env.example' -o \
--name 'flake.nix' \
-\) 2>/dev/null | sort; \
-printf '\n===== VARIABLES RELEVANTES =====\n'; \
-env | grep -E '^(SHELL|TERM|USER|HOME|PWD|PATH|XDG_|WAYLAND_DISPLAY|DISPLAY|SSH_|GIT_|DOCKER_|PODMAN_|CONTAINER|DISTROBOX|TMUX)' | sort; \
-printf '\n===== SISTEMA OPERATIVO =====\n'; \
-echo "OS: $(. /etc/os-release 2>/dev/null && echo "$PRETTY_NAME" || uname -s)"; \
-echo "ID: $(. /etc/os-release 2>/dev/null && echo "$ID" || echo "N/A")"; \
-echo "Version ID: $(. /etc/os-release 2>/dev/null && echo "\${VERSION_ID:-N/A}" || echo "N/A")"; \
-echo "Kernel: $(uname -srmo)"; \
-echo "Arquitectura: $(uname -m)"; \
-echo "Init: $(ps -p 1 -o comm= 2>/dev/null || echo "N/A")"; \
-echo "Hostname: $(hostname)"; \
-echo "Contenedor: $(systemd-detect-virt --container 2>/dev/null || echo "no detectado")"; \
-echo "Virtualización: $(systemd-detect-virt 2>/dev/null || echo "no detectado")"; \
-echo "WSL: $(grep -qi microsoft /proc/version 2>/dev/null && echo "SI" || echo "NO")"; \
-echo "Sesión: \${XDG_SESSION_TYPE:-N/A}"; \
-echo "Desktop: \${XDG_CURRENT_DESKTOP:-N/A}"; \
-echo "Wayland: \${WAYLAND_DISPLAY:-NO}"; \
-echo "Display X11: \${DISPLAY:-NO}"; \
-printf '\n===== BINARIOS DISPONIBLES =====\n'; \
-printf 'Directorios bin comunes detectados:\n'; \
-for d in \
-  "$HOME/.local/bin" \
-  "$HOME/bin" \
-  "$HOME/go/bin" \
-  "$HOME/.cargo/bin" \
-  "$HOME/.npm-global/bin" \
-  "$HOME/.bun/bin" \
-  "$HOME/.deno/bin" \
-  "$HOME/.pub-cache/bin" \
-  "$HOME/.config/composer/vendor/bin" \
-  "$HOME/.local/share/gem/ruby"*/bin \
-  "/usr/local/bin" \
-  "/usr/bin" \
-  "/bin" \
-  "/run/current-system/sw/bin" \
-  "/etc/profiles/per-user/$USER/bin" \
-  "/nix/var/nix/profiles/default/bin"; do \
-  [ -d "$d" ] && echo "  - $d"; \
-done; \
-printf '\nBinarios encontrados en directorios personales:\n'; \
-for d in \
-  "$HOME/.local/bin" \
-  "$HOME/bin" \
-  "$HOME/go/bin" \
-  "$HOME/.cargo/bin" \
-  "$HOME/.npm-global/bin" \
-  "$HOME/.bun/bin" \
-  "$HOME/.deno/bin" \
-  "$HOME/.pub-cache/bin" \
-  "$HOME/.config/composer/vendor/bin" \
-  "$HOME/.local/share/gem/ruby"*/bin; do \
-  if [ -d "$d" ]; then \
-    echo "--- $d ---"; \
-    find "$d" -maxdepth 1 -type f -executable -printf '%f\n' 2>/dev/null | sort | sed 's/^/  /'; \
-  fi; \
+section() { printf '\n===== %s =====\n' "$1"; }
+cmd_path() { command -v "$1" 2>/dev/null || true; }
+has_cmd() { command -v "$1" >/dev/null 2>&1; }
+os_pretty() { . /etc/os-release 2>/dev/null && printf '%s' "\${PRETTY_NAME:-$NAME}" || uname -s; }
+os_id() { . /etc/os-release 2>/dev/null && printf '%s' "\${ID:-N/A}" || printf 'N/A'; }
+os_version_id() { . /etc/os-release 2>/dev/null && printf '%s' "\${VERSION_ID:-N/A}" || printf 'N/A'; }
+virt_container() { systemd-detect-virt --container 2>/dev/null || printf 'no detectado'; }
+virt_any() { systemd-detect-virt 2>/dev/null || printf 'no detectado'; }
+is_toolbox() {
+  [ -n "\${TOOLBOX_PATH:-}" ] && return 0
+  [ -f /run/.containerenv ] && grep -qi 'toolbox\|com.github.containers.toolbox' /run/.containerenv && return 0
+  [ -f /run/host/container-manager ] && grep -qi toolbox /run/host/container-manager && return 0
+  return 1
+}
+is_distrobox() {
+  [ -n "\${DISTROBOX_ENTER_PATH:-}" ] && return 0
+  [ -f /run/.containerenv ] && grep -qi 'distrobox' /run/.containerenv && return 0
+  return 1
+}
+host_exec() {
+  if has_cmd distrobox-host-exec; then
+    distrobox-host-exec "$@" 2>/dev/null
+  elif has_cmd flatpak-spawn; then
+    flatpak-spawn --host "$@" 2>/dev/null
+  else
+    return 127
+  fi
+}
+host_exec_available() {
+  has_cmd distrobox-host-exec || has_cmd flatpak-spawn
+}
+host_os_pretty() { host_exec sh -lc '. /etc/os-release 2>/dev/null && printf "%s" "\${PRETTY_NAME:-$NAME}" || uname -s'; }
+host_virt_any() {
+  out="$(host_exec systemd-detect-virt 2>/dev/null || true)"
+  [ -n "$out" ] && printf '%s' "$out" || printf 'no detectado'
+}
+
+section 'CONTEXTO GENERAL'
+echo "Fecha: $(date)"
+echo "Usuario: $(whoami)"
+echo "Host/container: $(hostname)"
+echo "PWD: $(pwd)"
+echo "Shell actual: \${SHELL:-N/A}"
+echo "Terminal: \${TERM:-N/A}"
+echo "Tmux: \${TMUX:+SI}\${TMUX:-NO}"
+echo "Distro/container: $(os_pretty)"
+echo "Kernel/container: $(uname -srmo)"
+
+if host_exec_available && { is_distrobox || is_toolbox || [ "$(virt_container)" != "no detectado" ]; }; then
+  section 'HOST EXTERNO'
+  echo "Host: $(host_exec hostname || echo 'N/A')"
+  echo "Usuario host: $(host_exec whoami || echo 'N/A')"
+  echo "OS host: $(host_os_pretty || echo 'N/A')"
+  echo "Kernel host: $(host_exec uname -srmo || echo 'N/A')"
+  echo "Virtualización host: $(host_virt_any || echo 'N/A')"
+  echo "Ejecutor host: $(has_cmd distrobox-host-exec && cmd_path distrobox-host-exec || printf 'flatpak-spawn --host')"
+fi
+
+section 'PROYECTO'
+echo "Nombre carpeta: $(basename "$PWD")"
+echo "Ruta proyecto: $(pwd)"
+[ -f package.json ] && echo "Node project: $(node -p "require('./package.json').name || 'sin nombre'" 2>/dev/null)"
+[ -f pyproject.toml ] && echo "Python project: pyproject.toml detectado"
+[ -f go.mod ] && echo "Go module: $(head -n1 go.mod)"
+[ -f Cargo.toml ] && echo "Rust project: Cargo.toml detectado"
+
+section 'GIT'
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  echo "Repo root: $(git rev-parse --show-toplevel)"
+  echo "Branch: $(git branch --show-current)"
+  echo "Commit: $(git rev-parse --short HEAD)"
+  status="$(git status --short)"
+  if [ -n "$status" ]; then
+    echo "Estado:"
+    printf '%s\n' "$status"
+  else
+    echo "Estado: limpio"
+  fi
+  echo "Remotes:"
+  git remote -v
+else
+  echo "No es un repositorio Git"
+fi
+
+section 'SHELLS Y HERRAMIENTAS'
+for c in bash fish zsh git docker podman distrobox toolbox tmux nvim vim code python python3 node npm pnpm bun go rustc cargo distrobox-host-exec flatpak-spawn; do
+  p="$(cmd_path "$c")"
+  [ -n "$p" ] && echo "$c: $p"
 done
+
+section 'CONTENEDORES'
+echo "Contenedor actual: $(virt_container)"
+echo "Distrobox: $(is_distrobox && echo SI || echo NO)"
+echo "Toolbox: $(is_toolbox && echo SI || echo NO)"
+if has_cmd docker; then
+  docker_items="$(docker ps --format '{{.Names}} ({{.Status}})' 2>/dev/null | head -n 5 | paste -sd ',' - | sed 's/,/, /g')"
+  echo "Docker: \${docker_items:-sin contenedores visibles}"
+else
+  echo "Docker: no disponible"
+fi
+if has_cmd podman; then
+  podman_items="$(podman ps --format '{{.Names}} ({{.Status}})' 2>/dev/null | head -n 5 | paste -sd ',' - | sed 's/,/, /g')"
+  echo "Podman: \${podman_items:-sin contenedores visibles}"
+else
+  echo "Podman: no disponible"
+fi
+if has_cmd distrobox; then
+  distrobox_items="$(distrobox list 2>/dev/null | tail -n +2 | awk '{print $1}' | head -n 5 | paste -sd ',' - | sed 's/,/, /g')"
+  echo "Distrobox list: \${distrobox_items:-sin distroboxes visibles}"
+else
+  echo "Distrobox list: no disponible"
+fi
+if has_cmd toolbox; then
+  toolbox_items="$(toolbox list 2>/dev/null | tail -n +2 | awk '{print $2}' | head -n 5 | paste -sd ',' - | sed 's/,/, /g')"
+  echo "Toolbox list: \${toolbox_items:-sin toolboxes visibles}"
+else
+  echo "Toolbox list: no disponible"
+fi
+dbe_path="$(cmd_path distrobox-host-exec)"
+echo "distrobox-host-exec: \${dbe_path:-no disponible}"
+[ -z "$dbe_path" ] && echo "flatpak-spawn: $(cmd_path flatpak-spawn || echo 'no disponible')"
+
+section 'SISTEMA OPERATIVO'
+echo "OS/container: $(os_pretty)"
+echo "ID/container: $(os_id)"
+echo "Version ID/container: $(os_version_id)"
+echo "Kernel/container: $(uname -srmo)"
+echo "Arquitectura: $(uname -m)"
+echo "Init/container: $(ps -p 1 -o comm= 2>/dev/null || echo 'N/A')"
+echo "Hostname/container: $(hostname)"
+echo "Contenedor: $(virt_container)"
+echo "Virtualización: $(virt_any)"
+echo "WSL: $(grep -qi microsoft /proc/version 2>/dev/null && echo SI || echo NO)"
+echo "Sesión: \${XDG_SESSION_TYPE:-N/A}"
+echo "Desktop: \${XDG_CURRENT_DESKTOP:-N/A}"
+echo "Wayland: \${WAYLAND_DISPLAY:-NO}"
+echo "Display X11: \${DISPLAY:-NO}"
 `.replaceAll("\\${", "${");
 
 async function runAwarenessShell(cwd: string): Promise<string> {
@@ -179,6 +197,11 @@ export async function buildAwarenessText(ctx: Pick<ExtensionContext, "cwd">): Pr
 	].join("\n");
 }
 
+export function renderAwarenessContent(content: string, expanded: boolean): string {
+	if (!expanded) return "awareness";
+	return `awareness\n${content}`;
+}
+
 function alreadyInjected(ctx: ExtensionContext): boolean {
 	return ctx.sessionManager.getEntries().some((entry) => "customType" in entry && entry.customType === CUSTOM_TYPE);
 }
@@ -198,8 +221,8 @@ function shouldInjectAwareness(reason: SessionStartEvent["reason"], ctx: Extensi
 }
 
 export default function (pi: ExtensionAPI) {
-	pi.registerMessageRenderer(CUSTOM_TYPE, (message, _options, theme) => {
-		return new Text(theme.fg("muted", "awareness\n") + String(message.content ?? ""), 0, 0);
+	pi.registerMessageRenderer(CUSTOM_TYPE, (message, options, theme) => {
+		return new Text(theme.fg("muted", renderAwarenessContent(String(message.content ?? ""), options.expanded)), 0, 0);
 	});
 
 	pi.on("session_start", async (event, ctx) => {
