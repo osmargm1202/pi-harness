@@ -33,6 +33,7 @@ import {
 	type AgentConfig,
 	type AgentSource,
 	discoverDeployableAgents,
+	getPackageAgentDirs,
 } from "./lib/agent-discovery";
 
 // ─── Widget / status keys ───────────────────────────────────────────────────
@@ -1075,19 +1076,25 @@ function loadTeamsFromFile(
 	}
 }
 
-function discoverTeams(
+export function discoverTeams(
 	cwd: string,
 	scope: "user" | "project" | "both" = "both",
 ): TeamConfig[] {
 	const userFile = join(getAgentDir(), "agents", "teams.yaml");
 	const projectFile = findNearestProjectTeamsFile(cwd);
+	const packageTeams =
+		scope === "project"
+			? []
+			: getPackageAgentDirs().flatMap((dir) =>
+					loadTeamsFromFile(join(dir, "teams.yaml"), "user"),
+				);
 	const userTeams =
 		scope === "project" ? [] : loadTeamsFromFile(userFile, "user");
 	const projectTeams =
 		scope === "user" || !projectFile
 			? []
 			: loadTeamsFromFile(projectFile, "project");
-	return mergeByName(userTeams, projectTeams, scope);
+	return mergeByName([...packageTeams, ...userTeams], projectTeams, scope);
 }
 
 function findTeam(

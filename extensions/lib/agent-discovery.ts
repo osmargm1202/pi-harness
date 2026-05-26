@@ -1,4 +1,5 @@
 import { existsSync, lstatSync, readFileSync, readdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { dirname, join, parse, relative } from "node:path";
 import { getAgentDir, parseFrontmatter } from "@mariozechner/pi-coding-agent";
 
@@ -66,6 +67,21 @@ export function findNearestProjectAgentsDir(cwd: string): string | null {
 		if (parentPath === current) return null;
 		current = parentPath;
 	}
+}
+
+export function getPackageAgentsDir(): string | null {
+	try {
+		const extensionLibDir = dirname(fileURLToPath(import.meta.url));
+		const candidate = join(extensionLibDir, "..", "..", "agents");
+		return existsSync(candidate) ? candidate : null;
+	} catch {
+		return null;
+	}
+}
+
+export function getPackageAgentDirs(): string[] {
+	const dir = getPackageAgentsDir();
+	return dir ? [dir] : [];
 }
 
 function mergeByName<T extends { name: string }>(
@@ -190,17 +206,23 @@ export function discoverDeployableAgents(cwd: string, scope: AgentScope = "both"
 	const options = {
 		excludeFileNames: new Set(["index.md"]),
 	};
+	const packageAgents = scope === "project"
+		? []
+		: getPackageAgentDirs().flatMap((dir) => loadAgentsRecursiveFromDir(dir, "user", options));
 	const userAgents = scope === "project" ? [] : loadAgentsRecursiveFromDir(userDir, "user", options);
 	const projectAgents = scope === "user" || !projectDir ? [] : loadAgentsRecursiveFromDir(projectDir, "project", options);
-	return mergeByName(userAgents, projectAgents, scope);
+	return mergeByName([...packageAgents, ...userAgents], projectAgents, scope);
 }
 
 export function discoverPrimaryAgents(cwd?: string, scope: AgentScope = "both"): PrimaryAgent[] {
 	const userDir = join(getAgentDir(), "agents");
 	const projectDir = cwd ? findNearestProjectAgentsDir(cwd) : null;
+	const packageAgents = scope === "project"
+		? []
+		: getPackageAgentDirs().flatMap((dir) => listPrimaryAgentsFromRoot(dir, "user"));
 	const userAgents = scope === "project" ? [] : listPrimaryAgentsFromRoot(userDir, "user");
 	const projectAgents = scope === "user" || !projectDir ? [] : listPrimaryAgentsFromRoot(projectDir, "project");
-	return mergeByName(userAgents, projectAgents, scope);
+	return mergeByName([...packageAgents, ...userAgents], projectAgents, scope);
 }
 
 export function findDeployableAgent(cwd: string, name: string, scope: AgentScope = "both"): AgentConfig | undefined {
