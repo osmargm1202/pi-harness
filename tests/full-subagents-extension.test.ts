@@ -54,7 +54,10 @@ const taskResult = await taskTool.execute(
 	{ cwd: process.cwd(), hasUI: false, ui: {}, sessionManager: { getSessionFile: () => undefined } },
 );
 assert(taskResult.content[0].text.includes("queued"));
+assert.match(taskResult.content[0].text, /no runtime pool/i);
 assert.equal(taskResult.details.agent, "tdd-planner");
+assert.equal(taskResult.details.requestId, "queued-without-runtime");
+assert.equal(taskResult.details.runtimeAvailable, false);
 
 const teamTool = tools.find((tool) => tool.name === FULL_QUERY_TEAM_TOOL);
 const teamResult = await teamTool.execute(
@@ -65,4 +68,6 @@ const teamResult = await teamTool.execute(
 	{ cwd: process.cwd(), hasUI: false, ui: {}, sessionManager: { getSessionFile: () => undefined } },
 );
 assert(teamResult.content[0].text.includes("tdd-core"));
+assert.match(teamResult.content[0].text, /no runtime pool/i);
 assert.equal(teamResult.details.team, "tdd-core");
+assert.equal(teamResult.details.runtimeAvailable, false);

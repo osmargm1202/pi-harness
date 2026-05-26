@@ -121,11 +121,14 @@ export default function registerFullSubagents(pi: ExtensionAPI) {
 		parameters: TaskParams,
 		async execute(_toolCallId: string, params: { agent: string; task: string; cwd?: string }, _signal: unknown, _onUpdate: unknown, ctx: ExtensionContext) {
 			const cwd = params.cwd ?? ctx.cwd;
-			let requestId = "queued-without-runtime";
-			if (pool) requestId = pool.startTask(params.agent, params.task, cwd);
+			const runtimeAvailable = Boolean(pool);
+			const requestId = pool ? pool.startTask(params.agent, params.task, cwd) : "queued-without-runtime";
+			const text = runtimeAvailable
+				? `Task queued for ${params.agent}: ${params.task}`
+				: `Task accepted and recorded as queued for ${params.agent}: ${params.task}. No runtime pool is wired yet.`;
 			return {
-				content: [{ type: "text", text: `Task queued for ${params.agent}: ${params.task}` }],
-				details: { agent: params.agent, task: params.task, cwd, requestId },
+				content: [{ type: "text", text }],
+				details: { agent: params.agent, task: params.task, cwd, requestId, runtimeAvailable },
 			};
 		},
 	});
@@ -139,9 +142,13 @@ export default function registerFullSubagents(pi: ExtensionAPI) {
 		parameters: TeamParams,
 		async execute(_toolCallId: string, params: { team: string; task: string; execution?: "parallel" | "serial" }) {
 			const members = config.teams[params.team] ?? [];
+			const runtimeAvailable = Boolean(pool);
+			const text = runtimeAvailable
+				? `Team work queued on the configured team surface for ${params.team} (${members.length} member(s)): ${params.task}`
+				: `Team work queued on the configured team surface for ${params.team} (${members.length} member(s)): ${params.task}. No runtime pool is wired yet.`;
 			return {
-				content: [{ type: "text", text: `Team ${params.team} queued for ${members.length} member(s): ${params.task}` }],
-				details: { team: params.team, task: params.task, execution: params.execution ?? "parallel", members },
+				content: [{ type: "text", text }],
+				details: { team: params.team, task: params.task, execution: params.execution ?? "parallel", members, runtimeAvailable },
 			};
 		},
 	});
