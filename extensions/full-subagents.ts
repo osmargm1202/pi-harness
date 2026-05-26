@@ -81,8 +81,10 @@ export default function registerFullSubagents(pi: ExtensionAPI) {
 	pi.on("session_start", async (_event: unknown, ctx: ExtensionContext) => {
 		config = loadFullSubagentsConfig(orgmConfigPath());
 		snapshots = fallbackSnapshots(config);
-		if (config.enabled && ctx.hasUI) {
+		if (!config.enabled) return;
+		if (ctx.hasUI) {
 			installFullSubagentsWidget(ctx, getSnapshots, { showModel: true, showContext: true, showCompact: true });
+			ctx.ui.notify(`Full subagents startup team: ${config.startupTeam} (${snapshots.length})`, "info");
 		}
 	});
 

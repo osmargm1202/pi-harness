@@ -58,6 +58,21 @@ interface RuntimeRecord {
 	snapshot: FullSubagentSnapshot;
 }
 
+export interface PiChildArgsInput {
+	agentName: string;
+	model?: string;
+	tools: string[];
+	cwd: string;
+}
+
+export function buildPiChildArgs(input: PiChildArgsInput): string[] {
+	const args = ["--mode", "json", "-p", "--no-session"];
+	if (input.model) args.push("--model", input.model);
+	if (input.tools.length > 0) args.push("--tools", input.tools.join(","));
+	args.push(`Full subagent ${input.agentName} ready. Wait for task protocol messages from parent.`);
+	return args;
+}
+
 export function createProtocolMessage(
 	agentId: string,
 	type: FullSubagentMessageType,

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
 	FullSubagentPool,
+	buildPiChildArgs,
 	createProtocolMessage,
 	parseProtocolLine,
 	type FullSubagentTransport,
@@ -85,3 +86,23 @@ const shutdownLine = fake.sent.at(-1)!;
 assert.equal(shutdownLine.endsWith("\n"), true);
 assert.equal(JSON.parse(shutdownLine).type, "shutdown");
 assert.equal(pool.getSnapshot()[0].state, "dead");
+
+assert.deepEqual(
+	buildPiChildArgs({
+		agentName: "tdd-planner",
+		model: "anthropic/claude-sonnet-4-5",
+		tools: ["read", "bash"],
+		cwd: "/repo",
+	}),
+	[
+		"--mode",
+		"json",
+		"-p",
+		"--no-session",
+		"--model",
+		"anthropic/claude-sonnet-4-5",
+		"--tools",
+		"read,bash",
+		"Full subagent tdd-planner ready. Wait for task protocol messages from parent.",
+	],
+);
