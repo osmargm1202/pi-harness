@@ -118,6 +118,12 @@ export function renderWrappedQuestion(question: string, width: number, style: (t
 	return wrapTextWithAnsi(style(question), contentWidth).map((line) => truncateToWidth(` ${line}`, width));
 }
 
+export function renderWrappedDescription(description: string, width: number, style: (text: string) => string): string[] {
+	const indent = "     ";
+	const contentWidth = Math.max(1, width - indent.length);
+	return wrapTextWithAnsi(style(description), contentWidth).map((line) => truncateToWidth(`${indent}${line}`, width));
+}
+
 async function runQuestionnaire(ctx: ExtensionContext, params: QuestionParams) {
 	const validationError = validateParams(params);
 	if (validationError) {
@@ -353,7 +359,9 @@ async function runQuestionnaire(ctx: ExtensionContext, params: QuestionParams) {
 					if (row.kind === "option") {
 						const checked = question.multiSelect ? (selectedLabels(currentTab).includes(row.option.label) ? "[x] " : "[ ] ") : "";
 						add(prefix + theme.fg(selected ? "accent" : "text", `${checked}${index + 1}. ${row.option.label}`));
-						if (row.option.description) add(`     ${theme.fg("muted", row.option.description)}`);
+						if (row.option.description) {
+							for (const line of renderWrappedDescription(row.option.description, width, (text) => theme.fg("muted", text))) add(line);
+						}
 					} else if (row.kind === "custom") {
 						add(prefix + theme.fg(selected ? "accent" : "text", `${index + 1}. Type something.`));
 					} else {
