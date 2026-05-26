@@ -1,6 +1,11 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
+import {
+	DEFAULT_FULL_SUBAGENTS_CONFIG,
+	type FullSubagentsConfig,
+	mergeFullSubagentsConfig,
+} from "./full-subagents-config.ts";
 
 export type OrgmFlowName = "normal" | "pi-orchestrator" | "sdd-tdd" | string;
 
@@ -50,6 +55,7 @@ export interface OrgmHostConfig {
 	caveman: OrgmCavemanConfig;
 	minimalSkills: OrgmMinimalSkillsConfig;
 	agentStatus: OrgmAgentStatusConfig;
+	fullSubagents: FullSubagentsConfig;
 }
 
 export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
@@ -89,6 +95,7 @@ export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
 		showActivity: true,
 		showCaveman: true,
 	},
+	fullSubagents: structuredClone(DEFAULT_FULL_SUBAGENTS_CONFIG),
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -175,6 +182,7 @@ function mergeOrgmConfig(raw: Record<string, unknown>): OrgmHostConfig {
 		caveman: mergeCavemanConfig(raw.caveman),
 		minimalSkills: mergeMinimalSkillsConfig(raw.minimalSkills),
 		agentStatus: mergeAgentStatusConfig(raw.agentStatus),
+		fullSubagents: mergeFullSubagentsConfig(raw.fullSubagents),
 	};
 }
 
@@ -219,7 +227,7 @@ export function loadOrgmConfig(configPath = orgmConfigPath()): OrgmHostConfig {
 	}
 }
 
-export function saveOrgmConfigSlice<K extends keyof Pick<OrgmHostConfig, "defaultPrimaryAgent" | "caveman" | "minimalSkills" | "agentStatus" | "repoTree" | "title">>(
+export function saveOrgmConfigSlice<K extends keyof Pick<OrgmHostConfig, "defaultPrimaryAgent" | "caveman" | "minimalSkills" | "agentStatus" | "repoTree" | "title" | "fullSubagents">>(
 	slice: K,
 	value: OrgmHostConfig[K],
 	configPath = orgmConfigPath(),

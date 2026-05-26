@@ -30,3 +30,33 @@ Pi package discovery loads the package `extensions/`, `prompts`, and `themes` th
 ## Security note
 
 This package is intended to be public, but it should still be reviewed before publication or installation to ensure it contains no secrets, local-only credentials, private host paths that should not be shared, or unsafe extension behavior.
+
+## full-subagents
+
+`extensions/full-subagents.ts` configures and displays a startup team of headless Pi subagents and gives the parent agent tools for strict delegation. Child process transport is prepared, but real persistent process spawning is not yet fully wired in this MVP.
+
+Minimal `~/.pi/agent/orgm.json` slice:
+
+```json
+{
+  "fullSubagents": {
+    "enabled": true,
+    "strictDelegation": true,
+    "startupTeam": "tdd-core",
+    "maxAgents": 5
+  }
+}
+```
+
+When enabled, the parent TUI shows a `Full subagents` widget. Busy or compacting agents are highlighted, idle agents are muted/healthy, and dead or errored agents are marked as down.
+
+Parent-facing tools:
+
+- `full_subagent_task` — queue or route a task through one configured subagent in the pool surface.
+- `full_query_team` — queue or route work through a configured team in parallel or serial via the pool surface.
+
+Commands:
+
+- `/full-subagents` — show configured pool status.
+- `/full-subagents restart <agent>` — accepted command shape and placeholder for upcoming restart behavior; it does not actively restart an agent yet.
+- `/full-subagents team <name>` — accepted command shape and placeholder for upcoming team switch behavior; it does not actively switch teams yet.
