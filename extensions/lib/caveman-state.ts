@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getAgentDir, parseFrontmatter } from "@earendil-works/pi-coding-agent";
+import { loadOrgmConfig, orgmConfigPath } from "./orgm-config";
 import { findInstalledSkillPath } from "./package-paths";
 
 export const CAVEMAN_STATE_ENTRY = "caveman-level";
@@ -36,7 +37,7 @@ export function getDefaultCavemanSkillPath(): string {
 }
 
 export function getDefaultCavemanConfigPath(): string {
-	return join(getAgentDir(), "caveman.json");
+	return orgmConfigPath();
 }
 
 export function isCavemanLevel(value: unknown): value is CavemanLevel {
@@ -53,27 +54,20 @@ export function formatCavemanStatus(level: CavemanLevel): string {
 	return level === "off" ? "caveman:off" : `caveman:${level}`;
 }
 
-export function loadCavemanConfig(): CavemanConfig {
+export function loadCavemanConfig(configPath?: string): CavemanConfig {
 	const defaults: CavemanConfig = {
 		defaultLevel: "off",
 		showStatus: true,
 		skillPath: getDefaultCavemanSkillPath(),
 	};
-	const configPath = getDefaultCavemanConfigPath();
-	if (!existsSync(configPath)) return defaults;
-
-	try {
-		const parsed = JSON.parse(readFileSync(configPath, "utf8")) as Partial<CavemanConfig> & { defaultLevel?: string };
-		return {
-			defaultLevel: normalizeCavemanLevel(parsed.defaultLevel) ?? defaults.defaultLevel,
-			showStatus: typeof parsed.showStatus === "boolean" ? parsed.showStatus : defaults.showStatus,
-			skillPath: typeof parsed.skillPath === "string" && parsed.skillPath.trim()
-				? parsed.skillPath.trim()
-				: defaults.skillPath,
-		};
-	} catch {
-		return defaults;
-	}
+	const config = loadOrgmConfig(configPath).caveman;
+	return {
+		defaultLevel: normalizeCavemanLevel(config.defaultLevel) ?? defaults.defaultLevel,
+		showStatus: config.showStatus,
+		skillPath: typeof config.skillPath === "string" && config.skillPath.trim()
+			? config.skillPath.trim()
+			: defaults.skillPath,
+	};
 }
 
 export function resolveInitialCavemanState(entries: readonly any[]): CavemanState {

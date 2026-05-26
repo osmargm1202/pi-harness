@@ -465,7 +465,7 @@ export default function (pi: ExtensionAPI) {
 		pi.sendUserMessage(AUTO_REVIEW_PROMPT, { deliverAs: "followUp" });
 	});
 
-	pi.registerCommand("todos", {
+	pi.registerCommand("orgm-todos", {
 		description: "Show all todos on the current branch, grouped by status",
 		handler: async (_args, ctx) => {
 			if (!ctx.hasUI) return;

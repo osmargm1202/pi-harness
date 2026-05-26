@@ -4,8 +4,8 @@ import { getDefaultCavemanSkillPath, readCavemanSkillBody } from "../extensions/
 
 const skillPath = getDefaultCavemanSkillPath();
 assert(
-	skillPath.includes("pi-skills") && skillPath.endsWith("skills/caveman/SKILL.md"),
-	"default caveman skill path should resolve installed pi-skills package before missing user path",
+	skillPath.includes("pi-harness") && skillPath.endsWith("skills/caveman/SKILL.md"),
+	"default caveman skill path should resolve bundled package skill before missing user path",
 );
 assert(existsSync(skillPath), "default caveman skill path should exist");
 

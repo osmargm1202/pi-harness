@@ -1,14 +1,14 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 export default function (pi: ExtensionAPI) {
-	pi.registerCommand("clear", {
+	pi.registerCommand("orgm-clear", {
 		description: "Start a fresh recoverable session in the current working directory",
 		handler: async (_args, ctx) => {
 			await ctx.waitForIdle();
 
 			const currentSessionFile = ctx.sessionManager.getSessionFile();
 			const successMessage = currentSessionFile
-				? "Started a fresh session. Previous session preserved for /sessions recovery."
+				? "Started a fresh session. Previous session preserved for /orgm-sessions recovery."
 				: "Started a fresh session";
 			const result = await ctx.newSession({
 				parentSession: currentSessionFile,

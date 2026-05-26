@@ -395,7 +395,7 @@ export default function (pi: ExtensionAPI) {
 		await renderChangedDocs(ctx, baseline, setBaseline, "subagent spec artifact");
 	});
 
-	pi.registerCommand("spec-dis", {
+	pi.registerCommand("orgm-spec-dis", {
 		description: "List local spec/design/task/doc files and open a reader",
 		handler: async (_args, ctx) => {
 			await ctx.waitForIdle();

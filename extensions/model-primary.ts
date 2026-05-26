@@ -128,7 +128,7 @@ ${primary.systemPrompt}
 		}
 	});
 
-	pi.registerCommand("primary-agent", {
+	pi.registerCommand("orgm-primary-agent", {
 		description: "Open visual palette to select primary agent",
 		handler: async (_args, ctx) => {
 			if (!ctx.hasUI) {

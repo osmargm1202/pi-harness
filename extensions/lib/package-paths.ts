@@ -45,9 +45,9 @@ export function findInstalledSkillPath(skillName: string): string | null {
 	if (!clean) return null;
 
 	const directCandidates = [
+		join(getCurrentPackageRoot(), "skills", clean, "SKILL.md"),
 		join(getAgentDir(), "skills", clean, "SKILL.md"),
 		join(homedir(), ".agents", "skills", clean, "SKILL.md"),
-		join(getCurrentPackageRoot(), "skills", clean, "SKILL.md"),
 	];
 	for (const candidate of directCandidates) {
 		if (existsSync(candidate)) return candidate;

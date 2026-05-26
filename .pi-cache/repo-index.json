@@ -1,19 +1,21 @@
 {
   "version": 1,
-  "generatedAt": "2026-05-26T07:51:50.873Z",
+  "generatedAt": "2026-05-26T19:23:14.078Z",
   "project": {
     "name": "@osmargm1202/pi-harness",
     "root": "/home/osmarg/Code/pi-harness",
     "languages": [
       "json",
       "markdown",
+      "python",
+      "shell",
       "typescript",
       "yaml"
     ]
   },
   "git": {
     "branch": "main",
-    "commit": "8484793",
+    "commit": "56c2461",
     "dirty": true
   },
   "ignore": {
@@ -45,7 +47,7 @@
     ]
   },
   "stats": {
-    "files": 101,
+    "files": 346,
     "skippedLargeFiles": 0
   },
   "files": {
@@ -58,7 +60,7 @@
         "hash": "8707408a688da7eb",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -76,7 +78,7 @@
         "hash": "b4633a0986dc5000",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -94,7 +96,7 @@
         "hash": "8eaaad585960440e",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -112,7 +114,7 @@
         "hash": "0ccbd2ecb438571a",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -130,7 +132,7 @@
         "hash": "87ad1e058cdcd907",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -148,7 +150,7 @@
         "hash": "b15634b869273dc9",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -166,7 +168,7 @@
         "hash": "dec0565c57985848",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -184,7 +186,7 @@
         "hash": "39c8a7d559766796",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -202,7 +204,7 @@
         "hash": "ce9cba21942105f3",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -220,7 +222,7 @@
         "hash": "a2be59fd7d4af991",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -238,7 +240,7 @@
         "hash": "72ef5c4a0f616537",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -256,7 +258,7 @@
         "hash": "11b894bc4befb85d",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -274,7 +276,7 @@
         "hash": "9ec6f76f66c04431",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -292,7 +294,7 @@
         "hash": "79a1e2ce4ab1b9e1",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -310,7 +312,7 @@
         "hash": "31c2525bfd184f1c",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -328,7 +330,7 @@
         "hash": "c716b27e01392841",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -346,7 +348,7 @@
         "hash": "c44693e7efeae0c7",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -364,7 +366,7 @@
         "hash": "1cc5708953d83d1f",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -382,7 +384,7 @@
         "hash": "01bd36c0ad32a907",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -400,7 +402,7 @@
         "hash": "e1bd455f27ebb054",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -418,7 +420,7 @@
         "hash": "7f8c4f944a08f182",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -436,7 +438,7 @@
         "hash": "95cd7a583e35a99b",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -454,7 +456,7 @@
         "hash": "3d9ec0d0778b188e",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -472,7 +474,7 @@
         "hash": "e7ca0d625750c751",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -490,7 +492,7 @@
         "hash": "179fc269c76eba24",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -508,7 +510,7 @@
         "hash": "604926ed9ac9d684",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -526,7 +528,7 @@
         "hash": "e86d540cb44f0b98",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -544,7 +546,7 @@
         "hash": "ec3078b7c454902a",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -562,7 +564,7 @@
         "hash": "43a6425fb3f243fa",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -580,7 +582,7 @@
         "hash": "dcffa721f9a8271b",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -598,7 +600,7 @@
         "hash": "42d10144c6ab8944",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -616,7 +618,7 @@
         "hash": "377bfd6c39973203",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -634,7 +636,7 @@
         "hash": "7023fab1d94cf7b9",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -652,7 +654,7 @@
         "hash": "9e6ac677321848fc",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -670,7 +672,7 @@
         "hash": "22621b4a09deb681",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -688,7 +690,7 @@
         "hash": "becb50da4841aae5",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -706,7 +708,7 @@
         "hash": "2b0340bfa1160db7",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -724,7 +726,25 @@
         "hash": "66ce5b117010f405",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "docs/superpowers/plans/2026-05-26-orgm-repo-tree-and-config.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 80,
+        "bytes": 5247,
+        "hash": "8facc55e69c3e4ac",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -742,7 +762,7 @@
         "hash": "dcc48f1d71bde330",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -759,7 +779,7 @@
         "hash": "37c6f1e34e677a36",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -773,8 +793,8 @@
         "kind": "source",
         "language": "typescript",
         "lines": 329,
-        "bytes": 11156,
-        "hash": "580cae998a4892b2",
+        "bytes": 11161,
+        "hash": "32b0c0a0b1f18f3f",
         "exports": [
           "collectConfiguredAgentModels",
           "default",
@@ -787,7 +807,7 @@
           "node:fs",
           "node:path"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -801,8 +821,8 @@
         "kind": "source",
         "language": "typescript",
         "lines": 889,
-        "bytes": 37733,
-        "hash": "8ef9d2e9dce8adb4",
+        "bytes": 37763,
+        "hash": "a794a6a0ab91daec",
         "exports": [
           "default",
           "shouldShowAgentStatusWidget"
@@ -813,7 +833,7 @@
           "@earendil-works/pi-coding-agent",
           "@earendil-works/pi-tui"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -843,7 +863,7 @@
           "node:path",
           "typebox"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -871,7 +891,7 @@
           "node:child_process",
           "node:util"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -885,8 +905,8 @@
         "kind": "source",
         "language": "typescript",
         "lines": 142,
-        "bytes": 4676,
-        "hash": "c8554e1c3c61c8a9",
+        "bytes": 4686,
+        "hash": "d940d1022bde8054",
         "exports": [
           "default"
         ],
@@ -895,7 +915,7 @@
           "@earendil-works/pi-coding-agent",
           "@earendil-works/pi-tui"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -909,15 +929,15 @@
         "kind": "source",
         "language": "typescript",
         "lines": 24,
-        "bytes": 811,
-        "hash": "61c1f7563288cd7d",
+        "bytes": 821,
+        "hash": "2d98c2ce7cfc244f",
         "exports": [
           "default"
         ],
         "imports": [
           "@earendil-works/pi-coding-agent"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -942,7 +962,7 @@
           "node:child_process",
           "node:util"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -987,7 +1007,7 @@
           "node:fs",
           "node:path"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1000,9 +1020,9 @@
       "generated": {
         "kind": "source",
         "language": "typescript",
-        "lines": 53,
-        "bytes": 2192,
-        "hash": "918c980c77d7a573",
+        "lines": 35,
+        "bytes": 909,
+        "hash": "63b5d8acf886e2fc",
         "exports": [
           "AGENT_STATUS_CONFIG_DEFAULTS",
           "AgentStatusConfig",
@@ -1011,11 +1031,9 @@
           "saveAgentStatusConfig"
         ],
         "imports": [
-          "@earendil-works/pi-coding-agent",
-          "node:fs",
-          "node:path"
+          "./orgm-config"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1028,9 +1046,9 @@
       "generated": {
         "kind": "source",
         "language": "typescript",
-        "lines": 167,
-        "bytes": 5024,
-        "hash": "f39e103e843a11bf",
+        "lines": 161,
+        "bytes": 4814,
+        "hash": "917e4530479128bf",
         "exports": [
           "CAVEMAN_LEVELS",
           "CAVEMAN_STATE_ENTRY",
@@ -1048,12 +1066,13 @@
           "resolveInitialCavemanState"
         ],
         "imports": [
+          "./orgm-config",
           "./package-paths",
           "@earendil-works/pi-coding-agent",
           "node:fs",
           "node:path"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1078,7 +1097,7 @@
         "imports": [
           "./minimal-title.ts"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1092,8 +1111,8 @@
         "kind": "source",
         "language": "typescript",
         "lines": 91,
-        "bytes": 3462,
-        "hash": "8e4c22289342383b",
+        "bytes": 3487,
+        "hash": "6216d7672447f947",
         "exports": [
           "centerToWidth",
           "MAX_TITLE_WIDTH",
@@ -1110,7 +1129,7 @@
           "visibleWidth"
         ],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1123,26 +1142,34 @@
       "generated": {
         "kind": "source",
         "language": "typescript",
-        "lines": 103,
-        "bytes": 3725,
-        "hash": "ce0c022f5b6652b2",
+        "lines": 216,
+        "bytes": 7554,
+        "hash": "ab751bc7f60e5226",
         "exports": [
           "DEFAULT_ORGM_CONFIG",
           "expandHomePath",
           "isBlockedGitRoot",
           "loadOrgmConfig",
+          "mergeAgentStatusConfig",
+          "mergeCavemanConfig",
+          "mergeMinimalSkillsConfig",
           "normalizeFsPath",
+          "OrgmAgentStatusConfig",
+          "OrgmCavemanConfig",
           "orgmConfigPath",
           "OrgmFlowName",
           "OrgmGitConfig",
-          "OrgmHostConfig"
+          "OrgmHostConfig",
+          "OrgmMinimalSkillsConfig",
+          "OrgmRepoTreeConfig",
+          "saveOrgmConfigSlice"
         ],
         "imports": [
           "node:fs",
           "node:os",
           "node:path"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1165,7 +1192,7 @@
           "node:fs",
           "node:path"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1191,7 +1218,7 @@
           "./agent-discovery",
           "./orgm-config"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1206,7 +1233,7 @@
         "language": "typescript",
         "lines": 66,
         "bytes": 2064,
-        "hash": "a373227b7d3b57f4",
+        "hash": "5ee0403c1eec9985",
         "exports": [
           "findInstalledSkillPath",
           "getCurrentPackageAgentDirs",
@@ -1221,7 +1248,7 @@
           "node:path",
           "node:url"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1230,30 +1257,25 @@
         "ownerHints": []
       }
     },
-    "extensions/lib/repo-index.ts": {
+    "extensions/lib/repo-tree.ts": {
       "generated": {
         "kind": "source",
         "language": "typescript",
-        "lines": 355,
-        "bytes": 10511,
-        "hash": "9098bfd745272ef3",
+        "lines": 103,
+        "bytes": 3595,
+        "hash": "9de56153d78d91a2",
         "exports": [
-          "DEFAULT_IGNORED_DIRS",
-          "DEFAULT_IGNORED_FILES",
-          "generateRepoContext",
-          "generateRepoIndex",
-          "loadRepoIndex",
-          "RepoIndex",
-          "RepoIndexFile",
-          "RepoIndexOptions"
+          "buildProjectTreeText",
+          "isSafeProjectRoot",
+          "ProjectTreeConfig",
+          "resolveTreeRoot"
         ],
         "imports": [
-          "node:child_process",
-          "node:crypto",
           "node:fs",
+          "node:os",
           "node:path"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1266,24 +1288,26 @@
       "generated": {
         "kind": "source",
         "language": "typescript",
-        "lines": 464,
-        "bytes": 15806,
-        "hash": "27002bc9a10a72a7",
+        "lines": 443,
+        "bytes": 15253,
+        "hash": "9d2d4c89181a4ff5",
         "exports": [
-          "default"
+          "default",
+          "loadMinimalSkillsConfig",
+          "MinimalSkillsConfig"
         ],
         "imports": [
           "./lib/agent-discovery",
           "./lib/caveman-state",
           "./lib/minimal-skill.ts",
           "./lib/minimal-title.ts",
+          "./lib/orgm-config",
           "@earendil-works/pi-ai",
           "@earendil-works/pi-coding-agent",
           "@earendil-works/pi-tui",
-          "node:fs",
           "node:path"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1297,8 +1321,8 @@
         "kind": "source",
         "language": "typescript",
         "lines": 176,
-        "bytes": 5600,
-        "hash": "4449884fbdc87f02",
+        "bytes": 5605,
+        "hash": "5d3aed685261c24c",
         "exports": [
           "default"
         ],
@@ -1308,7 +1332,7 @@
           "@earendil-works/pi-coding-agent",
           "@earendil-works/pi-tui"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1332,7 +1356,7 @@
           "node:child_process",
           "node:path"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1362,7 +1386,7 @@
           "node:url",
           "node:util"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1375,20 +1399,22 @@
       "generated": {
         "kind": "source",
         "language": "typescript",
-        "lines": 87,
-        "bytes": 3902,
-        "hash": "b63a846584ba355b",
+        "lines": 86,
+        "bytes": 3132,
+        "hash": "b70bcc25f68bf856",
         "exports": [
-          "buildRepoIndexSystemPrompt",
-          "default"
+          "buildRepoTreeMessageContent",
+          "default",
+          "renderRepoTreeContent",
+          "RepoTreeExtensionOptions"
         ],
         "imports": [
-          "./lib/repo-index.ts",
+          "./lib/orgm-config.ts",
+          "./lib/repo-tree.ts",
           "@earendil-works/pi-coding-agent",
-          "node:fs",
-          "node:path"
+          "@earendil-works/pi-tui"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1402,8 +1428,8 @@
         "kind": "source",
         "language": "typescript",
         "lines": 818,
-        "bytes": 22274,
-        "hash": "a0a394249cd0437c",
+        "bytes": 22289,
+        "hash": "107fed861ba01bf7",
         "exports": [
           "default"
         ],
@@ -1413,7 +1439,7 @@
           "node:fs",
           "node:path"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1427,8 +1453,8 @@
         "kind": "source",
         "language": "typescript",
         "lines": 121,
-        "bytes": 4437,
-        "hash": "68dff7f64ea531d6",
+        "bytes": 4442,
+        "hash": "b58cde95855093db",
         "exports": [
           "default"
         ],
@@ -1437,7 +1463,7 @@
           "@earendil-works/pi-tui",
           "node:path"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1451,8 +1477,8 @@
         "kind": "source",
         "language": "typescript",
         "lines": 412,
-        "bytes": 13319,
-        "hash": "37139cbc2799c0bd",
+        "bytes": 13324,
+        "hash": "5df6a23d29a2ce70",
         "exports": [
           "default"
         ],
@@ -1462,7 +1488,7 @@
           "node:fs/promises",
           "node:path"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1495,7 +1521,7 @@
           "node:path",
           "typebox"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1509,8 +1535,8 @@
         "kind": "source",
         "language": "typescript",
         "lines": 223,
-        "bytes": 7774,
-        "hash": "18e35f8d9cc0b84b",
+        "bytes": 7794,
+        "hash": "adbaa76be5c52d1d",
         "exports": [
           "default"
         ],
@@ -1520,7 +1546,7 @@
           "@earendil-works/pi-ai",
           "@earendil-works/pi-coding-agent"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1534,8 +1560,8 @@
         "kind": "source",
         "language": "typescript",
         "lines": 524,
-        "bytes": 20159,
-        "hash": "eba6a49beab267c4",
+        "bytes": 20164,
+        "hash": "569de5442c267dd6",
         "exports": [
           "applyMutation",
           "cloneState",
@@ -1556,7 +1582,7 @@
           "@earendil-works/pi-tui",
           "typebox"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1590,7 +1616,7 @@
           "node:path",
           "node:url"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1603,12 +1629,12 @@
       "generated": {
         "kind": "manifest",
         "language": "json",
-        "lines": 36,
-        "bytes": 1007,
-        "hash": "ec7455d89b599444",
+        "lines": 38,
+        "bytes": 1049,
+        "hash": "e3077827774b36b0",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1626,7 +1652,7 @@
         "hash": "974369d9b5548913",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1644,7 +1670,7 @@
         "hash": "c99c87806ccc182d",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1662,7 +1688,7 @@
         "hash": "223b0c15c78a9a26",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1680,7 +1706,7 @@
         "hash": "da440d74f975b24c",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1698,7 +1724,4231 @@
         "hash": "b2b703b02a91fce2",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "sdd-orchestrator/orgm-repo-tree-and-config/tdd/build-progress": {
+      "generated": {
+        "kind": "asset",
+        "lines": 34,
+        "bytes": 2120,
+        "hash": "643fd64804f9a254",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "sdd-orchestrator/orgm-repo-tree-and-config/tdd/task1-review.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 47,
+        "bytes": 2983,
+        "hash": "9cf0b5c16dac65cb",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/bat-cat/_meta.json": {
+      "generated": {
+        "kind": "asset",
+        "language": "json",
+        "lines": 11,
+        "bytes": 269,
+        "hash": "a73e94096e23aa1b",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/bat-cat/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 210,
+        "bytes": 4077,
+        "hash": "3ac2879a4591a2ba",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/branch-pr/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 202,
+        "bytes": 5498,
+        "hash": "8553fdde3397c7dc",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/caveman-commit/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 65,
+        "bytes": 2481,
+        "hash": "9ea361c8617aaabb",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/caveman/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 87,
+        "bytes": 3682,
+        "hash": "4705628bff0a47a9",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/chained-pr/references/chaining-details.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 99,
+        "bytes": 3258,
+        "hash": "09534b2a10a68197",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/chained-pr/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 50,
+        "bytes": 2512,
+        "hash": "865f2e78db039797",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/cognitive-doc-design/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 81,
+        "bytes": 2378,
+        "hash": "80dcaeca45c35e83",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/comment-writer/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 74,
+        "bytes": 2198,
+        "hash": "4db060c285a2cc5b",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/curl-http/_meta.json": {
+      "generated": {
+        "kind": "asset",
+        "language": "json",
+        "lines": 11,
+        "bytes": 273,
+        "hash": "6b3f101c029c5468",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/curl-http/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 330,
+        "bytes": 7344,
+        "hash": "be6d626cfcbdbc52",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/LICENSE.txt": {
+      "generated": {
+        "kind": "asset",
+        "lines": 30,
+        "bytes": 1467,
+        "hash": "79f6d8f5b427252f",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/__init__.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 1,
+        "bytes": 1,
+        "hash": "01ba4719c80b6fe9",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/accept_changes.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 135,
+        "bytes": 4051,
+        "hash": "0c991d2bc7304a12",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/comment.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 318,
+        "bytes": 10694,
+        "hash": "e86e4e17ec580578",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/helpers/__init__.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 0,
+        "bytes": 0,
+        "hash": "e3b0c44298fc1c14",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/helpers/merge_runs.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 199,
+        "bytes": 5567,
+        "hash": "7c40ed838b88639c",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/helpers/simplify_redlines.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 197,
+        "bytes": 5754,
+        "hash": "560cb55978a834c5",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/pack.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 159,
+        "bytes": 4991,
+        "hash": "b1800987e568261a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ecma/fouth-edition/opc-contentTypes.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 42,
+        "bytes": 1963,
+        "hash": "9e0b7209fc69ab11",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ecma/fouth-edition/opc-coreProperties.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 50,
+        "bytes": 2515,
+        "hash": "451958454e8588df",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ecma/fouth-edition/opc-digSig.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 49,
+        "bytes": 2856,
+        "hash": "6de111e11403f7cd",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ecma/fouth-edition/opc-relationships.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 33,
+        "bytes": 1344,
+        "hash": "f565adfef5a50204",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-chart.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 1499,
+        "bytes": 74984,
+        "hash": "41b93bd8857cc68b",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-chartDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 146,
+        "bytes": 6956,
+        "hash": "3fd0586f2637b98b",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-diagram.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 1085,
+        "bytes": 51302,
+        "hash": "29b254ee0d10414a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-lockedCanvas.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 11,
+        "bytes": 624,
+        "hash": "5cb76dabd8b97d1e",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-main.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 3081,
+        "bytes": 152039,
+        "hash": "5375417f0f5394b8",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-picture.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 23,
+        "bytes": 1231,
+        "hash": "5d389d42befbebd9",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-spreadsheetDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 185,
+        "bytes": 8862,
+        "hash": "b4532b6d25883295",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-wordprocessingDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 287,
+        "bytes": 14795,
+        "hash": "bdad416b096b61d3",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/pml.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 1676,
+        "bytes": 83612,
+        "hash": "d173c3e5d61e42e2",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-additionalCharacteristics.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 28,
+        "bytes": 1269,
+        "hash": "3c6709101c6aaa82",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-bibliography.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 144,
+        "bytes": 7328,
+        "hash": "0b364451dc36a48d",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-commonSimpleTypes.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 174,
+        "bytes": 6382,
+        "hash": "e2abacbb9a55ce13",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-customXmlDataProperties.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 25,
+        "bytes": 1248,
+        "hash": "0ef4bb354ff44b92",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-customXmlSchemaProperties.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 18,
+        "bytes": 880,
+        "hash": "0d103b99a4a8652f",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesCustom.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 59,
+        "bytes": 2608,
+        "hash": "9c085407751b9061",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesExtended.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 56,
+        "bytes": 3507,
+        "hash": "bc92e36ccd233722",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesVariantTypes.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 195,
+        "bytes": 7507,
+        "hash": "7b5b7413e2c895b1",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-math.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 582,
+        "bytes": 23313,
+        "hash": "3213ef1631606250",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-relationshipReference.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 25,
+        "bytes": 1367,
+        "hash": "12264f3c03d73831",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/sml.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 4439,
+        "bytes": 242277,
+        "hash": "beffeed56945c22a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-main.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 570,
+        "bytes": 26148,
+        "hash": "f5ee623b08b6a669",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-officeDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 509,
+        "bytes": 25279,
+        "hash": "585bedc1313b4088",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-presentationDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 12,
+        "bytes": 535,
+        "hash": "133c9f64a5c5d573",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-spreadsheetDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 108,
+        "bytes": 5712,
+        "hash": "6bdeb169c3717eb0",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-wordprocessingDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 96,
+        "bytes": 4010,
+        "hash": "475dcae1e7d1ea46",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/wml.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 3646,
+        "bytes": 171367,
+        "hash": "c2dd9f61f892deae",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/ISO-IEC29500-4_2016/xml.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 116,
+        "bytes": 4646,
+        "hash": "a539aa2fb154fa50",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/mce/mc.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 75,
+        "bytes": 3127,
+        "hash": "3a37e461ecf5a867",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/microsoft/wml-2010.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 560,
+        "bytes": 26549,
+        "hash": "568b26ee156cb954",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/microsoft/wml-2012.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 67,
+        "bytes": 3745,
+        "hash": "0fa75578a000439a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/microsoft/wml-2018.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 14,
+        "bytes": 901,
+        "hash": "be0ff793a22dd313",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/microsoft/wml-cex-2018.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 20,
+        "bytes": 1778,
+        "hash": "fddc2b880cabb900",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/microsoft/wml-cid-2016.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 13,
+        "bytes": 1002,
+        "hash": "127ca209fa73d7cb",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/microsoft/wml-sdtdatahash-2020.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 4,
+        "bytes": 600,
+        "hash": "842e7163409c8d74",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/schemas/microsoft/wml-symex-2015.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 8,
+        "bytes": 745,
+        "hash": "16f6f8072249f431",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/soffice.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 183,
+        "bytes": 5301,
+        "hash": "a3e21840e29e32f9",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/unpack.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 132,
+        "bytes": 4052,
+        "hash": "83f69cecc8791018",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/validate.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 111,
+        "bytes": 3668,
+        "hash": "1aef24f8e316965a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/validators/__init__.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 15,
+        "bytes": 336,
+        "hash": "83e0f035c5abea23",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/validators/base.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 847,
+        "bytes": 32651,
+        "hash": "d6358b67252df4db",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/validators/docx.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 446,
+        "bytes": 16376,
+        "hash": "0ef04ce86b2e6b6a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/validators/pptx.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 275,
+        "bytes": 9824,
+        "hash": "f937961e62a5fa0d",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/office/validators/redlining.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 247,
+        "bytes": 8918,
+        "hash": "f4c33fdb9da0651d",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/templates/comments.xml": {
+      "generated": {
+        "kind": "asset",
+        "lines": 3,
+        "bytes": 2603,
+        "hash": "a08ba83ee8790ac9",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/templates/commentsExtended.xml": {
+      "generated": {
+        "kind": "asset",
+        "lines": 3,
+        "bytes": 2611,
+        "hash": "544eeecfeceed4b4",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/templates/commentsExtensible.xml": {
+      "generated": {
+        "kind": "asset",
+        "lines": 3,
+        "bytes": 2707,
+        "hash": "bad10b3283e6ad6e",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/templates/commentsIds.xml": {
+      "generated": {
+        "kind": "asset",
+        "lines": 3,
+        "bytes": 2619,
+        "hash": "db20f9616e004ec4",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/scripts/templates/people.xml": {
+      "generated": {
+        "kind": "asset",
+        "lines": 3,
+        "bytes": 115,
+        "hash": "056f63aa1197fd8c",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/docx/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 590,
+        "bytes": 20084,
+        "hash": "cfbabd72b1aec7df",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/fd-find/_meta.json": {
+      "generated": {
+        "kind": "asset",
+        "language": "json",
+        "lines": 11,
+        "bytes": 269,
+        "hash": "32c0f866df79a2fc",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/fd-find/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 194,
+        "bytes": 3373,
+        "hash": "5e69a68c9d2278da",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/find-skills/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 142,
+        "bytes": 5446,
+        "hash": "1e85f6f9686e145a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/fzf-fuzzy-finder/_meta.json": {
+      "generated": {
+        "kind": "asset",
+        "language": "json",
+        "lines": 11,
+        "bytes": 287,
+        "hash": "e54fe1ed6575258f",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/fzf-fuzzy-finder/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 323,
+        "bytes": 7427,
+        "hash": "e339f3180cf68364",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/gpt-image-2/scripts/extract_image.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 119,
+        "bytes": 3622,
+        "hash": "73f8d4dd8191f972",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/gpt-image-2/scripts/gen.sh": {
+      "generated": {
+        "kind": "asset",
+        "language": "shell",
+        "lines": 130,
+        "bytes": 4666,
+        "hash": "17de0964038fe2dd",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/gpt-image-2/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 129,
+        "bytes": 7250,
+        "hash": "8cfdf901253aa93c",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/interface-design/references/example.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 86,
+        "bytes": 3659,
+        "hash": "6914c93b92bea707",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/interface-design/references/principles.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 235,
+        "bytes": 10390,
+        "hash": "1ee5305f8a2c9483",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/interface-design/references/validation.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 48,
+        "bytes": 1052,
+        "hash": "2fa4730b8d82f3cc",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/interface-design/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 310,
+        "bytes": 14925,
+        "hash": "252ce0c69dc276ea",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/issue-creation/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 223,
+        "bytes": 6032,
+        "hash": "32d2cdfe36095ede",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/jq-json-processor/_meta.json": {
+      "generated": {
+        "kind": "asset",
+        "language": "json",
+        "lines": 11,
+        "bytes": 289,
+        "hash": "f09443d97f0a82ca",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/jq-json-processor/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 112,
+        "bytes": 2504,
+        "hash": "31dc54215e3a95a0",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/judgment-day/references/prompts-and-formats.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 75,
+        "bytes": 2679,
+        "hash": "99253106ceef556c",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/judgment-day/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 52,
+        "bytes": 2847,
+        "hash": "bb105044484f00ec",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/mcp-builder/LICENSE.txt": {
+      "generated": {
+        "kind": "asset",
+        "lines": 202,
+        "bytes": 11357,
+        "hash": "58d1e17ffe5109a7",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/mcp-builder/reference/evaluation.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 602,
+        "bytes": 21663,
+        "hash": "8c99479f8a2d22a6",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/mcp-builder/reference/mcp_best_practices.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 249,
+        "bytes": 7330,
+        "hash": "80fb4369a349447c",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/mcp-builder/reference/node_mcp_server.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 970,
+        "bytes": 28550,
+        "hash": "c3ba35a4f599dd53",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/mcp-builder/reference/python_mcp_server.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 719,
+        "bytes": 25099,
+        "hash": "2da52f77e6751910",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/mcp-builder/scripts/connections.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 151,
+        "bytes": 4875,
+        "hash": "9403668a20415687",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/mcp-builder/scripts/evaluation.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 373,
+        "bytes": 12579,
+        "hash": "49ed1d17cdce5da1",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/mcp-builder/scripts/example_evaluation.xml": {
+      "generated": {
+        "kind": "asset",
+        "lines": 22,
+        "bytes": 1194,
+        "hash": "9272b348ddcc4b06",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/mcp-builder/scripts/requirements.txt": {
+      "generated": {
+        "kind": "asset",
+        "lines": 2,
+        "bytes": 29,
+        "hash": "d5d7558b2368ecea",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/mcp-builder/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 236,
+        "bytes": 9092,
+        "hash": "0f4592dcb53cf2b5",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pandoc/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 301,
+        "bytes": 8696,
+        "hash": "5da5010d70b3ba30",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pdf/forms.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 294,
+        "bytes": 11854,
+        "hash": "9530b3f57034792e",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pdf/LICENSE.txt": {
+      "generated": {
+        "kind": "asset",
+        "lines": 30,
+        "bytes": 1467,
+        "hash": "79f6d8f5b427252f",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pdf/reference.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 612,
+        "bytes": 16692,
+        "hash": "03a5f964f8abecbb",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pdf/scripts/check_bounding_boxes.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 65,
+        "bytes": 2774,
+        "hash": "0ced522402dd7b3c",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pdf/scripts/check_fillable_fields.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 11,
+        "bytes": 268,
+        "hash": "1fe10b9980a5493c",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pdf/scripts/convert_pdf_to_images.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 33,
+        "bytes": 1008,
+        "hash": "7f58e292a67e18a8",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pdf/scripts/create_validation_image.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 37,
+        "bytes": 1258,
+        "hash": "8fa9fd7962c9f940",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pdf/scripts/extract_form_field_info.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 122,
+        "bytes": 4300,
+        "hash": "bb235b36f497bbb1",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pdf/scripts/extract_form_structure.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 115,
+        "bytes": 3945,
+        "hash": "6814e3fe8f78c2b1",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pdf/scripts/fill_fillable_fields.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 98,
+        "bytes": 3819,
+        "hash": "d140872c2e92e41b",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pdf/scripts/fill_pdf_form_with_annotations.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 107,
+        "bytes": 3235,
+        "hash": "8a56e063a49ed53c",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pdf/scripts/validation_image.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 37,
+        "bytes": 1258,
+        "hash": "8fa9fd7962c9f940",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pdf/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 314,
+        "bytes": 8072,
+        "hash": "9f78b8359fbd4943",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/editing.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 205,
+        "bytes": 6885,
+        "hash": "6cb47c3ab17e60b7",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/LICENSE.txt": {
+      "generated": {
+        "kind": "asset",
+        "lines": 30,
+        "bytes": 1467,
+        "hash": "79f6d8f5b427252f",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/pptxgenjs.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 420,
+        "bytes": 12819,
+        "hash": "9539534d92b71708",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/__init__.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 0,
+        "bytes": 0,
+        "hash": "e3b0c44298fc1c14",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/add_slide.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 195,
+        "bytes": 6872,
+        "hash": "04233ba3932c6b86",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/clean.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 286,
+        "bytes": 9583,
+        "hash": "3e3966a17f488a1d",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/helpers/__init__.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 0,
+        "bytes": 0,
+        "hash": "e3b0c44298fc1c14",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/helpers/merge_runs.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 199,
+        "bytes": 5567,
+        "hash": "7c40ed838b88639c",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/helpers/simplify_redlines.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 197,
+        "bytes": 5754,
+        "hash": "560cb55978a834c5",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/pack.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 159,
+        "bytes": 4991,
+        "hash": "b1800987e568261a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ecma/fouth-edition/opc-contentTypes.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 42,
+        "bytes": 1963,
+        "hash": "9e0b7209fc69ab11",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ecma/fouth-edition/opc-coreProperties.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 50,
+        "bytes": 2515,
+        "hash": "451958454e8588df",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ecma/fouth-edition/opc-digSig.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 49,
+        "bytes": 2856,
+        "hash": "6de111e11403f7cd",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ecma/fouth-edition/opc-relationships.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 33,
+        "bytes": 1344,
+        "hash": "f565adfef5a50204",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-chart.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 1499,
+        "bytes": 74984,
+        "hash": "41b93bd8857cc68b",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-chartDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 146,
+        "bytes": 6956,
+        "hash": "3fd0586f2637b98b",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-diagram.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 1085,
+        "bytes": 51302,
+        "hash": "29b254ee0d10414a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-lockedCanvas.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 11,
+        "bytes": 624,
+        "hash": "5cb76dabd8b97d1e",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-main.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 3081,
+        "bytes": 152039,
+        "hash": "5375417f0f5394b8",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-picture.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 23,
+        "bytes": 1231,
+        "hash": "5d389d42befbebd9",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-spreadsheetDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 185,
+        "bytes": 8862,
+        "hash": "b4532b6d25883295",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-wordprocessingDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 287,
+        "bytes": 14795,
+        "hash": "bdad416b096b61d3",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/pml.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 1676,
+        "bytes": 83612,
+        "hash": "d173c3e5d61e42e2",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-additionalCharacteristics.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 28,
+        "bytes": 1269,
+        "hash": "3c6709101c6aaa82",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-bibliography.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 144,
+        "bytes": 7328,
+        "hash": "0b364451dc36a48d",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-commonSimpleTypes.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 174,
+        "bytes": 6382,
+        "hash": "e2abacbb9a55ce13",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-customXmlDataProperties.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 25,
+        "bytes": 1248,
+        "hash": "0ef4bb354ff44b92",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-customXmlSchemaProperties.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 18,
+        "bytes": 880,
+        "hash": "0d103b99a4a8652f",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesCustom.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 59,
+        "bytes": 2608,
+        "hash": "9c085407751b9061",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesExtended.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 56,
+        "bytes": 3507,
+        "hash": "bc92e36ccd233722",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesVariantTypes.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 195,
+        "bytes": 7507,
+        "hash": "7b5b7413e2c895b1",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-math.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 582,
+        "bytes": 23313,
+        "hash": "3213ef1631606250",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-relationshipReference.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 25,
+        "bytes": 1367,
+        "hash": "12264f3c03d73831",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/sml.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 4439,
+        "bytes": 242277,
+        "hash": "beffeed56945c22a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-main.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 570,
+        "bytes": 26148,
+        "hash": "f5ee623b08b6a669",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-officeDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 509,
+        "bytes": 25279,
+        "hash": "585bedc1313b4088",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-presentationDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 12,
+        "bytes": 535,
+        "hash": "133c9f64a5c5d573",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-spreadsheetDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 108,
+        "bytes": 5712,
+        "hash": "6bdeb169c3717eb0",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-wordprocessingDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 96,
+        "bytes": 4010,
+        "hash": "475dcae1e7d1ea46",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/wml.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 3646,
+        "bytes": 171367,
+        "hash": "c2dd9f61f892deae",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/xml.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 116,
+        "bytes": 4646,
+        "hash": "a539aa2fb154fa50",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/mce/mc.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 75,
+        "bytes": 3127,
+        "hash": "3a37e461ecf5a867",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/microsoft/wml-2010.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 560,
+        "bytes": 26549,
+        "hash": "568b26ee156cb954",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/microsoft/wml-2012.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 67,
+        "bytes": 3745,
+        "hash": "0fa75578a000439a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/microsoft/wml-2018.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 14,
+        "bytes": 901,
+        "hash": "be0ff793a22dd313",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/microsoft/wml-cex-2018.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 20,
+        "bytes": 1778,
+        "hash": "fddc2b880cabb900",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/microsoft/wml-cid-2016.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 13,
+        "bytes": 1002,
+        "hash": "127ca209fa73d7cb",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/microsoft/wml-sdtdatahash-2020.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 4,
+        "bytes": 600,
+        "hash": "842e7163409c8d74",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/schemas/microsoft/wml-symex-2015.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 8,
+        "bytes": 745,
+        "hash": "16f6f8072249f431",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/soffice.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 183,
+        "bytes": 5301,
+        "hash": "a3e21840e29e32f9",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/unpack.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 132,
+        "bytes": 4052,
+        "hash": "83f69cecc8791018",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/validate.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 111,
+        "bytes": 3668,
+        "hash": "1aef24f8e316965a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/validators/__init__.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 15,
+        "bytes": 336,
+        "hash": "83e0f035c5abea23",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/validators/base.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 847,
+        "bytes": 32651,
+        "hash": "d6358b67252df4db",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/validators/docx.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 446,
+        "bytes": 16376,
+        "hash": "0ef04ce86b2e6b6a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/validators/pptx.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 275,
+        "bytes": 9824,
+        "hash": "f937961e62a5fa0d",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/office/validators/redlining.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 247,
+        "bytes": 8918,
+        "hash": "f4c33fdb9da0651d",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/scripts/thumbnail.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 289,
+        "bytes": 8785,
+        "hash": "e959ecd4f1973516",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/pptx/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 232,
+        "bytes": 9182,
+        "hash": "e5b0df918cbe9d62",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/proposal-writer/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 450,
+        "bytes": 9574,
+        "hash": "ad9bdec0542e08e0",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/ripgrep/_meta.json": {
+      "generated": {
+        "kind": "asset",
+        "language": "json",
+        "lines": 11,
+        "bytes": 269,
+        "hash": "6d31c1ad3e3a8f1a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/ripgrep/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 150,
+        "bytes": 3024,
+        "hash": "d01fec5271bd2129",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/skill-creator/scripts/init_skill.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 304,
+        "bytes": 10864,
+        "hash": "fbe57e057098ffd2",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/skill-creator/scripts/package_skill.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 111,
+        "bytes": 3248,
+        "hash": "615770832fae38c8",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/skill-creator/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 210,
+        "bytes": 11574,
+        "hash": "8f838531ae760bcf",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/skill-installer/agents/openai.yaml": {
+      "generated": {
+        "kind": "asset",
+        "language": "yaml",
+        "lines": 5,
+        "bytes": 221,
+        "hash": "5ce223d8b1070b82",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/skill-installer/assets/skill-installer-small.svg": {
+      "generated": {
+        "kind": "asset",
+        "lines": 3,
+        "bytes": 923,
+        "hash": "3928703ff00dc1a6",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/skill-installer/LICENSE.txt": {
+      "generated": {
+        "kind": "asset",
+        "lines": 202,
+        "bytes": 11358,
+        "hash": "cfc7749b96f63bd3",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/skill-installer/scripts/github_utils.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 21,
+        "bytes": 659,
+        "hash": "61c1bbe2ae217433",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/skill-installer/scripts/install-skill-from-github.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 308,
+        "bytes": 10096,
+        "hash": "0fbbd36e8ea29444",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/skill-installer/scripts/list-skills.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 107,
+        "bytes": 2967,
+        "hash": "e4e1f78ca3d04582",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/skill-installer/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 58,
+        "bytes": 3366,
+        "hash": "09df0ea7921f63d5",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/work-unit-commits/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 86,
+        "bytes": 3190,
+        "hash": "ce50c2b606e55362",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/LICENSE.txt": {
+      "generated": {
+        "kind": "asset",
+        "lines": 30,
+        "bytes": 1467,
+        "hash": "79f6d8f5b427252f",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/helpers/__init__.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 0,
+        "bytes": 0,
+        "hash": "e3b0c44298fc1c14",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/helpers/merge_runs.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 199,
+        "bytes": 5567,
+        "hash": "7c40ed838b88639c",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/helpers/simplify_redlines.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 197,
+        "bytes": 5754,
+        "hash": "560cb55978a834c5",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/pack.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 159,
+        "bytes": 4991,
+        "hash": "b1800987e568261a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ecma/fouth-edition/opc-contentTypes.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 42,
+        "bytes": 1963,
+        "hash": "9e0b7209fc69ab11",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ecma/fouth-edition/opc-coreProperties.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 50,
+        "bytes": 2515,
+        "hash": "451958454e8588df",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ecma/fouth-edition/opc-digSig.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 49,
+        "bytes": 2856,
+        "hash": "6de111e11403f7cd",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ecma/fouth-edition/opc-relationships.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 33,
+        "bytes": 1344,
+        "hash": "f565adfef5a50204",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-chart.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 1499,
+        "bytes": 74984,
+        "hash": "41b93bd8857cc68b",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-chartDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 146,
+        "bytes": 6956,
+        "hash": "3fd0586f2637b98b",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-diagram.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 1085,
+        "bytes": 51302,
+        "hash": "29b254ee0d10414a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-lockedCanvas.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 11,
+        "bytes": 624,
+        "hash": "5cb76dabd8b97d1e",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-main.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 3081,
+        "bytes": 152039,
+        "hash": "5375417f0f5394b8",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-picture.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 23,
+        "bytes": 1231,
+        "hash": "5d389d42befbebd9",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-spreadsheetDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 185,
+        "bytes": 8862,
+        "hash": "b4532b6d25883295",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-wordprocessingDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 287,
+        "bytes": 14795,
+        "hash": "bdad416b096b61d3",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/pml.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 1676,
+        "bytes": 83612,
+        "hash": "d173c3e5d61e42e2",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-additionalCharacteristics.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 28,
+        "bytes": 1269,
+        "hash": "3c6709101c6aaa82",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-bibliography.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 144,
+        "bytes": 7328,
+        "hash": "0b364451dc36a48d",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-commonSimpleTypes.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 174,
+        "bytes": 6382,
+        "hash": "e2abacbb9a55ce13",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-customXmlDataProperties.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 25,
+        "bytes": 1248,
+        "hash": "0ef4bb354ff44b92",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-customXmlSchemaProperties.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 18,
+        "bytes": 880,
+        "hash": "0d103b99a4a8652f",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesCustom.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 59,
+        "bytes": 2608,
+        "hash": "9c085407751b9061",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesExtended.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 56,
+        "bytes": 3507,
+        "hash": "bc92e36ccd233722",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesVariantTypes.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 195,
+        "bytes": 7507,
+        "hash": "7b5b7413e2c895b1",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-math.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 582,
+        "bytes": 23313,
+        "hash": "3213ef1631606250",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-relationshipReference.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 25,
+        "bytes": 1367,
+        "hash": "12264f3c03d73831",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/sml.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 4439,
+        "bytes": 242277,
+        "hash": "beffeed56945c22a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-main.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 570,
+        "bytes": 26148,
+        "hash": "f5ee623b08b6a669",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-officeDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 509,
+        "bytes": 25279,
+        "hash": "585bedc1313b4088",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-presentationDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 12,
+        "bytes": 535,
+        "hash": "133c9f64a5c5d573",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-spreadsheetDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 108,
+        "bytes": 5712,
+        "hash": "6bdeb169c3717eb0",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-wordprocessingDrawing.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 96,
+        "bytes": 4010,
+        "hash": "475dcae1e7d1ea46",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/wml.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 3646,
+        "bytes": 171367,
+        "hash": "c2dd9f61f892deae",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/xml.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 116,
+        "bytes": 4646,
+        "hash": "a539aa2fb154fa50",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/mce/mc.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 75,
+        "bytes": 3127,
+        "hash": "3a37e461ecf5a867",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/microsoft/wml-2010.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 560,
+        "bytes": 26549,
+        "hash": "568b26ee156cb954",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/microsoft/wml-2012.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 67,
+        "bytes": 3745,
+        "hash": "0fa75578a000439a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/microsoft/wml-2018.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 14,
+        "bytes": 901,
+        "hash": "be0ff793a22dd313",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/microsoft/wml-cex-2018.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 20,
+        "bytes": 1778,
+        "hash": "fddc2b880cabb900",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/microsoft/wml-cid-2016.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 13,
+        "bytes": 1002,
+        "hash": "127ca209fa73d7cb",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/microsoft/wml-sdtdatahash-2020.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 4,
+        "bytes": 600,
+        "hash": "842e7163409c8d74",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/schemas/microsoft/wml-symex-2015.xsd": {
+      "generated": {
+        "kind": "asset",
+        "lines": 8,
+        "bytes": 745,
+        "hash": "16f6f8072249f431",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/soffice.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 183,
+        "bytes": 5301,
+        "hash": "a3e21840e29e32f9",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/unpack.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 132,
+        "bytes": 4052,
+        "hash": "83f69cecc8791018",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/validate.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 111,
+        "bytes": 3668,
+        "hash": "1aef24f8e316965a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/validators/__init__.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 15,
+        "bytes": 336,
+        "hash": "83e0f035c5abea23",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/validators/base.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 847,
+        "bytes": 32651,
+        "hash": "d6358b67252df4db",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/validators/docx.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 446,
+        "bytes": 16376,
+        "hash": "0ef04ce86b2e6b6a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/validators/pptx.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 275,
+        "bytes": 9824,
+        "hash": "f937961e62a5fa0d",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/office/validators/redlining.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 247,
+        "bytes": 8918,
+        "hash": "f4c33fdb9da0651d",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/scripts/recalc.py": {
+      "generated": {
+        "kind": "source",
+        "language": "python",
+        "lines": 184,
+        "bytes": 5782,
+        "hash": "cf419d15e02965ae",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "skills/xlsx/SKILL.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 292,
+        "bytes": 11463,
+        "hash": "dd316db7785a6be1",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1722,7 +5972,7 @@
           "node:os",
           "node:path"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1743,7 +5993,7 @@
           "../extensions/agent-selector.ts",
           "node:assert/strict"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1765,7 +6015,7 @@
           "../extensions/lib/agent-status-config.ts",
           "node:assert/strict"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1787,7 +6037,7 @@
           "@earendil-works/pi-tui",
           "node:assert/strict"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1808,7 +6058,7 @@
           "../extensions/awareness.ts",
           "node:assert/strict"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1822,15 +6072,15 @@
         "kind": "test",
         "language": "typescript",
         "lines": 14,
-        "bytes": 702,
-        "hash": "a4c1e07d64ee9990",
+        "bytes": 697,
+        "hash": "38ab683d3f21b77a",
         "exports": [],
         "imports": [
           "../extensions/lib/caveman-state.ts",
           "node:assert/strict",
           "node:fs"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1852,7 +6102,7 @@
           "../extensions/lib/minimal-title.ts",
           "node:assert/strict"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1876,7 +6126,56 @@
           "node:os",
           "node:path"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "tests/orgm-commands.test.ts": {
+      "generated": {
+        "kind": "test",
+        "language": "typescript",
+        "lines": 37,
+        "bytes": 1242,
+        "hash": "2fe5ca5a1b1b4285",
+        "exports": [],
+        "imports": [
+          "node:assert/strict",
+          "node:fs",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "tests/orgm-config.test.ts": {
+      "generated": {
+        "kind": "test",
+        "language": "typescript",
+        "lines": 43,
+        "bytes": 1418,
+        "hash": "1996a1dc4a5e0d95",
+        "exports": [],
+        "imports": [
+          "../extensions/lib/agent-status-config.ts",
+          "../extensions/lib/caveman-state.ts",
+          "../extensions/lib/orgm-config.ts",
+          "../extensions/minimal.ts",
+          "node:assert/strict",
+          "node:fs",
+          "node:os",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1897,7 +6196,7 @@
           "../extensions/lib/orgm-flow.ts",
           "node:assert/strict"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1910,16 +6209,17 @@
       "generated": {
         "kind": "test",
         "language": "typescript",
-        "lines": 21,
-        "bytes": 1038,
-        "hash": "eaeba82f37cf9aa2",
+        "lines": 28,
+        "bytes": 1477,
+        "hash": "64615faccf84c1f1",
         "exports": [],
         "imports": [
           "../extensions/lib/package-paths.ts",
           "node:assert/strict",
-          "node:fs"
+          "node:fs",
+          "node:path"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1932,15 +6232,20 @@
       "generated": {
         "kind": "test",
         "language": "typescript",
-        "lines": 15,
-        "bytes": 922,
-        "hash": "cfdb9d7870410a58",
-        "exports": [],
+        "lines": 109,
+        "bytes": 4685,
+        "hash": "7178ab41aec39eb7",
+        "exports": [
+          "demo"
+        ],
         "imports": [
           "../extensions/repo-index.ts",
-          "node:assert/strict"
+          "node:assert/strict",
+          "node:fs",
+          "node:os",
+          "node:path"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1949,28 +6254,22 @@
         "ownerHints": []
       }
     },
-    "tests/repo-index.test.ts": {
+    "tests/repo-tree.test.ts": {
       "generated": {
         "kind": "test",
         "language": "typescript",
-        "lines": 52,
-        "bytes": 3217,
-        "hash": "a2a5e24046676a6d",
-        "exports": [
-          "default",
-          "helper",
-          "main",
-          "noisy"
-        ],
+        "lines": 65,
+        "bytes": 3460,
+        "hash": "707e971cb79f4198",
+        "exports": [],
         "imports": [
-          "../extensions/lib/repo-index.ts",
-          "./util",
+          "../extensions/lib/repo-tree.ts",
           "node:assert/strict",
           "node:fs",
           "node:os",
           "node:path"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -1991,7 +6290,7 @@
           "../extensions/subagents.ts",
           "node:assert/strict"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -2015,7 +6314,7 @@
           "node:os",
           "node:path"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -2029,14 +6328,14 @@
         "kind": "test",
         "language": "typescript",
         "lines": 26,
-        "bytes": 1716,
-        "hash": "2dfbdca117b68b60",
+        "bytes": 1721,
+        "hash": "3696b60993b980f5",
         "exports": [],
         "imports": [
           "../extensions/lib/minimal-title.ts",
           "node:assert/strict"
         ],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -2054,7 +6353,7 @@
         "hash": "00a2fde9dca2bafe",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -2072,7 +6371,7 @@
         "hash": "f7ced30735f2124a",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -2090,7 +6389,7 @@
         "hash": "529a7f0183e19a71",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -2108,7 +6407,7 @@
         "hash": "d05290aa6cf468c1",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -2126,7 +6425,7 @@
         "hash": "2ef2a534256852e3",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -2144,7 +6443,7 @@
         "hash": "35ad58cea8b7b2dc",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -2162,7 +6461,7 @@
         "hash": "b4c99b7e890393e2",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -2180,7 +6479,7 @@
         "hash": "6f9e118c1f69bd5c",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -2198,7 +6497,7 @@
         "hash": "e28aff3f420e432c",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -2216,7 +6515,7 @@
         "hash": "74937474886ea541",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",
@@ -2234,7 +6533,7 @@
         "hash": "d6c424ce2b754071",
         "exports": [],
         "imports": [],
-        "updatedAt": "2026-05-26T07:51:50.873Z"
+        "updatedAt": "2026-05-26T19:23:14.078Z"
       },
       "persistent": {
         "summary": "",

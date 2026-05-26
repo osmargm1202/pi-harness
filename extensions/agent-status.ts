@@ -817,7 +817,7 @@ export default function (pi: ExtensionAPI) {
 		);
 	};
 
-	pi.registerCommand("agents", {
+	pi.registerCommand("orgm-agents", {
 		description: "Open subagent deployments panel",
 		handler: async (_args, ctx) => {
 			if (!ctx.hasUI) return;
@@ -833,8 +833,8 @@ export default function (pi: ExtensionAPI) {
 		},
 	});
 
-	pi.registerCommand("agent-status", {
-		description: "Manage agent status UI: /agent-status [settings|inspect|clear]",
+	pi.registerCommand("orgm-agent-status", {
+		description: "Manage agent status UI: /orgm-agent-status [settings|inspect|clear]",
 		getArgumentCompletions: (prefix) => {
 			const value = prefix.trim().toLowerCase();
 			const options = [
@@ -848,8 +848,8 @@ export default function (pi: ExtensionAPI) {
 			if (!ctx.hasUI) return;
 			const action = normalizeCommandAction(args);
 			if (!action) {
-				ctx.ui.notify(`Unknown /agent-status arg: ${args.trim()}`, "error");
-				ctx.ui.notify("Usage: /agent-status [settings|inspect|clear]", "warning");
+				ctx.ui.notify(`Unknown /orgm-agent-status arg: ${args.trim()}`, "error");
+				ctx.ui.notify("Usage: /orgm-agent-status [settings|inspect|clear]", "warning");
 				return;
 			}
 			if (!args.trim()) {
@@ -879,7 +879,7 @@ export default function (pi: ExtensionAPI) {
 				saveAgentStatusConfig(config);
 				lastWidgetStateSignature = "";
 				syncWidget(ctx);
-				ctx.ui.notify(`agent-status: ${chosen.key} ${config[chosen.key] ? "on" : "off"}`, "info");
+				ctx.ui.notify(`orgm-agent-status: ${chosen.key} ${config[chosen.key] ? "on" : "off"}`, "info");
 			}
 			lastWidgetStateSignature = "";
 			syncWidget(ctx);

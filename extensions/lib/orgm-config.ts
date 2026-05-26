@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { isAbsolute, join, normalize, resolve } from "node:path";
 
@@ -11,10 +11,39 @@ export interface OrgmGitConfig {
 	ignoreRoots: string[];
 }
 
+export interface OrgmRepoTreeConfig {
+	maxDepth: number;
+}
+
+export interface OrgmCavemanConfig {
+	defaultLevel: string;
+	showStatus: boolean;
+	skillPath?: string;
+}
+
+export interface OrgmMinimalSkillsConfig {
+	enabled: boolean;
+}
+
+export interface OrgmAgentStatusConfig {
+	showWidget: boolean;
+	showModel: boolean;
+	showTokens: boolean;
+	showCost: boolean;
+	showPersistence: boolean;
+	showSummary: boolean;
+	showActivity: boolean;
+	showCaveman: boolean;
+}
+
 export interface OrgmHostConfig {
 	defaultPrimaryAgent: string;
 	flows: Record<string, OrgmFlowName>;
 	git: OrgmGitConfig;
+	repoTree: OrgmRepoTreeConfig;
+	caveman: OrgmCavemanConfig;
+	minimalSkills: OrgmMinimalSkillsConfig;
+	agentStatus: OrgmAgentStatusConfig;
 }
 
 export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
@@ -29,6 +58,26 @@ export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
 		autoCommitCompletedWork: false,
 		preferWorktreesForLongWork: true,
 		ignoreRoots: ["~", "~/Nextcloud", "~/Nextcloud/**"],
+	},
+	repoTree: {
+		maxDepth: 3,
+	},
+	caveman: {
+		defaultLevel: "off",
+		showStatus: true,
+	},
+	minimalSkills: {
+		enabled: true,
+	},
+	agentStatus: {
+		showWidget: true,
+		showModel: true,
+		showTokens: true,
+		showCost: false,
+		showPersistence: true,
+		showSummary: true,
+		showActivity: true,
+		showCaveman: true,
 	},
 };
 
@@ -49,6 +98,64 @@ function mergeGitConfig(value: unknown): OrgmGitConfig {
 		ignoreRoots: Array.isArray(raw.ignoreRoots)
 			? raw.ignoreRoots.filter((entry): entry is string => typeof entry === "string" && entry.trim().length > 0)
 			: [...DEFAULT_ORGM_CONFIG.git.ignoreRoots],
+	};
+}
+
+function mergeRepoTreeConfig(value: unknown): OrgmRepoTreeConfig {
+	const raw = isRecord(value) ? value : {};
+	return {
+		maxDepth: typeof raw.maxDepth === "number" && Number.isInteger(raw.maxDepth) && raw.maxDepth >= 0
+			? raw.maxDepth
+			: DEFAULT_ORGM_CONFIG.repoTree.maxDepth,
+	};
+}
+
+export function mergeCavemanConfig(value: unknown): OrgmCavemanConfig {
+	const raw = isRecord(value) ? value : {};
+	return {
+		defaultLevel: typeof raw.defaultLevel === "string" && raw.defaultLevel.trim()
+			? raw.defaultLevel.trim()
+			: DEFAULT_ORGM_CONFIG.caveman.defaultLevel,
+		showStatus: typeof raw.showStatus === "boolean" ? raw.showStatus : DEFAULT_ORGM_CONFIG.caveman.showStatus,
+		...(typeof raw.skillPath === "string" && raw.skillPath.trim() ? { skillPath: raw.skillPath.trim() } : {}),
+	};
+}
+
+export function mergeMinimalSkillsConfig(value: unknown): OrgmMinimalSkillsConfig {
+	const raw = isRecord(value) ? value : {};
+	return {
+		enabled: typeof raw.enabled === "boolean" ? raw.enabled : DEFAULT_ORGM_CONFIG.minimalSkills.enabled,
+	};
+}
+
+export function mergeAgentStatusConfig(value: unknown): OrgmAgentStatusConfig {
+	const raw = isRecord(value) ? value : {};
+	return {
+		showWidget: typeof raw.showWidget === "boolean" ? raw.showWidget : DEFAULT_ORGM_CONFIG.agentStatus.showWidget,
+		showModel: typeof raw.showModel === "boolean" ? raw.showModel : DEFAULT_ORGM_CONFIG.agentStatus.showModel,
+		showTokens: typeof raw.showTokens === "boolean" ? raw.showTokens : DEFAULT_ORGM_CONFIG.agentStatus.showTokens,
+		showCost: typeof raw.showCost === "boolean" ? raw.showCost : DEFAULT_ORGM_CONFIG.agentStatus.showCost,
+		showPersistence: typeof raw.showPersistence === "boolean" ? raw.showPersistence : DEFAULT_ORGM_CONFIG.agentStatus.showPersistence,
+		showSummary: typeof raw.showSummary === "boolean" ? raw.showSummary : DEFAULT_ORGM_CONFIG.agentStatus.showSummary,
+		showActivity: typeof raw.showActivity === "boolean" ? raw.showActivity : DEFAULT_ORGM_CONFIG.agentStatus.showActivity,
+		showCaveman: typeof raw.showCaveman === "boolean" ? raw.showCaveman : DEFAULT_ORGM_CONFIG.agentStatus.showCaveman,
+	};
+}
+
+function mergeOrgmConfig(raw: Record<string, unknown>): OrgmHostConfig {
+	const flows = isRecord(raw.flows)
+		? Object.fromEntries(Object.entries(raw.flows).filter(([, value]) => typeof value === "string")) as Record<string, string>
+		: DEFAULT_ORGM_CONFIG.flows;
+	return {
+		defaultPrimaryAgent: typeof raw.defaultPrimaryAgent === "string" && raw.defaultPrimaryAgent.trim()
+			? raw.defaultPrimaryAgent.trim()
+			: DEFAULT_ORGM_CONFIG.defaultPrimaryAgent,
+		flows: { ...DEFAULT_ORGM_CONFIG.flows, ...flows },
+		git: mergeGitConfig(raw.git),
+		repoTree: mergeRepoTreeConfig(raw.repoTree),
+		caveman: mergeCavemanConfig(raw.caveman),
+		minimalSkills: mergeMinimalSkillsConfig(raw.minimalSkills),
+		agentStatus: mergeAgentStatusConfig(raw.agentStatus),
 	};
 }
 
@@ -87,17 +194,23 @@ export function loadOrgmConfig(configPath = orgmConfigPath()): OrgmHostConfig {
 	try {
 		const raw = JSON.parse(readFileSync(configPath, "utf8"));
 		if (!isRecord(raw)) return structuredClone(DEFAULT_ORGM_CONFIG);
-		const flows = isRecord(raw.flows)
-			? Object.fromEntries(Object.entries(raw.flows).filter(([, value]) => typeof value === "string")) as Record<string, string>
-			: DEFAULT_ORGM_CONFIG.flows;
-		return {
-			defaultPrimaryAgent: typeof raw.defaultPrimaryAgent === "string" && raw.defaultPrimaryAgent.trim()
-				? raw.defaultPrimaryAgent.trim()
-				: DEFAULT_ORGM_CONFIG.defaultPrimaryAgent,
-			flows: { ...DEFAULT_ORGM_CONFIG.flows, ...flows },
-			git: mergeGitConfig(raw.git),
-		};
+		return mergeOrgmConfig(raw);
 	} catch {
 		return structuredClone(DEFAULT_ORGM_CONFIG);
 	}
+}
+
+export function saveOrgmConfigSlice<K extends keyof Pick<OrgmHostConfig, "caveman" | "minimalSkills" | "agentStatus" | "repoTree">>(
+	slice: K,
+	value: OrgmHostConfig[K],
+	configPath = orgmConfigPath(),
+): void {
+	let raw: Record<string, unknown> = {};
+	try {
+		const parsed = JSON.parse(readFileSync(configPath, "utf8"));
+		if (isRecord(parsed)) raw = parsed;
+	} catch {
+		raw = {};
+	}
+	writeFileSync(configPath, `${JSON.stringify({ ...raw, [slice]: value }, null, 2)}\n`, "utf8");
 }

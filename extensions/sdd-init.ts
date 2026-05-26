@@ -771,7 +771,7 @@ function ensureOpenSpecDirs(cwd: string): void {
 }
 
 export default function (pi: ExtensionAPI) {
-	pi.registerCommand("sdd-preflight", {
+	pi.registerCommand("orgm-sdd-preflight", {
 		description: "Run ORGM SDD preflight and install current SDD orchestrator assets.",
 		handler: async (_args: unknown, ctx: any) => {
 			await ensureSddPreflight(ctx, {
@@ -782,7 +782,7 @@ export default function (pi: ExtensionAPI) {
 		},
 	});
 
-	pi.registerCommand("sdd-init", {
+	pi.registerCommand("orgm-sdd-init", {
 		description:
 			"Auto-detect project stack and bootstrap openspec/config.yaml for SDD.",
 		handler: async (_args: unknown, ctx: any) => {
@@ -794,7 +794,7 @@ export default function (pi: ExtensionAPI) {
 			const configPath = join(ctx.cwd, CONFIG_REL_PATH);
 			if (existsSync(configPath)) {
 				ctx.ui.notify(
-					`${CONFIG_REL_PATH} already exists. Edit it manually or remove it before re-running /sdd-init.`,
+					`${CONFIG_REL_PATH} already exists. Edit it manually or remove it before re-running /orgm-sdd-init.`,
 					"warning",
 				);
 				return;

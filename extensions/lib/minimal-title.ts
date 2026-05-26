@@ -51,10 +51,10 @@ export function parseTitleCommand(args: string): TitleCommand {
 	if (action === "clear" || action === "reset") return { action: "clear" };
 	if (action === "name" || action === "set") {
 		const title = sanitizeTitle(rest.join(" "));
-		if (!title) return { action: "unknown", message: "Usage: /title name <nombre del título>" };
+		if (!title) return { action: "unknown", message: "Usage: /orgm-title name <nombre del título>" };
 		return { action: "name", title };
 	}
-	return { action: "unknown", message: "Usage: /title [regen|name <título>|clear]" };
+	return { action: "unknown", message: "Usage: /orgm-title [regen|name <título>|clear]" };
 }
 
 export function padToWidth(text: string, width: number): string {
@@ -79,8 +79,8 @@ export function renderTitleLine(
 		return centerToWidth(style("warning", `${status.frame ?? SPINNER_FRAMES[0]} Generando título…`), width);
 	}
 	if (status.state === "error") {
-		const fallback = status.title ? `⚠ ${status.title} · /title regen` : "⚠ Error generando título · /title regen";
-		const text = visibleWidth(fallback) > width && width >= 14 ? "⚠ /title regen" : fallback;
+		const fallback = status.title ? `⚠ ${status.title} · /orgm-title regen` : "⚠ Error generando título · /orgm-title regen";
+		const text = visibleWidth(fallback) > width && width >= 14 ? "⚠ /orgm-title regen" : fallback;
 		return centerToWidth(style("error", text), width);
 	}
 	if (status.state === "ready") {

@@ -1,87 +1,86 @@
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
-import { generateRepoIndex, loadRepoIndex } from "./lib/repo-index.ts";
+import type { ExtensionAPI, ExtensionContext, SessionStartEvent } from "@earendil-works/pi-coding-agent";
+import { Text } from "@earendil-works/pi-tui";
+import { loadOrgmConfig } from "./lib/orgm-config.ts";
+import { buildProjectTreeText } from "./lib/repo-tree.ts";
 
-const STATUS_KEY = "repo-index";
-const MAX_CONTEXT_CHARS = 24_000;
-const REPO_CONTEXT_MARKER = "<!-- pi-repo-index-context -->";
+const CUSTOM_TYPE = "repo-tree";
 
-function rootFromContext(ctx: ExtensionContext): string {
-	return ctx.getSystemPrompt?.().match(/Current working directory: ([^\n]+)/)?.[1]?.trim() || process.cwd();
+export interface RepoTreeExtensionOptions {
+	home?: string;
+	configPath?: string;
+	maxDepth?: number;
 }
 
-function formatStatus(rootDir: string): string {
-	const indexPath = join(rootDir, ".pi-cache", "repo-index.json");
-	const index = loadRepoIndex(indexPath);
-	if (!index) return "repo-index: missing";
-	const dirty = index.git.dirty ? "dirty" : "fresh";
-	return `repo-index: ready · ${index.stats.files} files · ${dirty}`;
+function hasCustomRepoTree(entries: unknown[]): boolean {
+	return entries.some((entry) => typeof entry === "object" && entry !== null && "customType" in entry && entry.customType === CUSTOM_TYPE);
 }
 
-function readContext(rootDir: string): string | undefined {
-	const contextPath = join(rootDir, ".pi-cache", "repo-context.md");
-	if (!existsSync(contextPath)) return undefined;
-	const content = readFileSync(contextPath, "utf8");
-	if (content.length <= MAX_CONTEXT_CHARS) return content;
-	return `${content.slice(0, MAX_CONTEXT_CHARS)}\n\n<!-- repo-context truncated for prompt budget; use .pi-cache/repo-index.json or /repo-index for full index. -->\n`;
+function hasConversationEntries(entries: unknown[]): boolean {
+	return entries.some((entry) => {
+		if (typeof entry !== "object" || entry === null || !("type" in entry) || entry.type !== "message") return false;
+		const message = "message" in entry ? entry.message : undefined;
+		if (typeof message !== "object" || message === null || !("role" in message)) return false;
+		return ["user", "assistant", "toolResult"].includes(String(message.role));
+	});
 }
 
-export function buildRepoIndexSystemPrompt(systemPrompt: string, repoContext: string): string {
-	if (systemPrompt.includes(REPO_CONTEXT_MARKER)) return systemPrompt;
-	return `${systemPrompt}\n\n${REPO_CONTEXT_MARKER}\nRepository index context is injected only once. At session/subagent start, use it for orientation before calling directory listing tools; read real files/ranges when exact code is needed. If you learn useful repository structure, solve a problem, or change files, update .pi-cache/repo-index.json persistent.summary/notes/relatedFiles/ownerHints when relevant and refresh .pi-cache/repo-context.md with /repo-init or /repo-index.\n\n${repoContext}`;
+function shouldInjectRepoTree(reason: SessionStartEvent["reason"], ctx: ExtensionContext, alreadySent: boolean): boolean {
+	if (alreadySent) return false;
+	const entries = ctx.sessionManager.getEntries();
+	if (hasCustomRepoTree(entries)) return false;
+	if (reason === "new") return true;
+	if (reason === "startup") return !hasConversationEntries(entries);
+	return false;
 }
 
-async function refreshRepoIndex(ctx: ExtensionContext): Promise<void> {
-	const rootDir = rootFromContext(ctx);
-	try {
-		const index = generateRepoIndex({ rootDir });
-		ctx.ui.setStatus(STATUS_KEY, `repo-index: ready · ${index.stats.files} files · ${index.git.dirty ? "dirty" : "fresh"}`);
-	} catch (error) {
-		ctx.ui.setStatus(STATUS_KEY, "repo-index: error");
-		ctx.ui.notify(`repo-index failed: ${error instanceof Error ? error.message : String(error)}`, "warning");
-	}
+function configuredMaxDepth(options: RepoTreeExtensionOptions): number {
+	if (typeof options.maxDepth === "number") return options.maxDepth;
+	return loadOrgmConfig(options.configPath).repoTree.maxDepth;
 }
 
-export default function repoIndexExtension(pi: ExtensionAPI) {
-	let shouldInjectStartupContext = true;
+export function buildRepoTreeMessageContent(
+	ctx: Pick<ExtensionContext, "cwd">,
+	options: RepoTreeExtensionOptions = {},
+): string {
+	return buildProjectTreeText(ctx.cwd, {
+		home: options.home,
+		maxDepth: configuredMaxDepth(options),
+	});
+}
 
-	pi.on("session_start", async (_event, ctx) => {
-		shouldInjectStartupContext = true;
-		await refreshRepoIndex(ctx);
+export function renderRepoTreeContent(content: string, expanded: boolean): string {
+	if (!expanded) return CUSTOM_TYPE;
+	return `${CUSTOM_TYPE}\n${content}`;
+}
+
+export default function repoIndexExtension(pi: ExtensionAPI, options: RepoTreeExtensionOptions = {}) {
+	let injectedThisLifecycle = false;
+
+	pi.registerMessageRenderer(CUSTOM_TYPE, (message, rendererOptions, theme) => {
+		return new Text(theme.fg("muted", renderRepoTreeContent(String(message.content ?? ""), rendererOptions.expanded)), 0, 0);
 	});
 
-	pi.on("agent_end", async (_event, ctx) => {
-		await refreshRepoIndex(ctx);
+	pi.on("session_start", async (event, ctx) => {
+		if (!shouldInjectRepoTree(event.reason, ctx, injectedThisLifecycle)) return;
+		const content = buildRepoTreeMessageContent(ctx, options);
+		if (!content) return;
+		injectedThisLifecycle = true;
+		pi.sendMessage(
+			{
+				customType: CUSTOM_TYPE,
+				content,
+				display: true,
+				details: { source: "startup-repo-tree" },
+			},
+			{ deliverAs: "nextTurn" },
+		);
 	});
 
-	pi.on("before_agent_start", async (_event, ctx) => {
-		if (!shouldInjectStartupContext) return;
-		shouldInjectStartupContext = false;
-		const rootDir = rootFromContext(ctx);
-		if (!existsSync(join(rootDir, ".pi-cache", "repo-index.json"))) await refreshRepoIndex(ctx);
-		const context = readContext(rootDir);
-		if (!context) return;
-		ctx.ui.setStatus(STATUS_KEY, formatStatus(rootDir));
-		return {
-			systemPrompt: buildRepoIndexSystemPrompt(_event.systemPrompt, context),
-		};
-	});
-
-	pi.registerCommand("repo-index", {
-		description: "Refresh .pi-cache/repo-index.json and .pi-cache/repo-context.md",
+	pi.registerCommand("orgm-repo-tree", {
+		description: "Show the current project tree context",
 		handler: async (_args, ctx) => {
-			await refreshRepoIndex(ctx);
-			ctx.ui.notify(formatStatus(rootFromContext(ctx)), "info");
-		},
-	});
-
-	pi.registerCommand("repo-init", {
-		description: "Refresh repo context now and mark startup context for reinjection on the next agent turn",
-		handler: async (_args, ctx) => {
-			await refreshRepoIndex(ctx);
-			shouldInjectStartupContext = true;
-			ctx.ui.notify(`${formatStatus(rootFromContext(ctx))}; repo context will be injected on the next turn`, "info");
+			const content = buildRepoTreeMessageContent(ctx, options);
+			ctx.ui.notify(content || "repo-tree unavailable for this project root", content ? "info" : "warning");
 		},
 	});
 }

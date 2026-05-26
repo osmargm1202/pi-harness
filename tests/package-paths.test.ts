@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
+import { join } from "node:path";
 import {
 	findInstalledSkillPath,
 	getCurrentPackageAgentsDir,
@@ -15,7 +16,13 @@ assert(agentsDir, "current package agents dir should resolve");
 assert(agentsDir.endsWith("pi-harness/agents"), "agents dir should be inside pi-harness");
 assert(existsSync(`${agentsDir}/teams.yaml`), "agents dir should contain teams.yaml");
 
+const packageSkill = join(packageRoot, "skills", "caveman", "SKILL.md");
+assert(existsSync(packageSkill), "current package should bundle caveman skill");
+
+const manifest = JSON.parse(await import("node:fs/promises").then((fs) => fs.readFile(join(packageRoot, "package.json"), "utf8")));
+assert(manifest.files.includes("skills"), "package files should include bundled skills");
+assert(manifest.pi.skills.includes("./skills"), "pi manifest should expose bundled skills");
+
 const cavemanSkill = findInstalledSkillPath("caveman");
-assert(cavemanSkill, "installed package skill path should resolve caveman");
-assert(cavemanSkill.endsWith("skills/caveman/SKILL.md"), "caveman path should point to SKILL.md");
+assert.equal(cavemanSkill, packageSkill, "current package skill should be preferred over external installs");
 assert(existsSync(cavemanSkill), "resolved caveman skill should exist");

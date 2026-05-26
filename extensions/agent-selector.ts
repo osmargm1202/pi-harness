@@ -308,7 +308,7 @@ async function openAgentModelPalette(ctx: ExtensionContext): Promise<void> {
 // ─── Extension Registration ─────────────────────────────────────────────────
 export default function (pi: ExtensionAPI) {
 	// Use non-/model prefix. Avoid Enter/autocomplete conflict with built-in /model menu.
-	pi.registerCommand("agents-model", {
+	pi.registerCommand("orgm-agents-model", {
 		description: "Select a subagent from agents/ and choose its model",
 		handler: async (_args, ctx) => {
 			if (!ctx.hasUI) {

@@ -93,7 +93,7 @@ async function openSessionSelector(ctx: ExtensionCommandContext): Promise<string
 }
 
 export default function (pi: ExtensionAPI) {
-	pi.registerCommand("sessions", {
+	pi.registerCommand("orgm-sessions", {
 		description: "List saved sessions for the current project and recover one",
 		handler: async (_args, ctx) => {
 			await ctx.waitForIdle();

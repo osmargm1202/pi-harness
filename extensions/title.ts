@@ -178,8 +178,8 @@ export default function titleExtension(pi: ExtensionAPI) {
 
 	});
 
-	pi.registerCommand("title", {
-		description: "Manage session title: /title [regen|name <título>|clear]",
+	pi.registerCommand("orgm-title", {
+		description: "Manage session title: /orgm-title [regen|name <título>|clear]",
 		getArgumentCompletions: (prefix) => {
 			const options = [
 				{ value: "regen", label: "regen — regenerate title with AI from current context" },
@@ -193,7 +193,7 @@ export default function titleExtension(pi: ExtensionAPI) {
 			const command = parseTitleCommand(args);
 			if (command.action === "show") {
 				const title = status.state === "ready" || status.state === "generating" || status.state === "error" ? status.title : undefined;
-				ctx.ui.notify(title ? `Título actual: ${title}` : "No hay título todavía. Usa /title regen o /title name <título>.", "info");
+				ctx.ui.notify(title ? `Título actual: ${title}` : "No hay título todavía. Usa /orgm-title regen o /orgm-title name <título>.", "info");
 				return;
 			}
 			if (command.action === "unknown") {

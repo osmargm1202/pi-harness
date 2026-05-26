@@ -23,4 +23,4 @@ assert(generating.includes("Generando título"), "generating line should show sp
 
 const error = renderTitleLine({ state: "error", error: "boom" }, 30, (kind, text) => text);
 assert.equal(error.length, 30, "error line should fill width");
-assert(error.includes("/title regen"), "error line should suggest regeneration command");
+assert(error.includes("/orgm-title regen"), "error line should suggest regeneration command");

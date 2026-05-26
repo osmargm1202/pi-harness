@@ -1,14 +1,13 @@
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { basename, dirname, extname, join, normalize } from "node:path";
+import { basename, dirname, extname, normalize } from "node:path";
 import type { AssistantMessage } from "@earendil-works/pi-ai";
 import {
-	getAgentDir,
 	isToolCallEventType,
 	type ExtensionAPI,
 	type ExtensionContext,
 	type Theme,
 } from "@earendil-works/pi-coding-agent";
 import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import { loadOrgmConfig, saveOrgmConfigSlice } from "./lib/orgm-config";
 import { renderSkillChipRows, type ChipStyleKind, type SkillStatus } from "./lib/minimal-skill.ts";
 import {
 	renderTitleLine,
@@ -33,36 +32,16 @@ import {
 
 type MinimalSkillsAction = "on" | "off" | "toggle" | "clear";
 
-interface MinimalSkillsConfig {
+export interface MinimalSkillsConfig {
 	enabled: boolean;
 }
 
-const MINIMAL_SKILLS_CONFIG_DEFAULTS: MinimalSkillsConfig = {
-	enabled: true,
-};
-
-function getMinimalSkillsConfigPath(): string {
-	return join(getAgentDir(), "minimal-skills.json");
-}
-
-function loadMinimalSkillsConfig(): MinimalSkillsConfig {
-	const configPath = getMinimalSkillsConfigPath();
-	if (!existsSync(configPath)) return { ...MINIMAL_SKILLS_CONFIG_DEFAULTS };
-
-	try {
-		const parsed = JSON.parse(readFileSync(configPath, "utf8")) as Partial<MinimalSkillsConfig>;
-		return {
-			enabled: typeof parsed.enabled === "boolean"
-				? parsed.enabled
-				: MINIMAL_SKILLS_CONFIG_DEFAULTS.enabled,
-		};
-	} catch {
-		return { ...MINIMAL_SKILLS_CONFIG_DEFAULTS };
-	}
+export function loadMinimalSkillsConfig(configPath?: string): MinimalSkillsConfig {
+	return { ...loadOrgmConfig(configPath).minimalSkills };
 }
 
 function saveMinimalSkillsConfig(config: MinimalSkillsConfig): void {
-	writeFileSync(getMinimalSkillsConfigPath(), `${JSON.stringify(config, null, 2)}\n`, "utf8");
+	saveOrgmConfigSlice("minimalSkills", config);
 }
 
 function sanitizeSkillName(name: string): string | undefined {
@@ -147,7 +126,7 @@ function normalizeMinimalSkillsAction(value: string): MinimalSkillsAction | unde
 }
 
 function buildMinimalSkillsUsage(): string {
-	return "Usage: /minimal-skills <on|off|toggle|clear>";
+	return "Usage: /orgm-minimal-skills <on|off|toggle|clear>";
 }
 
 export default function (pi: ExtensionAPI) {
@@ -418,7 +397,7 @@ export default function (pi: ExtensionAPI) {
 		pendingSkillReads.clear();
 	});
 
-	pi.registerCommand("minimal-footer", {
+	pi.registerCommand("orgm-minimal-footer", {
 		description: "Reapply minimal custom footer",
 		handler: async (_args, ctx) => {
 			if (!ctx.hasUI) return;
@@ -427,20 +406,20 @@ export default function (pi: ExtensionAPI) {
 		},
 	});
 
-	pi.registerCommand("minimal-skills", {
+	pi.registerCommand("orgm-minimal-skills", {
 		description: "Manage minimal footer skills line: on, off, toggle, clear",
 		handler: async (args, ctx) => {
 			if (!ctx.hasUI) return;
 			const value = args.trim();
 			if (!value) {
-				ctx.ui.notify(`minimal-skills: ${showSkillsStatus ? "on" : "off"}`, "info");
+				ctx.ui.notify(`orgm-minimal-skills: ${showSkillsStatus ? "on" : "off"}`, "info");
 				ctx.ui.notify(buildMinimalSkillsUsage(), "info");
 				return;
 			}
 
 			const action = normalizeMinimalSkillsAction(value);
 			if (!action) {
-				ctx.ui.notify(`Unknown minimal-skills arg: ${value}`, "error");
+				ctx.ui.notify(`Unknown orgm-minimal-skills arg: ${value}`, "error");
 				ctx.ui.notify(buildMinimalSkillsUsage(), "warning");
 				return;
 			}

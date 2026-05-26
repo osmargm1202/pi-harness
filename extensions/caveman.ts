@@ -15,7 +15,7 @@ import {
 const OFF_ALIASES = new Set(["off", "stop", "disable", "normal", "normal-mode", "stop-caveman"]);
 
 function buildUsage(): string {
-	return `Usage: /caveman <${CAVEMAN_LEVELS.join("|")}>`;
+	return `Usage: /orgm-caveman <${CAVEMAN_LEVELS.join("|")}>`;
 }
 
 function normalizeCommandArg(args: string): CavemanLevel | undefined {
@@ -114,7 +114,7 @@ export default function (pi: ExtensionAPI) {
 		};
 	});
 
-	pi.registerCommand("caveman", {
+	pi.registerCommand("orgm-caveman", {
 		description: "Set caveman response mode: off, lite, full, ultra, wenyan-*",
 		getArgumentCompletions: getLevelCompletions,
 		handler: async (args, ctx) => {
