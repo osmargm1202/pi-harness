@@ -8,7 +8,7 @@ import type {
 } from "@earendil-works/pi-coding-agent";
 
 const QUESTION_TOOL_NAMES = new Set(["ask_user_question", "question"]);
-const DONE_TIMEOUT_MS = 5000;
+const DONE_TIMEOUT_MS = 8000;
 const STICKY_TIMEOUT_MS = 0;
 const MAX_BODY_LENGTH = 220;
 const FOCUS_PID_HINT = "pi-focus-pid";
@@ -187,7 +187,7 @@ function notify(
 			"-a",
 			"Pi",
 			"-u",
-			sticky ? "critical" : "normal",
+			"critical",
 			"-t",
 			String(sticky ? STICKY_TIMEOUT_MS : DONE_TIMEOUT_MS),
 			...getNotificationHints(),
