@@ -1,0 +1,141 @@
+# Repo Context
+
+- Project: @osmargm1202/pi-harness
+- Root: /home/osmarg/Code/pi-harness
+- Generated: 2026-05-26T07:51:50.873Z
+- Git: main@8484793 dirty
+- Files indexed: 101
+- Languages: json, markdown, typescript, yaml
+
+## Files
+- agents/pi-orchestrator/agent-expert.md (docs · markdown · 99 lines)
+- agents/pi-orchestrator/cli-expert.md (docs · markdown · 42 lines)
+- agents/pi-orchestrator/coding-expert.md (docs · markdown · 74 lines)
+- agents/pi-orchestrator/config-expert.md (docs · markdown · 64 lines)
+- agents/pi-orchestrator/ext-expert.md (docs · markdown · 44 lines)
+- agents/pi-orchestrator/index.md (docs · markdown · 83 lines)
+- agents/pi-orchestrator/keybinding-expert.md (docs · markdown · 135 lines)
+- agents/pi-orchestrator/prompt-expert.md (docs · markdown · 71 lines)
+- agents/pi-orchestrator/skill-expert.md (docs · markdown · 43 lines)
+- agents/pi-orchestrator/theme-expert.md (docs · markdown · 41 lines)
+- agents/pi-orchestrator/tui-expert.md (docs · markdown · 86 lines)
+- agents/sdd-orchestrator/index.md (docs · markdown · 392 lines)
+- agents/sdd-orchestrator/sdd-apply.md (docs · markdown · 106 lines)
+- agents/sdd-orchestrator/sdd-archive.md (docs · markdown · 58 lines)
+- agents/sdd-orchestrator/sdd-design.md (docs · markdown · 57 lines)
+- agents/sdd-orchestrator/sdd-explore.md (docs · markdown · 57 lines)
+- agents/sdd-orchestrator/sdd-init.md (docs · markdown · 59 lines)
+- agents/sdd-orchestrator/sdd-onboard.md (docs · markdown · 58 lines)
+- agents/sdd-orchestrator/sdd-proposal.md (docs · markdown · 57 lines)
+- agents/sdd-orchestrator/sdd-spec.md (docs · markdown · 57 lines)
+- agents/sdd-orchestrator/sdd-tasks.md (docs · markdown · 86 lines)
+- agents/sdd-orchestrator/sdd-verify.md (docs · markdown · 89 lines)
+- agents/sdd-orchestrator/tdd-brainstormer.md (docs · markdown · 61 lines)
+- agents/sdd-orchestrator/tdd-implementer.md (docs · markdown · 73 lines)
+- agents/sdd-orchestrator/tdd-planner.md (docs · markdown · 81 lines)
+- agents/sdd-orchestrator/tdd-reviewer.md (docs · markdown · 74 lines)
+- agents/sdd-orchestrator/tdd-verifier.md (docs · markdown · 79 lines)
+- agents/sdd-orchestrator/tdd-worktree-manager.md (docs · markdown · 76 lines)
+- agents/teams.yaml (asset · yaml · 29 lines)
+- assets/chains/sdd-full.chain.md (docs · markdown · 84 lines)
+- assets/chains/sdd-plan.chain.md (docs · markdown · 48 lines)
+- assets/chains/sdd-verify.chain.md (docs · markdown · 39 lines)
+- assets/chains/tdd-full.chain.md (docs · markdown · 59 lines)
+- assets/chains/tdd-plan.chain.md (docs · markdown · 21 lines)
+- assets/chains/tdd-verify.chain.md (docs · markdown · 21 lines)
+- assets/support/strict-tdd-verify.md (docs · markdown · 269 lines)
+- assets/support/strict-tdd.md (docs · markdown · 364 lines)
+- docs/superpowers/plans/2026-05-26-extension-resource-audit.md (docs · markdown · 54 lines)
+- docs/superpowers/plans/2026-05-26-package-agent-discovery.md (docs · markdown · 116 lines)
+- extensions/.gitignore (asset · 2 lines)
+- extensions/agent-selector.ts (source · typescript · 329 lines)
+  - exports: collectConfiguredAgentModels, default, isEscapeKey
+- extensions/agent-status.ts (source · typescript · 889 lines)
+  - exports: default, shouldShowAgentStatusWidget
+- extensions/ask.ts (source · typescript · 441 lines)
+  - exports: default, loadAskConfig, renderWrappedQuestion, stripJsonc
+- extensions/awareness.ts (source · typescript · 242 lines)
+  - exports: buildAwarenessText, default, renderAwarenessContent
+- extensions/caveman.ts (source · typescript · 142 lines)
+  - exports: default
+- extensions/clear.ts (source · typescript · 24 lines)
+  - exports: default
+- extensions/git.ts (source · typescript · 61 lines)
+  - exports: default
+- extensions/lib/agent-discovery.ts (source · typescript · 248 lines)
+  - exports: AgentConfig, AgentScope, AgentSource, DEFAULT_PRIMARY_AGENT, discoverDeployableAgents, discoverPrimaryAgents, findDeployableAgent, findNearestProjectAgentsDir, findPrimaryAgent, formatPrimaryLabel, getPackageAgentDirs, getPackageAgentsDir, normalizePrimaryName, parseTools, PRIMARY_STATE_ENTRY, PRIMARY_STATE_EVENT, PrimaryAgent, readAgentConfig, resolveDefaultPrimary, restorePrimaryState, SYSTEM_AGENT
+- extensions/lib/agent-status-config.ts (source · typescript · 53 lines)
+  - exports: AGENT_STATUS_CONFIG_DEFAULTS, AgentStatusConfig, getAgentStatusConfigPath, loadAgentStatusConfig, saveAgentStatusConfig
+- extensions/lib/caveman-state.ts (source · typescript · 167 lines)
+  - exports: CAVEMAN_LEVELS, CAVEMAN_STATE_ENTRY, CAVEMAN_STATE_EVENT, CavemanConfig, CavemanLevel, CavemanState, formatCavemanStatus, getDefaultCavemanConfigPath, getDefaultCavemanSkillPath, isCavemanLevel, loadCavemanConfig, normalizeCavemanLevel, readCavemanSkillBody, resolveInitialCavemanState
+- extensions/lib/minimal-skill.ts (source · typescript · 40 lines)
+  - exports: ChipStyleKind, renderSkillChip, renderSkillChipRows, SkillStatus
+- extensions/lib/minimal-title.ts (source · typescript · 91 lines)
+  - exports: centerToWidth, MAX_TITLE_WIDTH, padToWidth, parseTitleCommand, renderTitleLine, sanitizeTitle, SESSION_TITLE_ENTRY_TYPE, SPINNER_FRAMES, TITLE_STATE_EVENT, TitleCommand, TitleStatus, truncateToWidth, visibleWidth
+- extensions/lib/orgm-config.ts (source · typescript · 103 lines)
+  - exports: DEFAULT_ORGM_CONFIG, expandHomePath, isBlockedGitRoot, loadOrgmConfig, normalizeFsPath, orgmConfigPath, OrgmFlowName, OrgmGitConfig, OrgmHostConfig
+- extensions/lib/orgm-extensions.ts (source · typescript · 32 lines)
+  - exports: countActiveExtensions
+- extensions/lib/orgm-flow.ts (source · typescript · 29 lines)
+  - exports: applySavedModelConfig, registerSddCompatibilityCommands, resolveConfiguredPrimary, resolvePrimaryFlow
+- extensions/lib/package-paths.ts (source · typescript · 66 lines)
+  - exports: findInstalledSkillPath, getCurrentPackageAgentDirs, getCurrentPackageAgentsDir, getCurrentPackageDir, getCurrentPackageRoot
+- extensions/lib/repo-index.ts (source · typescript · 355 lines)
+  - exports: DEFAULT_IGNORED_DIRS, DEFAULT_IGNORED_FILES, generateRepoContext, generateRepoIndex, loadRepoIndex, RepoIndex, RepoIndexFile, RepoIndexOptions
+- extensions/minimal.ts (source · typescript · 464 lines)
+  - exports: default
+- extensions/model-primary.ts (source · typescript · 176 lines)
+  - exports: default
+- extensions/notify.ts (source · typescript · 286 lines)
+  - exports: default
+- extensions/orgm.ts (source · typescript · 344 lines)
+  - exports: default
+- extensions/repo-index.ts (source · typescript · 87 lines)
+  - exports: buildRepoIndexSystemPrompt, default
+- extensions/sdd-init.ts (source · typescript · 818 lines)
+  - exports: default
+- extensions/sessions.ts (source · typescript · 121 lines)
+  - exports: default
+- extensions/spec-dis.ts (source · typescript · 412 lines)
+  - exports: default
+- extensions/subagents.ts (source · typescript · 3232 lines)
+  - exports: default, discoverTeams, getDeployAgentInlineRuntimeParts, getDeployAgentInlineStatusText
+- extensions/title.ts (source · typescript · 223 lines)
+  - exports: default
+- extensions/todo.ts (source · typescript · 524 lines)
+  - exports: applyMutation, cloneState, default, detectCycle, Task, TaskAction, TaskDetails, TaskMutationParams, TaskState, TaskStatus, validateBlockedBy, visibleTasks
+- lib/sdd-preflight.ts (source · typescript · 273 lines)
+  - exports: ensureSddPreflight, getSddPreflightPreferences, installSddAssets, isSddPreflightTrigger, renderSddPreflightPrompt, SddArtifactStore, SddChainedPrStrategy, SddExecutionMode, SddPreflightPreferences, sddPreflightSessionKey
+- package.json (manifest · json · 36 lines)
+- prompts/gcl.md (docs · markdown · 54 lines)
+- prompts/gis.md (docs · markdown · 25 lines)
+- prompts/gpr.md (docs · markdown · 41 lines)
+- prompts/gwr.md (docs · markdown · 31 lines)
+- README.md (docs · markdown · 32 lines)
+- tests/agent-discovery.test.ts (test · typescript · 29 lines)
+- tests/agent-selector-models.test.ts (test · typescript · 18 lines)
+- tests/agent-status-widget.test.ts (test · typescript · 41 lines)
+- tests/ask-wrap.test.ts (test · typescript · 11 lines)
+- tests/awareness.test.ts (test · typescript · 29 lines)
+- tests/caveman-state.test.ts (test · typescript · 14 lines)
+- tests/minimal-footer-utils.test.ts (test · typescript · 27 lines)
+- tests/notify.test.ts (test · typescript · 47 lines)
+- tests/orgm-flow.test.ts (test · typescript · 20 lines)
+- tests/package-paths.test.ts (test · typescript · 21 lines)
+- tests/repo-index-extension.test.ts (test · typescript · 15 lines)
+- tests/repo-index.test.ts (test · typescript · 52 lines)
+  - exports: default, helper, main, noisy
+- tests/subagents-inline-render.test.ts (test · typescript · 27 lines)
+- tests/subagents-team-discovery.test.ts (test · typescript · 26 lines)
+- tests/title.test.ts (test · typescript · 26 lines)
+- themes/catppuccin-mocha.json (asset · json · 86 lines)
+- themes/cyberpunk.json (asset · json · 81 lines)
+- themes/dracula.json (asset · json · 81 lines)
+- themes/everforest.json (asset · json · 82 lines)
+- themes/gruvbox.json (asset · json · 80 lines)
+- themes/midnight-ocean.json (asset · json · 76 lines)
+- themes/nord.json (asset · json · 84 lines)
+- themes/ocean-breeze.json (asset · json · 83 lines)
+- themes/rose-pine.json (asset · json · 82 lines)
+- themes/synthwave.json (asset · json · 82 lines)
+- themes/tokyo-night.json (asset · json · 83 lines)

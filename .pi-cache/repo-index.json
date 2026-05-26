@@ -1,0 +1,2247 @@
+{
+  "version": 1,
+  "generatedAt": "2026-05-26T07:51:50.873Z",
+  "project": {
+    "name": "@osmargm1202/pi-harness",
+    "root": "/home/osmarg/Code/pi-harness",
+    "languages": [
+      "json",
+      "markdown",
+      "typescript",
+      "yaml"
+    ]
+  },
+  "git": {
+    "branch": "main",
+    "commit": "8484793",
+    "dirty": true
+  },
+  "ignore": {
+    "dirs": [
+      ".git",
+      ".pi",
+      ".agents",
+      ".pi-cache",
+      "node_modules",
+      ".next",
+      "dist",
+      "build",
+      "coverage",
+      ".cache",
+      ".pytest_cache",
+      "__pycache__",
+      ".venv",
+      "venv",
+      "target",
+      "vendor"
+    ],
+    "files": [
+      ".DS_Store",
+      "bun.lockb",
+      "bun.lock",
+      "package-lock.json",
+      "pnpm-lock.yaml",
+      "yarn.lock"
+    ]
+  },
+  "stats": {
+    "files": 101,
+    "skippedLargeFiles": 0
+  },
+  "files": {
+    "agents/pi-orchestrator/agent-expert.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 99,
+        "bytes": 4110,
+        "hash": "8707408a688da7eb",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/pi-orchestrator/cli-expert.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 42,
+        "bytes": 2429,
+        "hash": "b4633a0986dc5000",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/pi-orchestrator/coding-expert.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 74,
+        "bytes": 3335,
+        "hash": "8eaaad585960440e",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/pi-orchestrator/config-expert.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 64,
+        "bytes": 3354,
+        "hash": "0ccbd2ecb438571a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/pi-orchestrator/ext-expert.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 44,
+        "bytes": 2501,
+        "hash": "87ad1e058cdcd907",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/pi-orchestrator/index.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 83,
+        "bytes": 5800,
+        "hash": "b15634b869273dc9",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/pi-orchestrator/keybinding-expert.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 135,
+        "bytes": 8690,
+        "hash": "dec0565c57985848",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/pi-orchestrator/prompt-expert.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 71,
+        "bytes": 2867,
+        "hash": "39c8a7d559766796",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/pi-orchestrator/skill-expert.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 43,
+        "bytes": 2374,
+        "hash": "ce9cba21942105f3",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/pi-orchestrator/theme-expert.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 41,
+        "bytes": 2622,
+        "hash": "a2be59fd7d4af991",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/pi-orchestrator/tui-expert.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 86,
+        "bytes": 4235,
+        "hash": "72ef5c4a0f616537",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/sdd-orchestrator/index.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 392,
+        "bytes": 21740,
+        "hash": "11b894bc4befb85d",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/sdd-orchestrator/sdd-apply.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 106,
+        "bytes": 4850,
+        "hash": "9ec6f76f66c04431",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/sdd-orchestrator/sdd-archive.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 58,
+        "bytes": 2705,
+        "hash": "79a1e2ce4ab1b9e1",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/sdd-orchestrator/sdd-design.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 57,
+        "bytes": 2851,
+        "hash": "31c2525bfd184f1c",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/sdd-orchestrator/sdd-explore.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 57,
+        "bytes": 2877,
+        "hash": "c716b27e01392841",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/sdd-orchestrator/sdd-init.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 59,
+        "bytes": 3251,
+        "hash": "c44693e7efeae0c7",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/sdd-orchestrator/sdd-onboard.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 58,
+        "bytes": 3036,
+        "hash": "1cc5708953d83d1f",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/sdd-orchestrator/sdd-proposal.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 57,
+        "bytes": 2805,
+        "hash": "01bd36c0ad32a907",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/sdd-orchestrator/sdd-spec.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 57,
+        "bytes": 2680,
+        "hash": "e1bd455f27ebb054",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/sdd-orchestrator/sdd-tasks.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 86,
+        "bytes": 4058,
+        "hash": "7f8c4f944a08f182",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/sdd-orchestrator/sdd-verify.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 89,
+        "bytes": 4262,
+        "hash": "95cd7a583e35a99b",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/sdd-orchestrator/tdd-brainstormer.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 61,
+        "bytes": 2537,
+        "hash": "3d9ec0d0778b188e",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/sdd-orchestrator/tdd-implementer.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 73,
+        "bytes": 3453,
+        "hash": "e7ca0d625750c751",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/sdd-orchestrator/tdd-planner.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 81,
+        "bytes": 3441,
+        "hash": "179fc269c76eba24",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/sdd-orchestrator/tdd-reviewer.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 74,
+        "bytes": 3257,
+        "hash": "604926ed9ac9d684",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/sdd-orchestrator/tdd-verifier.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 79,
+        "bytes": 3608,
+        "hash": "e86d540cb44f0b98",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/sdd-orchestrator/tdd-worktree-manager.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 76,
+        "bytes": 3686,
+        "hash": "ec3078b7c454902a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "agents/teams.yaml": {
+      "generated": {
+        "kind": "asset",
+        "language": "yaml",
+        "lines": 29,
+        "bytes": 473,
+        "hash": "43a6425fb3f243fa",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "assets/chains/sdd-full.chain.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 84,
+        "bytes": 2435,
+        "hash": "dcffa721f9a8271b",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "assets/chains/sdd-plan.chain.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 48,
+        "bytes": 1277,
+        "hash": "42d10144c6ab8944",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "assets/chains/sdd-verify.chain.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 39,
+        "bytes": 1092,
+        "hash": "377bfd6c39973203",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "assets/chains/tdd-full.chain.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 59,
+        "bytes": 1703,
+        "hash": "7023fab1d94cf7b9",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "assets/chains/tdd-plan.chain.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 21,
+        "bytes": 526,
+        "hash": "9e6ac677321848fc",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "assets/chains/tdd-verify.chain.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 21,
+        "bytes": 554,
+        "hash": "22621b4a09deb681",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "assets/support/strict-tdd-verify.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 269,
+        "bytes": 12876,
+        "hash": "becb50da4841aae5",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "assets/support/strict-tdd.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 364,
+        "bytes": 18533,
+        "hash": "2b0340bfa1160db7",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "docs/superpowers/plans/2026-05-26-extension-resource-audit.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 54,
+        "bytes": 2292,
+        "hash": "66ce5b117010f405",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "docs/superpowers/plans/2026-05-26-package-agent-discovery.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 116,
+        "bytes": 3867,
+        "hash": "dcc48f1d71bde330",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/.gitignore": {
+      "generated": {
+        "kind": "asset",
+        "lines": 2,
+        "bytes": 31,
+        "hash": "37c6f1e34e677a36",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/agent-selector.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 329,
+        "bytes": 11156,
+        "hash": "580cae998a4892b2",
+        "exports": [
+          "collectConfiguredAgentModels",
+          "default",
+          "isEscapeKey"
+        ],
+        "imports": [
+          "./lib/agent-discovery",
+          "@earendil-works/pi-coding-agent",
+          "@earendil-works/pi-tui",
+          "node:fs",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/agent-status.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 889,
+        "bytes": 37733,
+        "hash": "8ef9d2e9dce8adb4",
+        "exports": [
+          "default",
+          "shouldShowAgentStatusWidget"
+        ],
+        "imports": [
+          "./lib/agent-status-config",
+          "./lib/caveman-state",
+          "@earendil-works/pi-coding-agent",
+          "@earendil-works/pi-tui"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/ask.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 441,
+        "bytes": 16428,
+        "hash": "0df10a5585c4fdec",
+        "exports": [
+          "default",
+          "loadAskConfig",
+          "renderWrappedQuestion",
+          "stripJsonc"
+        ],
+        "imports": [
+          "@earendil-works/pi-coding-agent",
+          "@earendil-works/pi-tui",
+          "node:fs",
+          "node:os",
+          "node:path",
+          "typebox"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/awareness.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 242,
+        "bytes": 8964,
+        "hash": "4af106112464192f",
+        "exports": [
+          "buildAwarenessText",
+          "default",
+          "renderAwarenessContent"
+        ],
+        "imports": [
+          "./package.json",
+          "@earendil-works/pi-coding-agent",
+          "@earendil-works/pi-tui",
+          "node:child_process",
+          "node:util"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/caveman.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 142,
+        "bytes": 4676,
+        "hash": "c8554e1c3c61c8a9",
+        "exports": [
+          "default"
+        ],
+        "imports": [
+          "./lib/caveman-state",
+          "@earendil-works/pi-coding-agent",
+          "@earendil-works/pi-tui"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/clear.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 24,
+        "bytes": 811,
+        "hash": "61c1f7563288cd7d",
+        "exports": [
+          "default"
+        ],
+        "imports": [
+          "@earendil-works/pi-coding-agent"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/git.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 61,
+        "bytes": 1992,
+        "hash": "c298a3314110c4e5",
+        "exports": [
+          "default"
+        ],
+        "imports": [
+          "./lib/orgm-config",
+          "@earendil-works/pi-coding-agent",
+          "node:child_process",
+          "node:util"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/lib/agent-discovery.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 248,
+        "bytes": 8233,
+        "hash": "5a1ada980bd82179",
+        "exports": [
+          "AgentConfig",
+          "AgentScope",
+          "AgentSource",
+          "DEFAULT_PRIMARY_AGENT",
+          "discoverDeployableAgents",
+          "discoverPrimaryAgents",
+          "findDeployableAgent",
+          "findNearestProjectAgentsDir",
+          "findPrimaryAgent",
+          "formatPrimaryLabel",
+          "getPackageAgentDirs",
+          "getPackageAgentsDir",
+          "normalizePrimaryName",
+          "parseTools",
+          "PRIMARY_STATE_ENTRY",
+          "PRIMARY_STATE_EVENT",
+          "PrimaryAgent",
+          "readAgentConfig",
+          "resolveDefaultPrimary",
+          "restorePrimaryState",
+          "SYSTEM_AGENT"
+        ],
+        "imports": [
+          "./package-paths",
+          "@earendil-works/pi-coding-agent",
+          "node:fs",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/lib/agent-status-config.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 53,
+        "bytes": 2192,
+        "hash": "918c980c77d7a573",
+        "exports": [
+          "AGENT_STATUS_CONFIG_DEFAULTS",
+          "AgentStatusConfig",
+          "getAgentStatusConfigPath",
+          "loadAgentStatusConfig",
+          "saveAgentStatusConfig"
+        ],
+        "imports": [
+          "@earendil-works/pi-coding-agent",
+          "node:fs",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/lib/caveman-state.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 167,
+        "bytes": 5024,
+        "hash": "f39e103e843a11bf",
+        "exports": [
+          "CAVEMAN_LEVELS",
+          "CAVEMAN_STATE_ENTRY",
+          "CAVEMAN_STATE_EVENT",
+          "CavemanConfig",
+          "CavemanLevel",
+          "CavemanState",
+          "formatCavemanStatus",
+          "getDefaultCavemanConfigPath",
+          "getDefaultCavemanSkillPath",
+          "isCavemanLevel",
+          "loadCavemanConfig",
+          "normalizeCavemanLevel",
+          "readCavemanSkillBody",
+          "resolveInitialCavemanState"
+        ],
+        "imports": [
+          "./package-paths",
+          "@earendil-works/pi-coding-agent",
+          "node:fs",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/lib/minimal-skill.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 40,
+        "bytes": 1450,
+        "hash": "e61faeaf443ddafc",
+        "exports": [
+          "ChipStyleKind",
+          "renderSkillChip",
+          "renderSkillChipRows",
+          "SkillStatus"
+        ],
+        "imports": [
+          "./minimal-title.ts"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/lib/minimal-title.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 91,
+        "bytes": 3462,
+        "hash": "8e4c22289342383b",
+        "exports": [
+          "centerToWidth",
+          "MAX_TITLE_WIDTH",
+          "padToWidth",
+          "parseTitleCommand",
+          "renderTitleLine",
+          "sanitizeTitle",
+          "SESSION_TITLE_ENTRY_TYPE",
+          "SPINNER_FRAMES",
+          "TITLE_STATE_EVENT",
+          "TitleCommand",
+          "TitleStatus",
+          "truncateToWidth",
+          "visibleWidth"
+        ],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/lib/orgm-config.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 103,
+        "bytes": 3725,
+        "hash": "ce0c022f5b6652b2",
+        "exports": [
+          "DEFAULT_ORGM_CONFIG",
+          "expandHomePath",
+          "isBlockedGitRoot",
+          "loadOrgmConfig",
+          "normalizeFsPath",
+          "orgmConfigPath",
+          "OrgmFlowName",
+          "OrgmGitConfig",
+          "OrgmHostConfig"
+        ],
+        "imports": [
+          "node:fs",
+          "node:os",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/lib/orgm-extensions.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 32,
+        "bytes": 1130,
+        "hash": "a94020083bfadd3f",
+        "exports": [
+          "countActiveExtensions"
+        ],
+        "imports": [
+          "node:fs",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/lib/orgm-flow.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 29,
+        "bytes": 1335,
+        "hash": "7217ffb7d10981cf",
+        "exports": [
+          "applySavedModelConfig",
+          "registerSddCompatibilityCommands",
+          "resolveConfiguredPrimary",
+          "resolvePrimaryFlow"
+        ],
+        "imports": [
+          "./agent-discovery",
+          "./orgm-config"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/lib/package-paths.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 66,
+        "bytes": 2064,
+        "hash": "a373227b7d3b57f4",
+        "exports": [
+          "findInstalledSkillPath",
+          "getCurrentPackageAgentDirs",
+          "getCurrentPackageAgentsDir",
+          "getCurrentPackageDir",
+          "getCurrentPackageRoot"
+        ],
+        "imports": [
+          "@earendil-works/pi-coding-agent",
+          "node:fs",
+          "node:os",
+          "node:path",
+          "node:url"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/lib/repo-index.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 355,
+        "bytes": 10511,
+        "hash": "9098bfd745272ef3",
+        "exports": [
+          "DEFAULT_IGNORED_DIRS",
+          "DEFAULT_IGNORED_FILES",
+          "generateRepoContext",
+          "generateRepoIndex",
+          "loadRepoIndex",
+          "RepoIndex",
+          "RepoIndexFile",
+          "RepoIndexOptions"
+        ],
+        "imports": [
+          "node:child_process",
+          "node:crypto",
+          "node:fs",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/minimal.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 464,
+        "bytes": 15806,
+        "hash": "27002bc9a10a72a7",
+        "exports": [
+          "default"
+        ],
+        "imports": [
+          "./lib/agent-discovery",
+          "./lib/caveman-state",
+          "./lib/minimal-skill.ts",
+          "./lib/minimal-title.ts",
+          "@earendil-works/pi-ai",
+          "@earendil-works/pi-coding-agent",
+          "@earendil-works/pi-tui",
+          "node:fs",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/model-primary.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 176,
+        "bytes": 5600,
+        "hash": "4449884fbdc87f02",
+        "exports": [
+          "default"
+        ],
+        "imports": [
+          "./lib/agent-discovery",
+          "./lib/orgm-flow",
+          "@earendil-works/pi-coding-agent",
+          "@earendil-works/pi-tui"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/notify.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 286,
+        "bytes": 7279,
+        "hash": "9dde03deddc38c88",
+        "exports": [
+          "default"
+        ],
+        "imports": [
+          "@earendil-works/pi-coding-agent",
+          "node:child_process",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/orgm.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 344,
+        "bytes": 10415,
+        "hash": "ade42a49f868d512",
+        "exports": [
+          "default"
+        ],
+        "imports": [
+          "./lib/orgm-extensions",
+          "./lib/orgm-flow",
+          "@earendil-works/pi-coding-agent",
+          "node:child_process",
+          "node:fs/promises",
+          "node:os",
+          "node:path",
+          "node:url",
+          "node:util"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/repo-index.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 87,
+        "bytes": 3902,
+        "hash": "b63a846584ba355b",
+        "exports": [
+          "buildRepoIndexSystemPrompt",
+          "default"
+        ],
+        "imports": [
+          "./lib/repo-index.ts",
+          "@earendil-works/pi-coding-agent",
+          "node:fs",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/sdd-init.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 818,
+        "bytes": 22274,
+        "hash": "a0a394249cd0437c",
+        "exports": [
+          "default"
+        ],
+        "imports": [
+          "../lib/sdd-preflight.ts",
+          "./lib/orgm-flow",
+          "node:fs",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/sessions.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 121,
+        "bytes": 4437,
+        "hash": "68dff7f64ea531d6",
+        "exports": [
+          "default"
+        ],
+        "imports": [
+          "@earendil-works/pi-coding-agent",
+          "@earendil-works/pi-tui",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/spec-dis.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 412,
+        "bytes": 13319,
+        "hash": "37139cbc2799c0bd",
+        "exports": [
+          "default"
+        ],
+        "imports": [
+          "@earendil-works/pi-coding-agent",
+          "@earendil-works/pi-tui",
+          "node:fs/promises",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/subagents.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 3232,
+        "bytes": 98377,
+        "hash": "a93b2d0224d34511",
+        "exports": [
+          "default",
+          "discoverTeams",
+          "getDeployAgentInlineRuntimeParts",
+          "getDeployAgentInlineStatusText"
+        ],
+        "imports": [
+          "./lib/agent-discovery",
+          "@earendil-works/pi-ai",
+          "@earendil-works/pi-coding-agent",
+          "@earendil-works/pi-tui",
+          "node:child_process",
+          "node:fs",
+          "node:os",
+          "node:path",
+          "typebox"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/title.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 223,
+        "bytes": 7774,
+        "hash": "18e35f8d9cc0b84b",
+        "exports": [
+          "default"
+        ],
+        "imports": [
+          "./lib/minimal-title.ts",
+          "@earendil-works/pi-agent-core",
+          "@earendil-works/pi-ai",
+          "@earendil-works/pi-coding-agent"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "extensions/todo.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 524,
+        "bytes": 20159,
+        "hash": "eba6a49beab267c4",
+        "exports": [
+          "applyMutation",
+          "cloneState",
+          "default",
+          "detectCycle",
+          "Task",
+          "TaskAction",
+          "TaskDetails",
+          "TaskMutationParams",
+          "TaskState",
+          "TaskStatus",
+          "validateBlockedBy",
+          "visibleTasks"
+        ],
+        "imports": [
+          "@earendil-works/pi-ai",
+          "@earendil-works/pi-coding-agent",
+          "@earendil-works/pi-tui",
+          "typebox"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "lib/sdd-preflight.ts": {
+      "generated": {
+        "kind": "source",
+        "language": "typescript",
+        "lines": 273,
+        "bytes": 8692,
+        "hash": "b085c2bed714c670",
+        "exports": [
+          "ensureSddPreflight",
+          "getSddPreflightPreferences",
+          "installSddAssets",
+          "isSddPreflightTrigger",
+          "renderSddPreflightPrompt",
+          "SddArtifactStore",
+          "SddChainedPrStrategy",
+          "SddExecutionMode",
+          "SddPreflightPreferences",
+          "sddPreflightSessionKey"
+        ],
+        "imports": [
+          "@earendil-works/pi-coding-agent",
+          "node:fs",
+          "node:path",
+          "node:url"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "package.json": {
+      "generated": {
+        "kind": "manifest",
+        "language": "json",
+        "lines": 36,
+        "bytes": 1007,
+        "hash": "ec7455d89b599444",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "prompts/gcl.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 54,
+        "bytes": 2163,
+        "hash": "974369d9b5548913",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "prompts/gis.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 25,
+        "bytes": 1057,
+        "hash": "c99c87806ccc182d",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "prompts/gpr.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 41,
+        "bytes": 2264,
+        "hash": "223b0c15c78a9a26",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "prompts/gwr.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 31,
+        "bytes": 1832,
+        "hash": "da440d74f975b24c",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "README.md": {
+      "generated": {
+        "kind": "docs",
+        "language": "markdown",
+        "lines": 32,
+        "bytes": 1541,
+        "hash": "b2b703b02a91fce2",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "tests/agent-discovery.test.ts": {
+      "generated": {
+        "kind": "test",
+        "language": "typescript",
+        "lines": 29,
+        "bytes": 1604,
+        "hash": "dfb2414fdd80ebd2",
+        "exports": [],
+        "imports": [
+          "../extensions/lib/agent-discovery.ts",
+          "node:assert/strict",
+          "node:fs",
+          "node:os",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "tests/agent-selector-models.test.ts": {
+      "generated": {
+        "kind": "test",
+        "language": "typescript",
+        "lines": 18,
+        "bytes": 560,
+        "hash": "06bfc58d8ee44c6a",
+        "exports": [],
+        "imports": [
+          "../extensions/agent-selector.ts",
+          "node:assert/strict"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "tests/agent-status-widget.test.ts": {
+      "generated": {
+        "kind": "test",
+        "language": "typescript",
+        "lines": 41,
+        "bytes": 1328,
+        "hash": "6bedc0c335e0207d",
+        "exports": [],
+        "imports": [
+          "../extensions/agent-status.ts",
+          "../extensions/lib/agent-status-config.ts",
+          "node:assert/strict"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "tests/ask-wrap.test.ts": {
+      "generated": {
+        "kind": "test",
+        "language": "typescript",
+        "lines": 11,
+        "bytes": 808,
+        "hash": "b0044374e70bebc3",
+        "exports": [],
+        "imports": [
+          "../extensions/ask.ts",
+          "@earendil-works/pi-tui",
+          "node:assert/strict"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "tests/awareness.test.ts": {
+      "generated": {
+        "kind": "test",
+        "language": "typescript",
+        "lines": 29,
+        "bytes": 1500,
+        "hash": "c275b033a80df712",
+        "exports": [],
+        "imports": [
+          "../extensions/awareness.ts",
+          "node:assert/strict"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "tests/caveman-state.test.ts": {
+      "generated": {
+        "kind": "test",
+        "language": "typescript",
+        "lines": 14,
+        "bytes": 702,
+        "hash": "a4c1e07d64ee9990",
+        "exports": [],
+        "imports": [
+          "../extensions/lib/caveman-state.ts",
+          "node:assert/strict",
+          "node:fs"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "tests/minimal-footer-utils.test.ts": {
+      "generated": {
+        "kind": "test",
+        "language": "typescript",
+        "lines": 27,
+        "bytes": 1634,
+        "hash": "353e8e1129bc1aa9",
+        "exports": [],
+        "imports": [
+          "../extensions/lib/minimal-skill.ts",
+          "../extensions/lib/minimal-title.ts",
+          "node:assert/strict"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "tests/notify.test.ts": {
+      "generated": {
+        "kind": "test",
+        "language": "typescript",
+        "lines": 47,
+        "bytes": 1642,
+        "hash": "74f3241b2171ca5a",
+        "exports": [],
+        "imports": [
+          "../extensions/notify.ts",
+          "node:assert/strict",
+          "node:fs",
+          "node:os",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "tests/orgm-flow.test.ts": {
+      "generated": {
+        "kind": "test",
+        "language": "typescript",
+        "lines": 20,
+        "bytes": 561,
+        "hash": "8d72afa50127246c",
+        "exports": [],
+        "imports": [
+          "../extensions/lib/orgm-flow.ts",
+          "node:assert/strict"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "tests/package-paths.test.ts": {
+      "generated": {
+        "kind": "test",
+        "language": "typescript",
+        "lines": 21,
+        "bytes": 1038,
+        "hash": "eaeba82f37cf9aa2",
+        "exports": [],
+        "imports": [
+          "../extensions/lib/package-paths.ts",
+          "node:assert/strict",
+          "node:fs"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "tests/repo-index-extension.test.ts": {
+      "generated": {
+        "kind": "test",
+        "language": "typescript",
+        "lines": 15,
+        "bytes": 922,
+        "hash": "cfdb9d7870410a58",
+        "exports": [],
+        "imports": [
+          "../extensions/repo-index.ts",
+          "node:assert/strict"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "tests/repo-index.test.ts": {
+      "generated": {
+        "kind": "test",
+        "language": "typescript",
+        "lines": 52,
+        "bytes": 3217,
+        "hash": "a2a5e24046676a6d",
+        "exports": [
+          "default",
+          "helper",
+          "main",
+          "noisy"
+        ],
+        "imports": [
+          "../extensions/lib/repo-index.ts",
+          "./util",
+          "node:assert/strict",
+          "node:fs",
+          "node:os",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "tests/subagents-inline-render.test.ts": {
+      "generated": {
+        "kind": "test",
+        "language": "typescript",
+        "lines": 27,
+        "bytes": 1176,
+        "hash": "1cd45ba362bbe8a0",
+        "exports": [],
+        "imports": [
+          "../extensions/subagents.ts",
+          "node:assert/strict"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "tests/subagents-team-discovery.test.ts": {
+      "generated": {
+        "kind": "test",
+        "language": "typescript",
+        "lines": 26,
+        "bytes": 1308,
+        "hash": "2af030d32993f213",
+        "exports": [],
+        "imports": [
+          "../extensions/subagents.ts",
+          "node:assert/strict",
+          "node:fs",
+          "node:os",
+          "node:path"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "tests/title.test.ts": {
+      "generated": {
+        "kind": "test",
+        "language": "typescript",
+        "lines": 26,
+        "bytes": 1716,
+        "hash": "2dfbdca117b68b60",
+        "exports": [],
+        "imports": [
+          "../extensions/lib/minimal-title.ts",
+          "node:assert/strict"
+        ],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "themes/catppuccin-mocha.json": {
+      "generated": {
+        "kind": "asset",
+        "language": "json",
+        "lines": 86,
+        "bytes": 2407,
+        "hash": "00a2fde9dca2bafe",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "themes/cyberpunk.json": {
+      "generated": {
+        "kind": "asset",
+        "language": "json",
+        "lines": 81,
+        "bytes": 2275,
+        "hash": "f7ced30735f2124a",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "themes/dracula.json": {
+      "generated": {
+        "kind": "asset",
+        "language": "json",
+        "lines": 81,
+        "bytes": 2258,
+        "hash": "529a7f0183e19a71",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "themes/everforest.json": {
+      "generated": {
+        "kind": "asset",
+        "language": "json",
+        "lines": 82,
+        "bytes": 2285,
+        "hash": "d05290aa6cf468c1",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "themes/gruvbox.json": {
+      "generated": {
+        "kind": "asset",
+        "language": "json",
+        "lines": 80,
+        "bytes": 2233,
+        "hash": "2ef2a534256852e3",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "themes/midnight-ocean.json": {
+      "generated": {
+        "kind": "asset",
+        "language": "json",
+        "lines": 76,
+        "bytes": 2175,
+        "hash": "35ad58cea8b7b2dc",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "themes/nord.json": {
+      "generated": {
+        "kind": "asset",
+        "language": "json",
+        "lines": 84,
+        "bytes": 2357,
+        "hash": "b4c99b7e890393e2",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "themes/ocean-breeze.json": {
+      "generated": {
+        "kind": "asset",
+        "language": "json",
+        "lines": 83,
+        "bytes": 2329,
+        "hash": "6f9e118c1f69bd5c",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "themes/rose-pine.json": {
+      "generated": {
+        "kind": "asset",
+        "language": "json",
+        "lines": 82,
+        "bytes": 2272,
+        "hash": "e28aff3f420e432c",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "themes/synthwave.json": {
+      "generated": {
+        "kind": "asset",
+        "language": "json",
+        "lines": 82,
+        "bytes": 2285,
+        "hash": "74937474886ea541",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    },
+    "themes/tokyo-night.json": {
+      "generated": {
+        "kind": "asset",
+        "language": "json",
+        "lines": 83,
+        "bytes": 2321,
+        "hash": "d6c424ce2b754071",
+        "exports": [],
+        "imports": [],
+        "updatedAt": "2026-05-26T07:51:50.873Z"
+      },
+      "persistent": {
+        "summary": "",
+        "notes": [],
+        "relatedFiles": [],
+        "ownerHints": []
+      }
+    }
+  }
+}
