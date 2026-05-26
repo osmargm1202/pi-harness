@@ -7,9 +7,9 @@
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, basename } from "node:path";
-import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
-import { DynamicBorder } from "@mariozechner/pi-coding-agent";
-import { Container, Key, matchesKey, SelectList, Text, type SelectItem } from "@mariozechner/pi-tui";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { DynamicBorder } from "@earendil-works/pi-coding-agent";
+import { Container, Key, matchesKey, SelectList, Text, type SelectItem } from "@earendil-works/pi-tui";
 import { discoverDeployableAgents, type AgentConfig } from "./lib/agent-discovery";
 
 export function collectConfiguredAgentModels(ctx: ExtensionContext, preferredModel?: string): string[] {

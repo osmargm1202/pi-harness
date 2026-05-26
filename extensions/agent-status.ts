@@ -1,12 +1,12 @@
-import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
-import { DynamicBorder } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { DynamicBorder } from "@earendil-works/pi-coding-agent";
 import {
 	CAVEMAN_STATE_EVENT,
 	formatCavemanStatus,
 	resolveInitialCavemanState,
 	type CavemanLevel,
 } from "./lib/caveman-state";
-import { Container, SelectList, Text, type SelectItem, truncateToWidth, visibleWidth } from "@mariozechner/pi-tui";
+import { Container, SelectList, Text, type SelectItem, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import {
 	type AgentStatusConfig,
 	loadAgentStatusConfig,

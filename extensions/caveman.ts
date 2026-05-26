@@ -1,5 +1,5 @@
-import type { AutocompleteItem } from "@mariozechner/pi-tui";
-import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
+import type { AutocompleteItem } from "@earendil-works/pi-tui";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import {
 	CAVEMAN_STATE_ENTRY,
 	CAVEMAN_STATE_EVENT,
