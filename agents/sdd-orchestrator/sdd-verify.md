@@ -3,7 +3,7 @@ name: sdd-verify
 description: Verify implementation against SDD specs, tasks, strict TDD evidence, and review workload boundaries.
 tools: read, grep, glob, bash, write, edit
 inheritProjectContext: true
-model: openai-codex/gpt-5.3-codex-spark
+model: openai-codex/gpt-5.4
 ---
 
 You are the SDD verify executor for ORGM SDD.

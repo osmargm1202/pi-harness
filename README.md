@@ -33,7 +33,7 @@ This package is intended to be public, but it should still be reviewed before pu
 
 ## full-subagents
 
-`extensions/full-subagents.ts` configures and displays a startup team of headless Pi subagents and gives the parent agent tools for strict delegation. Child process transport is prepared, but real persistent process spawning is not yet fully wired in this MVP.
+`extensions/full-subagents.ts` configures and displays a startup team of headless Pi subagents and gives the parent agent tools for strict delegation. When enabled agents are configured, `session_start` creates a runtime pool and routes delegated tasks through child transports. Tests can inject a fake runtime factory so they do not spawn real Pi subprocesses.
 
 Minimal `~/.pi/agent/orgm.json` slice:
 
@@ -43,17 +43,23 @@ Minimal `~/.pi/agent/orgm.json` slice:
     "enabled": true,
     "strictDelegation": true,
     "startupTeam": "tdd-core",
-    "maxAgents": 5
+    "maxAgents": 5,
+    "agents": {
+      "tdd-planner": { "model": "openai-codex/gpt-5.4", "tools": ["read", "bash"] },
+      "tdd-verifier": { "model": "openai-codex/gpt-5.4" }
+    }
   }
 }
 ```
+
+`fullSubagents.agents` is the highest-priority per-subagent override layer for the full-subagents runtime. On `session_start`, configured agent overrides are also synced into `~/.pi/agent/agents/<namespace>/<agent>.md`, so local model/tool choices survive package git updates.
 
 When enabled, the parent TUI shows a `Full subagents` widget. Busy or compacting agents are highlighted, idle agents are muted/healthy, and dead or errored agents are marked as down.
 
 Parent-facing tools:
 
-- `full_subagent_task` — queue or route a task through one configured subagent in the pool surface.
-- `full_query_team` — queue or route work through a configured team in parallel or serial via the pool surface.
+- `full_subagent_task` — route a task through one configured subagent when a runtime pool is available; otherwise record it as queued without runtime.
+- `full_query_team` — route work through a configured team in parallel or serial when a runtime pool is available; otherwise record it as queued without runtime.
 
 Commands:
 

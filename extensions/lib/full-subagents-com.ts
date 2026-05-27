@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { spawn } from "node:child_process";
+import type { Readable, Writable } from "node:stream";
 
 export type FullSubagentState = "starting" | "idle" | "busy" | "compacting" | "awaiting_user" | "error" | "dead";
 export type FullSubagentMessageType =
@@ -65,12 +67,155 @@ export interface PiChildArgsInput {
 	cwd: string;
 }
 
+export interface FullSubagentTaskResult {
+	requestId: string;
+	text: string;
+}
+
+export interface FullSubagentTeamResult {
+	requestId: string;
+	text: string;
+	results: Array<FullSubagentTaskResult & { agent: string }>;
+}
+
+interface PendingTask {
+	resolve: (result: FullSubagentTaskResult) => void;
+	reject: (error: Error) => void;
+	timeout: ReturnType<typeof setTimeout>;
+}
+
+export interface FullSubagentPoolOptions {
+	taskTimeoutMs?: number;
+}
+
+export const DEFAULT_FULL_SUBAGENT_TASK_TIMEOUT_MS = 30 * 60 * 1000;
+
+export interface PiSubagentTransportInput extends PiChildArgsInput {
+	command?: string;
+}
+
 export function buildPiChildArgs(input: PiChildArgsInput): string[] {
-	const args = ["--mode", "json", "-p", "--no-session"];
+	const args = ["--mode", "rpc", "--no-session"];
 	if (input.model) args.push("--model", input.model);
 	if (input.tools.length > 0) args.push("--tools", input.tools.join(","));
-	args.push(`Full subagent ${input.agentName} ready. Wait for task protocol messages from parent.`);
 	return args;
+}
+
+interface RpcChildProcessLike {
+	stdout: Readable;
+	stderr?: Readable;
+	stdin: Writable;
+	on(event: "exit", handler: (code: number | null) => void): unknown;
+	kill(): unknown;
+}
+
+export function createPiSubagentTransport(input: PiSubagentTransportInput): FullSubagentTransport {
+	const child = spawn(input.command ?? "pi", buildPiChildArgs(input), { cwd: input.cwd });
+	return createPiRpcSubagentTransport(input, child);
+}
+
+export function createPiRpcSubagentTransport(input: PiChildArgsInput, child: RpcChildProcessLike): FullSubagentTransport {
+	return new PiRpcSubagentTransport(input.agentName, child);
+}
+
+class PiRpcSubagentTransport implements FullSubagentTransport {
+	private messageHandler: ((line: string) => void) | undefined;
+	private activeRequestId: string | undefined;
+	private readonly child: RpcChildProcessLike;
+	private readonly agentId: string;
+
+	constructor(agentId: string, child: RpcChildProcessLike) {
+		this.child = child;
+		this.agentId = agentId;
+	}
+
+	onMessage(handler: (line: string) => void): void {
+		this.messageHandler = handler;
+		handler(serializeProtocolLine(createProtocolMessage(this.agentId, "ready", { state: "idle" })));
+		let buffer = "";
+		this.child.stdout.setEncoding("utf8");
+		this.child.stdout.on("data", (chunk: string) => {
+			buffer += chunk;
+			let newline = buffer.indexOf("\n");
+			while (newline >= 0) {
+				const line = buffer.slice(0, newline + 1);
+				buffer = buffer.slice(newline + 1);
+				this.handleRpcLine(line);
+				newline = buffer.indexOf("\n");
+			}
+		});
+	}
+
+	onExit(handler: (code: number | null) => void): void {
+		this.child.on("exit", handler);
+	}
+
+	send(line: string): void {
+		let message: FullSubagentProtocolMessage;
+		try {
+			message = parseProtocolLine(line);
+		} catch (error) {
+			this.emitProtocol("task.error", { error: error instanceof Error ? error.message : String(error) });
+			return;
+		}
+		if (message.type === "task.start") {
+			const requestId = textValue(message.requestId) ?? randomUUID();
+			this.activeRequestId = requestId;
+			this.child.stdin.write(`${JSON.stringify({
+				id: requestId,
+				type: "prompt",
+				message: formatFullSubagentTaskPrompt(message),
+			})}\n`);
+			return;
+		}
+		if (message.type === "task.cancel") {
+			this.child.stdin.write(`${JSON.stringify({ id: textValue(message.requestId), type: "abort" })}\n`);
+		}
+		if (message.type === "shutdown") this.kill();
+	}
+
+	kill(): void {
+		this.child.kill();
+	}
+
+	private emitProtocol(type: FullSubagentMessageType, payload: Record<string, unknown> = {}): void {
+		this.messageHandler?.(serializeProtocolLine(createProtocolMessage(this.agentId, type, payload)));
+	}
+
+	private handleRpcLine(line: string): void {
+		let event: Record<string, unknown>;
+		try {
+			const parsed = JSON.parse(line.trim());
+			if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return;
+			event = parsed as Record<string, unknown>;
+		} catch (error) {
+			this.emitProtocol("task.error", { requestId: this.activeRequestId, error: error instanceof Error ? error.message : String(error) });
+			return;
+		}
+		if (event.type === "response" && event.command === "prompt" && event.success === false) {
+			const requestId = textValue(event.id) ?? this.activeRequestId;
+			this.emitProtocol("task.error", { requestId, error: textValue(event.error) ?? "prompt failed" });
+			this.activeRequestId = undefined;
+			return;
+		}
+		if (event.type === "response" && event.command === "prompt" && event.success === true) {
+			this.emitProtocol("status", { requestId: textValue(event.id) ?? this.activeRequestId, state: "busy", activity: "prompt accepted" });
+			return;
+		}
+		if (event.type === "agent_start") {
+			this.emitProtocol("status", { requestId: this.activeRequestId, state: "busy", activity: "running" });
+			return;
+		}
+		if (event.type === "extension_ui_request") {
+			this.emitProtocol("status", { requestId: this.activeRequestId, state: "awaiting_user", activity: textValue(event.method) ?? "awaiting user" });
+			return;
+		}
+		if (event.type === "agent_end") {
+			const requestId = this.activeRequestId;
+			this.emitProtocol("task.done", { requestId, text: extractAgentEndText(event) ?? "done" });
+			this.activeRequestId = undefined;
+		}
+	}
 }
 
 export function createProtocolMessage(
@@ -131,10 +276,51 @@ function stateValue(value: unknown, fallback: FullSubagentState): FullSubagentSt
 		: fallback;
 }
 
+function formatFullSubagentTaskPrompt(message: FullSubagentProtocolMessage): string {
+	return [
+		"Full subagent task",
+		`Working directory: ${textValue(message.cwd) ?? "(not provided)"}`,
+		"",
+		"Task:",
+		textValue(message.task) ?? "",
+	].join("\n");
+}
+
+function contentText(value: unknown): string | undefined {
+	if (typeof value === "string" && value.trim()) return value.trim();
+	if (!Array.isArray(value)) return undefined;
+	return value
+		.map((chunk) => {
+			if (typeof chunk === "string") return chunk;
+			if (typeof chunk === "object" && chunk !== null && typeof (chunk as Record<string, unknown>).text === "string") {
+				return (chunk as Record<string, string>).text;
+			}
+			return "";
+		})
+		.join("")
+		.trim() || undefined;
+}
+
+function extractAgentEndText(event: Record<string, unknown>): string | undefined {
+	if (!Array.isArray(event.messages)) return undefined;
+	for (const message of [...event.messages].reverse()) {
+		if (typeof message !== "object" || message === null) continue;
+		const record = message as Record<string, unknown>;
+		if (record.role === "assistant" || record.type === "message.output" || record.type === "assistant") {
+			const text = contentText(record.content) ?? contentText(record.text);
+			if (text) return text;
+		}
+	}
+	return undefined;
+}
+
 export class FullSubagentPool {
 	private readonly runtimes = new Map<string, RuntimeRecord>();
+	private readonly pendingTasks = new Map<string, PendingTask>();
+	private readonly taskTimeoutMs: number;
 
-	constructor(configs: FullSubagentRuntimeConfig[]) {
+	constructor(configs: FullSubagentRuntimeConfig[], options: FullSubagentPoolOptions = {}) {
+		this.taskTimeoutMs = options.taskTimeoutMs ?? DEFAULT_FULL_SUBAGENT_TASK_TIMEOUT_MS;
 		for (const config of configs) {
 			const snapshot: FullSubagentSnapshot = {
 				agentId: config.agentId,
@@ -158,13 +344,39 @@ export class FullSubagentPool {
 	}
 
 	startTask(agentId: string, task: string, cwd: string): string {
-		const runtime = this.requireRuntime(agentId);
 		const requestId = randomUUID();
-		runtime.snapshot.state = "busy";
-		runtime.snapshot.activity = task;
-		runtime.snapshot.requestId = requestId;
-		runtime.config.transport.send(serializeProtocolLine(createProtocolMessage(agentId, "task.start", { requestId, task, cwd })));
+		this.startTaskWithRequestId(agentId, requestId, task, cwd);
 		return requestId;
+	}
+
+	runTask(agentId: string, task: string, cwd: string): Promise<FullSubagentTaskResult> {
+		const requestId = randomUUID();
+		const result = new Promise<FullSubagentTaskResult>((resolve, reject) => {
+			const timeout = setTimeout(() => this.timeoutTask(agentId, requestId), this.taskTimeoutMs);
+			this.pendingTasks.set(requestId, { resolve, reject, timeout });
+		});
+		try {
+			this.startTaskWithRequestId(agentId, requestId, task, cwd);
+		} catch (error) {
+			this.rejectPendingTask(requestId, error instanceof Error ? error.message : String(error));
+		}
+		return result;
+	}
+
+	async runTeam(members: string[], task: string, cwd: string, execution: "parallel" | "serial"): Promise<FullSubagentTeamResult> {
+		const results: Array<FullSubagentTaskResult & { agent: string }> = [];
+		if (execution === "serial") {
+			for (const agent of members) {
+				results.push({ agent, ...(await this.runTask(agent, task, cwd)) });
+			}
+		} else {
+			results.push(...await Promise.all(members.map(async (agent) => ({ agent, ...(await this.runTask(agent, task, cwd)) }))));
+		}
+		return {
+			requestId: results.map((result) => result.requestId).join(","),
+			text: results.map((result) => `${result.agent}: ${result.text}`).join("\n"),
+			results,
+		};
 	}
 
 	cancelTask(agentId: string, reason: string): void {
@@ -182,6 +394,14 @@ export class FullSubagentPool {
 		}
 	}
 
+	private startTaskWithRequestId(agentId: string, requestId: string, task: string, cwd: string): void {
+		const runtime = this.requireRuntime(agentId);
+		runtime.snapshot.state = "busy";
+		runtime.snapshot.activity = task;
+		runtime.snapshot.requestId = requestId;
+		runtime.config.transport.send(serializeProtocolLine(createProtocolMessage(agentId, "task.start", { requestId, task, cwd })));
+	}
+
 	private requireRuntime(agentId: string): RuntimeRecord {
 		const runtime = this.runtimes.get(agentId);
 		if (!runtime) throw new Error(`Unknown full subagent: ${agentId}`);
@@ -191,14 +411,61 @@ export class FullSubagentPool {
 	private markDead(agentId: string): void {
 		const runtime = this.runtimes.get(agentId);
 		if (!runtime) return;
+		this.rejectCurrentTask(runtime, "process exited");
 		runtime.snapshot.state = "dead";
 		runtime.snapshot.activity = "process exited";
+		runtime.snapshot.requestId = undefined;
+	}
+
+	private rejectCurrentTask(runtime: RuntimeRecord, message: string): void {
+		const requestId = runtime.snapshot.requestId;
+		if (!requestId) return;
+		this.rejectPendingTask(requestId, message);
+	}
+
+	private rejectPendingTask(requestId: string, message: string): void {
+		const pending = this.pendingTasks.get(requestId);
+		if (!pending) return;
+		clearTimeout(pending.timeout);
+		pending.reject(new Error(message));
+		this.pendingTasks.delete(requestId);
+	}
+
+	private resolvePendingTask(requestId: string, result: FullSubagentTaskResult): void {
+		const pending = this.pendingTasks.get(requestId);
+		if (!pending) return;
+		clearTimeout(pending.timeout);
+		pending.resolve(result);
+		this.pendingTasks.delete(requestId);
+	}
+
+	private timeoutTask(agentId: string, requestId: string): void {
+		const runtime = this.runtimes.get(agentId);
+		const message = `task timed out after ${this.taskTimeoutMs}ms`;
+		if (runtime && runtime.snapshot.requestId === requestId) {
+			runtime.snapshot.state = "error";
+			runtime.snapshot.activity = "error";
+			runtime.snapshot.requestId = undefined;
+			runtime.snapshot.lastError = message;
+		}
+		this.rejectPendingTask(requestId, message);
 	}
 
 	private handleLine(agentId: string, line: string): void {
-		const message = parseProtocolLine(line);
 		const runtime = this.requireRuntime(agentId);
-		if (message.agentId !== agentId) throw new Error(`Mismatched agent id: ${message.agentId}`);
+		let message: FullSubagentProtocolMessage;
+		try {
+			message = parseProtocolLine(line);
+			if (message.agentId !== agentId) throw new Error(`Mismatched agent id: ${message.agentId}`);
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			this.rejectCurrentTask(runtime, errorMessage);
+			runtime.snapshot.state = "error";
+			runtime.snapshot.activity = "protocol error";
+			runtime.snapshot.requestId = undefined;
+			runtime.snapshot.lastError = errorMessage;
+			return;
+		}
 		if (message.type === "ready") {
 			runtime.snapshot.state = stateValue(message.state, "idle");
 			runtime.snapshot.activity = "idle";
@@ -215,16 +482,22 @@ export class FullSubagentPool {
 			runtime.snapshot.compactCount = numberValue(message.compactCount, runtime.snapshot.compactCount);
 		}
 		if (message.type === "task.done") {
+			const text = textValue(message.text) ?? "done";
 			runtime.snapshot.state = "idle";
 			runtime.snapshot.activity = "idle";
 			runtime.snapshot.requestId = undefined;
-			runtime.snapshot.lastResult = textValue(message.text) ?? "done";
+			runtime.snapshot.lastResult = text;
+			const requestId = textValue(message.requestId);
+			if (requestId) this.resolvePendingTask(requestId, { requestId, text });
 		}
 		if (message.type === "task.error") {
+			const error = textValue(message.error) ?? "task failed";
+			const requestId = textValue(message.requestId) ?? runtime.snapshot.requestId;
 			runtime.snapshot.state = "error";
 			runtime.snapshot.activity = "error";
 			runtime.snapshot.requestId = undefined;
-			runtime.snapshot.lastError = textValue(message.error) ?? "task failed";
+			runtime.snapshot.lastError = error;
+			if (requestId) this.rejectPendingTask(requestId, error);
 		}
 	}
 }

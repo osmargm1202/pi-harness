@@ -1,7 +1,6 @@
 import { spawn, spawnSync } from "node:child_process";
 import { basename } from "node:path";
 import type {
-	AgentEndEvent,
 	ExtensionAPI,
 	ExtensionContext,
 	ToolCallEvent,
@@ -14,13 +13,12 @@ const PERMISSION_TOOL_NAMES = new Set([
 	"permission_request",
 	"confirm_permission",
 ]);
-const DONE_TIMEOUT_MS = 8000;
 const STICKY_TIMEOUT_MS = 0;
 const MAX_BODY_LENGTH = 220;
 const FOCUS_PID_HINT = "pi-focus-pid";
 const KITTY_DESKTOP_ENTRY = "kitty";
 
-type NotificationType = "question" | "permission" | "done";
+type NotificationType = "question" | "permission";
 
 type NotifyCommand = {
 	command: string;
@@ -50,33 +48,6 @@ function folderName(cwd: string): string {
 
 function isPositiveInteger(value: string | undefined): value is string {
 	return typeof value === "string" && /^[1-9]\d*$/.test(value.trim());
-}
-
-function envFlag(name: string): boolean {
-	const value = process.env[name]?.trim().toLowerCase();
-	return value === "1" || value === "true";
-}
-
-function positiveEnvInt(name: string): boolean {
-	const value = process.env[name]?.trim();
-	if (!value || !/^\d+$/.test(value)) return false;
-	return Number(value) > 0;
-}
-
-function isSubagentRuntime(): boolean {
-	return Boolean(
-		envFlag("PI_SUBAGENT_CHILD") ||
-			positiveEnvInt("PI_SUBAGENT_DEPTH") ||
-			process.env.PI_SUBAGENT_RUN_ID?.trim() ||
-			process.env.PI_SUBAGENT_CHILD_AGENT?.trim() ||
-			process.env.PI_SUBAGENT_CHILD_INDEX?.trim() ||
-			process.env.PI_SUBAGENT_ORCHESTRATOR_TARGET?.trim() ||
-			envFlag("PI_PDD_SUBAGENT") ||
-			process.env.PI_SUBAGENT_RUNTIME_ID?.trim() ||
-			positiveEnvInt("PI_SUBAGENT_RUNTIME_DEPTH") ||
-			process.env.PI_SUBAGENT_PARENT_RUNTIME_ID?.trim() ||
-			process.env.PI_SUBAGENT_OWNER_SESSION_FILE?.trim(),
-	);
 }
 
 function getKittyPid(): string | undefined {
@@ -185,7 +156,6 @@ function notify(
 		if (!notifyCommand) return;
 
 		const folder = folderName(ctx.cwd);
-		const sticky = type === "question" || type === "permission";
 		const title = `Pi ${type} · ${folder}`;
 		const body = truncate(`${folder} · ${type} · ${text}`);
 		const args = [
@@ -195,7 +165,7 @@ function notify(
 			"-u",
 			"critical",
 			"-t",
-			String(sticky ? STICKY_TIMEOUT_MS : DONE_TIMEOUT_MS),
+			String(STICKY_TIMEOUT_MS),
 			...getNotificationHints(),
 			title,
 			body,
@@ -255,29 +225,6 @@ function getQuestionText(event: ToolCallEvent): string {
 	return `${labels.length} questions: ${labels.slice(0, 2).join(" · ")}`;
 }
 
-function getAssistantText(event: AgentEndEvent): string {
-	for (let index = event.messages.length - 1; index >= 0; index -= 1) {
-		const message = event.messages[index];
-		if (
-			!isRecord(message) ||
-			message.role !== "assistant" ||
-			!Array.isArray(message.content)
-		) {
-			continue;
-		}
-
-		const text = message.content
-			.map((part) => {
-				if (!isRecord(part) || part.type !== "text") return undefined;
-				return typeof part.text === "string" ? part.text : undefined;
-			})
-			.filter((part): part is string => Boolean(part && part.trim()))
-			.join(" ");
-		if (text.trim()) return text;
-	}
-	return "";
-}
-
 export default function (pi: ExtensionAPI) {
 	pi.on("tool_call", (event, ctx) => {
 		if (QUESTION_TOOL_NAMES.has(event.toolName)) {
@@ -293,10 +240,4 @@ export default function (pi: ExtensionAPI) {
 		return undefined;
 	});
 
-	pi.on("agent_end", (event, ctx) => {
-		if (isSubagentRuntime()) return;
-
-		const text = getAssistantText(event);
-		notify("done", ctx, text || "Agent loop finished.");
-	});
 }

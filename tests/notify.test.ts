@@ -62,12 +62,13 @@ async function main(): Promise<void> {
 
 	const log = await flushNotifications();
 	const notificationLines = log.trim().split("\n").filter((line) => line.startsWith("notify-send -a Pi"));
-	assert.equal(notificationLines.length, 3, "only questions, permissions, and final loop completion should notify");
+	assert.equal(notificationLines.length, 2, "only questions and permissions should notify");
 	assert.match(log, /notify-send/, "notifications should call notify-send through distrobox-host-exec");
 	assert.match(log, /-u critical/, "notifications should be critical so swaync shows a popup");
 	assert.match(log, /Pi\\ question/, "ask_user_question should send a question notification");
 	assert.match(log, /Pi\\ permission/, "permission prompts should send a permission notification");
-	assert.match(log, /Pi\\ done/, "agent_end should send one final loop completion notification");
+	assert.doesNotMatch(log, /Pi\\ done/, "agent_end should not send a final loop completion notification");
+	assert.doesNotMatch(log, /finished/, "agent_end assistant text should not notify");
 	assert.doesNotMatch(log, /bash/, "ordinary tool calls should not notify");
 }
 
