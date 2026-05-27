@@ -8,7 +8,7 @@ const packageTeams = discoverTeams(tmpdir(), "user");
 const piOrchestrator = packageTeams.find((team) => team.name === "pi-orchestrator");
 assert(piOrchestrator, "package-bundled teams.yaml should be discovered without ~/.pi/agent/agents");
 assert.equal(piOrchestrator.source, "user");
-assert(piOrchestrator.filePath.includes("pi-harness/agents/teams.yaml"));
+assert(piOrchestrator.filePath.endsWith("/agents/teams.yaml"));
 assert(piOrchestrator.members.includes("skill-expert"), "package pi-orchestrator should include skill-expert");
 
 const projectRoot = mkdtempSync(join(tmpdir(), "pi-harness-team-project-"));

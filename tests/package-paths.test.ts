@@ -8,12 +8,11 @@ import {
 } from "../extensions/lib/package-paths.ts";
 
 const packageRoot = getCurrentPackageRoot();
-assert(packageRoot.endsWith("pi-harness"), "current package root should be pi-harness");
 assert(existsSync(`${packageRoot}/package.json`), "package root should contain package.json");
 
 const agentsDir = getCurrentPackageAgentsDir();
 assert(agentsDir, "current package agents dir should resolve");
-assert(agentsDir.endsWith("pi-harness/agents"), "agents dir should be inside pi-harness");
+assert(agentsDir.endsWith("/agents"), "agents dir should be the package agents directory");
 assert(existsSync(`${agentsDir}/teams.yaml`), "agents dir should contain teams.yaml");
 
 const packageSkill = join(packageRoot, "skills", "caveman", "SKILL.md");

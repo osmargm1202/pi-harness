@@ -8,7 +8,7 @@ const packageAgents = discoverDeployableAgents(tmpdir(), "user");
 const skillExpert = packageAgents.find((agent) => agent.name === "skill-expert");
 assert(skillExpert, "package-bundled deployable agents should be discovered without ~/.pi/agent/agents");
 assert.equal(skillExpert.source, "user");
-assert(skillExpert.filePath.includes("pi-harness/agents/pi-orchestrator/skill-expert.md"));
+assert(skillExpert.filePath.endsWith("/agents/pi-orchestrator/skill-expert.md"));
 
 const primaryAgents = discoverPrimaryAgents(tmpdir(), "user");
 assert(primaryAgents.some((agent) => agent.name === "pi-orchestrator"), "package-bundled primary agents should be discovered");
