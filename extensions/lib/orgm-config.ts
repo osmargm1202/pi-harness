@@ -46,6 +46,11 @@ export interface OrgmAgentStatusConfig {
 	showCaveman: boolean;
 }
 
+export interface OrgmReportConfig {
+	enabled: boolean;
+	intervalMinutes: number;
+}
+
 export interface OrgmHostConfig {
 	defaultPrimaryAgent: string;
 	flows: Record<string, OrgmFlowName>;
@@ -55,6 +60,7 @@ export interface OrgmHostConfig {
 	caveman: OrgmCavemanConfig;
 	minimalSkills: OrgmMinimalSkillsConfig;
 	agentStatus: OrgmAgentStatusConfig;
+	report: OrgmReportConfig;
 	fullSubagents: FullSubagentsConfig;
 }
 
@@ -94,6 +100,10 @@ export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
 		showSummary: true,
 		showActivity: true,
 		showCaveman: true,
+	},
+	report: {
+		enabled: true,
+		intervalMinutes: 10,
 	},
 	fullSubagents: structuredClone(DEFAULT_FULL_SUBAGENTS_CONFIG),
 };
@@ -167,6 +177,19 @@ export function mergeAgentStatusConfig(value: unknown): OrgmAgentStatusConfig {
 	};
 }
 
+export function mergeReportConfig(value: unknown): OrgmReportConfig {
+	const raw = isRecord(value) ? value : {};
+	const intervalMinutes = typeof raw.intervalMinutes === "number"
+		&& Number.isFinite(raw.intervalMinutes)
+		&& raw.intervalMinutes >= 1
+		? raw.intervalMinutes
+		: DEFAULT_ORGM_CONFIG.report.intervalMinutes;
+	return {
+		enabled: typeof raw.enabled === "boolean" ? raw.enabled : DEFAULT_ORGM_CONFIG.report.enabled,
+		intervalMinutes,
+	};
+}
+
 function mergeOrgmConfig(raw: Record<string, unknown>): OrgmHostConfig {
 	const flows = isRecord(raw.flows)
 		? Object.fromEntries(Object.entries(raw.flows).filter(([, value]) => typeof value === "string")) as Record<string, string>
@@ -182,6 +205,7 @@ function mergeOrgmConfig(raw: Record<string, unknown>): OrgmHostConfig {
 		caveman: mergeCavemanConfig(raw.caveman),
 		minimalSkills: mergeMinimalSkillsConfig(raw.minimalSkills),
 		agentStatus: mergeAgentStatusConfig(raw.agentStatus),
+		report: mergeReportConfig(raw.report),
 		fullSubagents: mergeFullSubagentsConfig(raw.fullSubagents),
 	};
 }
@@ -216,6 +240,9 @@ export function orgmConfigPath(home = homedir()): string {
 	return join(home, ".pi", "agent", "orgm.json");
 }
 
+export type OrgmConfigSliceKey = keyof OrgmHostConfig;
+export type WritableOrgmConfigSliceKey = keyof Pick<OrgmHostConfig, "defaultPrimaryAgent" | "caveman" | "minimalSkills" | "agentStatus" | "repoTree" | "title" | "report" | "fullSubagents">;
+
 export function loadOrgmConfig(configPath = orgmConfigPath()): OrgmHostConfig {
 	if (!existsSync(configPath)) return structuredClone(DEFAULT_ORGM_CONFIG);
 	try {
@@ -227,7 +254,11 @@ export function loadOrgmConfig(configPath = orgmConfigPath()): OrgmHostConfig {
 	}
 }
 
-export function saveOrgmConfigSlice<K extends keyof Pick<OrgmHostConfig, "defaultPrimaryAgent" | "caveman" | "minimalSkills" | "agentStatus" | "repoTree" | "title" | "fullSubagents">>(
+export function loadOrgmConfigSlice<K extends OrgmConfigSliceKey>(slice: K, configPath = orgmConfigPath()): OrgmHostConfig[K] {
+	return structuredClone(loadOrgmConfig(configPath)[slice]);
+}
+
+export function saveOrgmConfigSlice<K extends WritableOrgmConfigSliceKey>(
 	slice: K,
 	value: OrgmHostConfig[K],
 	configPath = orgmConfigPath(),
