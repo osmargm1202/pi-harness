@@ -16,6 +16,7 @@ const TOOL_ALIASES = new Map<string, string>([
 ]);
 
 const ALLOWED_PI_TOOLS = new Set(["read", "write", "edit", "bash", "grep", "find", "ls"]);
+const DEFAULT_AGENT_TOOLS = ["read", "grep", "find"];
 
 export function parseFrontmatter(markdown: string, filename = "agent.md"): ParsedFrontmatter {
 	const normalized = markdown.replace(/\r\n/g, "\n");
@@ -72,9 +73,9 @@ export function convertAgentMarkdown(markdown: string, filename = "agent.md"): s
 		...frontmatter,
 	};
 
-	if (frontmatter.tools) {
-		convertedFrontmatter.tools = normalizeTools(frontmatter.tools).join(", ");
-	}
+	convertedFrontmatter.tools = frontmatter.tools
+		? normalizeTools(frontmatter.tools).join(", ")
+		: DEFAULT_AGENT_TOOLS.join(", ");
 
 	const rendered = renderFrontmatter(convertedFrontmatter);
 	const trimmedBody = body.trim();

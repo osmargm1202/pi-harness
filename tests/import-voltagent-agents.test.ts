@@ -43,6 +43,18 @@ assert.match(filteredUnsupportedTools, /tools: read, find/);
 assert.doesNotMatch(filteredUnsupportedTools, /task/);
 assert.doesNotMatch(filteredUnsupportedTools, /webfetch/);
 
+const defaultToolsFallback = convertAgentMarkdown(
+	`---
+name: analyst
+description: "Missing tools regression."
+model: sonnet
+---
+You analyze.
+`,
+	"analyst.md",
+);
+assert.match(defaultToolsFallback, /tools: read, grep, find/);
+
 const router = generateCategoryRouter({
 	categorySlug: "01-core-development",
 	categoryTitle: "Core Development",
