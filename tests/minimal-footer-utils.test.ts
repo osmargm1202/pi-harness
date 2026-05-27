@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { renderSkillChipRows } from "../extensions/lib/minimal-skill.ts";
 import { visibleWidth } from "../extensions/lib/minimal-title.ts";
+import { formatMinimalPrimaryLabel } from "../extensions/minimal.ts";
 
 const style = (_kind: string, text: string) => text;
 const skills = new Map([
@@ -25,3 +26,10 @@ assert(narrowRows.join(" ").includes("test-driven-development"), "wrapped rows s
 const tinyRows = renderSkillChipRows(new Map([["very-long-skill-name-that-cannot-fit", "loaded" as const]]), 12, style);
 assert.equal(tinyRows.length, 1, "single oversized skill should still render one row");
 assert(visibleWidth(tinyRows[0] ?? "") <= 12, "oversized skill chip should truncate to width");
+
+assert.equal(formatMinimalPrimaryLabel("pi"), "pi", "system primary label should stay unchanged");
+assert.equal(
+	formatMinimalPrimaryLabel("pi-orchestrator"),
+	"pi-orchestrator",
+	"minimal footer primary label should show agent name without primary prefix",
+);

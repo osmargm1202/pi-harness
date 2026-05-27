@@ -24,13 +24,17 @@ import {
 	resolveInitialCavemanState,
 } from "./lib/caveman-state.ts";
 import {
-	formatPrimaryLabel,
+	normalizePrimaryName,
 	PRIMARY_STATE_EVENT,
 	restorePrimaryState,
 	SYSTEM_AGENT,
 } from "./lib/agent-discovery.ts";
 
 type MinimalSkillsAction = "on" | "off" | "toggle" | "clear";
+
+export function formatMinimalPrimaryLabel(name: string): string {
+	return name === SYSTEM_AGENT ? SYSTEM_AGENT : normalizePrimaryName(name);
+}
 
 export interface MinimalSkillsConfig {
 	enabled: boolean;
@@ -221,7 +225,7 @@ export default function (pi: ExtensionAPI) {
 					const modelName = ctx.model?.name || ctx.model?.id || "no-model";
 					const thinking = pi.getThinkingLevel();
 					const tokenSummary = `↑${formatCompactNumber(inputTokens)} ↓${formatCompactNumber(outputTokens)}`;
-					const primaryLabel = formatPrimaryLabel(currentPrimary);
+					const primaryLabel = formatMinimalPrimaryLabel(currentPrimary);
 					const agentStatus = timerLabel ? `${primaryLabel} · ${timerLabel}` : primaryLabel;
 					const cavemanStatus = formatCavemanStatus(currentCaveman);
 					const cavemanStyled = currentCaveman === "off"
