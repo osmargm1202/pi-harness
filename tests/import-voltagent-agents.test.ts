@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import {
+	buildManifest,
 	convertAgentMarkdown,
+	filterAgentEntries,
 	generateCategoryRouter,
 	mergeTeamsYaml,
 	parseFrontmatter,
@@ -79,3 +81,19 @@ assert.match(merged, /pi-orchestrator:\n  - ext-expert/);
 assert.match(merged, /sdd-orchestrator:\n  - sdd-init/);
 assert.match(merged, /01-core-development:\n  - backend-developer\n  - frontend-developer/);
 assert.match(merged, /02-language-specialists:\n  - python-pro/);
+
+const entries = filterAgentEntries([
+	{ type: "dir", name: ".claude-plugin", path: "categories/01-core-development/.claude-plugin", download_url: null, url: "" },
+	{ type: "file", name: "README.md", path: "categories/01-core-development/README.md", download_url: "https://example.invalid/readme", url: "" },
+	{ type: "file", name: "backend-developer.md", path: "categories/01-core-development/backend-developer.md", download_url: "https://example.invalid/backend", url: "" },
+]);
+assert.deepEqual(entries.map((entry) => entry.name), ["backend-developer.md"]);
+
+const manifest = buildManifest(new Map([
+	["01-core-development", ["backend-developer", "frontend-developer"]],
+]));
+assert.equal(manifest.sourceRepo, "VoltAgent/awesome-claude-code-subagents");
+assert.equal(manifest.sourceRef, "main");
+assert.equal(manifest.categories[0].category, "01-core-development");
+assert.equal(manifest.categories[0].count, 2);
+assert.deepEqual(manifest.categories[0].agents, ["backend-developer", "frontend-developer"]);

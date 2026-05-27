@@ -1,8 +1,38 @@
+import {
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
+import { basename, dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
 type FrontmatterValue = string | string[];
 
-type ParsedFrontmatter = {
+export type ParsedFrontmatter = {
 	frontmatter: Record<string, string>;
 	body: string;
+};
+
+export type GitHubContentEntry = {
+	type: "file" | "dir";
+	name: string;
+	path: string;
+	download_url: string | null;
+	url: string;
+};
+
+export type VoltAgentManifest = {
+	sourceRepo: string;
+	sourceRef: string;
+	generatedAt: string;
+	categories: Array<{
+		category: string;
+		count: number;
+		agents: string[];
+	}>;
 };
 
 type CategoryRouterInput = {
@@ -11,12 +41,33 @@ type CategoryRouterInput = {
 	members: string[];
 };
 
+type ImportedAgent = {
+	fileName: string;
+	agentName: string;
+	content: string;
+};
+
+type ImportedCategory = {
+	categorySlug: string;
+	categoryTitle: string;
+	agents: ImportedAgent[];
+};
+
 const TOOL_ALIASES = new Map<string, string>([
 	["glob", "find"],
 ]);
 
 const ALLOWED_PI_TOOLS = new Set(["read", "write", "edit", "bash", "grep", "find", "ls"]);
 const DEFAULT_AGENT_TOOLS = ["read", "grep", "find"];
+const SOURCE_REPO = "VoltAgent/awesome-claude-code-subagents";
+const SOURCE_REF = "main";
+const CATEGORY_ROOT = "categories";
+const CATEGORY_DIR_PATTERN = /^\d{2}-[a-z0-9-]+$/;
+const GITHUB_API_HEADERS = {
+	accept: "application/vnd.github+json",
+	"user-agent": "pi-harness-voltagent-import",
+	"x-github-api-version": "2022-11-28",
+};
 
 export function parseFrontmatter(markdown: string, filename = "agent.md"): ParsedFrontmatter {
 	const normalized = markdown.replace(/\r\n/g, "\n");
@@ -155,6 +206,142 @@ export function mergeTeamsYaml(existingYaml: string, newTeams: Map<string, strin
 	return `${sections.join("\n\n")}\n`;
 }
 
+export function filterAgentEntries(entries: GitHubContentEntry[]): GitHubContentEntry[] {
+	return entries.filter((entry) => {
+		if (entry.type !== "file") return false;
+		if (!entry.name.endsWith(".md")) return false;
+		if (entry.name.toLowerCase() === "readme.md") return false;
+		if (!entry.download_url) return false;
+		const pathParts = entry.path.split("/");
+		return !pathParts.includes(".claude-plugin");
+	});
+}
+
+export function buildManifest(teams: Map<string, string[]>): VoltAgentManifest {
+	return {
+		sourceRepo: SOURCE_REPO,
+		sourceRef: SOURCE_REF,
+		generatedAt: new Date().toISOString(),
+		categories: Array.from(teams.entries()).map(([category, agents]) => ({
+			category,
+			count: agents.length,
+			agents: [...agents],
+		})),
+	};
+}
+
+export async function fetchJson<T>(url: string): Promise<T> {
+	const response = await fetch(url, { headers: GITHUB_API_HEADERS });
+	if (!response.ok) {
+		throw new Error(`Failed to fetch JSON from ${url}: ${response.status} ${response.statusText}`);
+	}
+	return await response.json() as T;
+}
+
+export async function fetchText(url: string): Promise<string> {
+	const response = await fetch(url, { headers: GITHUB_API_HEADERS });
+	if (!response.ok) {
+		throw new Error(`Failed to fetch text from ${url}: ${response.status} ${response.statusText}`);
+	}
+	return await response.text();
+}
+
+export function assertNoAgentNameCollisions(categories: ImportedCategory[]): void {
+	const seen = new Map<string, string>();
+	for (const category of categories) {
+		for (const agent of category.agents) {
+			const previousCategory = seen.get(agent.agentName);
+			if (previousCategory) {
+				throw new Error(
+					`Agent name collision for ${agent.agentName}: ${previousCategory} and ${category.categorySlug}`,
+				);
+			}
+			seen.set(agent.agentName, category.categorySlug);
+		}
+	}
+}
+
+export async function importVoltAgentAgents(rootDir = getRepoRoot()): Promise<VoltAgentManifest> {
+	const categoriesUrl = buildContentsApiUrl(CATEGORY_ROOT);
+	const categoryEntries = await fetchJson<GitHubContentEntry[]>(categoriesUrl);
+	const categoryDirs = categoryEntries
+		.filter((entry) => entry.type === "dir" && CATEGORY_DIR_PATTERN.test(entry.name))
+		.sort((a, b) => a.name.localeCompare(b.name));
+
+	const importedCategories: ImportedCategory[] = [];
+	for (const categoryEntry of categoryDirs) {
+		const categoryContents = await fetchJson<GitHubContentEntry[]>(categoryEntry.url || buildContentsApiUrl(categoryEntry.path));
+		const agentEntries = filterAgentEntries(categoryContents).sort((a, b) => a.name.localeCompare(b.name));
+		const agents: ImportedAgent[] = [];
+		for (const agentEntry of agentEntries) {
+			const markdown = await fetchText(agentEntry.download_url!);
+			const fileName = agentEntry.name;
+			const agentName = basename(fileName, ".md");
+			agents.push({
+				fileName,
+				agentName,
+				content: convertAgentMarkdown(markdown, fileName),
+			});
+		}
+		importedCategories.push({
+			categorySlug: categoryEntry.name,
+			categoryTitle: titleFromCategorySlug(categoryEntry.name),
+			agents,
+		});
+	}
+
+	assertNoAgentNameCollisions(importedCategories);
+
+	const teams = new Map<string, string[]>();
+	for (const category of importedCategories) {
+		teams.set(category.categorySlug, category.agents.map((agent) => agent.agentName));
+	}
+
+	const agentsDir = join(rootDir, "agents");
+	cleanupManagedCategoryDirs(agentsDir);
+
+	for (const category of importedCategories) {
+		const categoryDir = join(agentsDir, category.categorySlug);
+		mkdirSync(categoryDir, { recursive: true });
+		writeFileSync(
+			join(categoryDir, "index.md"),
+			generateCategoryRouter({
+				categorySlug: category.categorySlug,
+				categoryTitle: category.categoryTitle,
+				members: category.agents.map((agent) => agent.agentName),
+			}),
+		);
+		for (const agent of category.agents) {
+			writeFileSync(join(categoryDir, agent.fileName), agent.content);
+		}
+	}
+
+	const teamsPath = join(agentsDir, "teams.yaml");
+	const existingTeamsYaml = existsSync(teamsPath) ? readFileSync(teamsPath, "utf8") : "";
+	writeFileSync(teamsPath, mergeTeamsYaml(existingTeamsYaml, teams));
+
+	const manifest = buildManifest(teams);
+	writeFileSync(join(agentsDir, "voltagent-manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+	return manifest;
+}
+
+function cleanupManagedCategoryDirs(agentsDir: string): void {
+	if (!existsSync(agentsDir)) return;
+	for (const entry of readdirSync(agentsDir, { withFileTypes: true })) {
+		if (!entry.isDirectory()) continue;
+		if (!CATEGORY_DIR_PATTERN.test(entry.name)) continue;
+		rmSync(join(agentsDir, entry.name), { recursive: true, force: true });
+	}
+}
+
+function buildContentsApiUrl(path: string): string {
+	return `https://api.github.com/repos/${SOURCE_REPO}/contents/${path}?ref=${SOURCE_REF}`;
+}
+
+function getRepoRoot(): string {
+	return dirname(dirname(fileURLToPath(import.meta.url)));
+}
+
 function unquote(value: string): string {
 	if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
 		return value.slice(1, -1);
@@ -167,4 +354,15 @@ function formatYamlScalar(key: string, value: string): string {
 		return JSON.stringify(value);
 	}
 	return value;
+}
+
+async function main(): Promise<void> {
+	const manifest = await importVoltAgentAgents();
+	console.log(
+		`Imported ${manifest.categories.reduce((sum, category) => sum + category.count, 0)} agents across ${manifest.categories.length} categories.`,
+	);
+}
+
+if (import.meta.main) {
+	await main();
 }
