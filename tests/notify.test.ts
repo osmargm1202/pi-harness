@@ -42,9 +42,40 @@ function resetLog(): void {
 	writeFileSync(logPath, "");
 }
 
-async function flushNotifications(): Promise<string> {
-	await new Promise((resolve) => setTimeout(resolve, 100));
+function readNotificationLog(): string {
 	return readFileSync(logPath, "utf8");
+}
+
+function countNotificationLines(log: string): number {
+	return log
+		.trim()
+		.split("\n")
+		.filter((line) => line.startsWith("notify-send -a Pi")).length;
+}
+
+async function waitForNotificationLines(
+	expectedCount: number,
+	options: { timeoutMs?: number; intervalMs?: number } = {},
+): Promise<string> {
+	const timeoutMs = options.timeoutMs ?? 1_500;
+	const intervalMs = options.intervalMs ?? 25;
+	const deadline = Date.now() + timeoutMs;
+	let log = readNotificationLog();
+
+	while (countNotificationLines(log) < expectedCount && Date.now() < deadline) {
+		await new Promise((resolve) => setTimeout(resolve, intervalMs));
+		log = readNotificationLog();
+	}
+
+	return log;
+}
+
+async function waitForQuietNotifications(
+	options: { settleMs?: number } = {},
+): Promise<string> {
+	const settleMs = options.settleMs ?? 150;
+	await new Promise((resolve) => setTimeout(resolve, settleMs));
+	return readNotificationLog();
 }
 
 async function emitToolCalls(): Promise<void> {
@@ -91,7 +122,7 @@ async function main(): Promise<void> {
 	await emitToolCalls();
 	await emitAgentEnd();
 
-	const mainLog = await flushNotifications();
+	const mainLog = await waitForNotificationLines(3);
 	const mainNotificationLines = mainLog
 		.trim()
 		.split("\n")
@@ -116,7 +147,7 @@ async function main(): Promise<void> {
 		resetLog();
 		setSubagentEnv(env);
 		await emitAgentEnd();
-		const subagentLog = await flushNotifications();
+		const subagentLog = await waitForQuietNotifications();
 		const subagentNotificationLines = subagentLog
 			.trim()
 			.split("\n")
