@@ -1,7 +1,8 @@
 import { basename } from "node:path";
 import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
-import { DynamicBorder, SessionManager, type SessionInfo } from "@earendil-works/pi-coding-agent";
-import { Container, type SelectItem, SelectList, Text } from "@earendil-works/pi-tui";
+import { SessionManager, type SessionInfo } from "@earendil-works/pi-coding-agent";
+import { type SelectItem } from "@earendil-works/pi-tui";
+import { createSelectPanel } from "./lib/tui-select-panel.ts";
 
 const MAX_SELECTOR_HEIGHT = 12;
 
@@ -62,24 +63,16 @@ async function openSessionSelector(ctx: ExtensionCommandContext): Promise<string
 	}));
 
 	return await ctx.ui.custom<string | null>((tui, theme, _kb, done) => {
-		const container = new Container();
-		container.addChild(new DynamicBorder((s: string) => theme.fg("accent", s)));
-		container.addChild(new Text(theme.fg("accent", theme.bold("Project Sessions")), 1, 0));
-		container.addChild(new Text(theme.fg("muted", `Newest first · ${sessions.length} session${sessions.length === 1 ? "" : "s"}`), 1, 0));
-
-		const selectList = new SelectList(items, Math.min(items.length, MAX_SELECTOR_HEIGHT), {
-			selectedPrefix: (text) => theme.fg("accent", text),
-			selectedText: (text) => theme.fg("accent", text),
-			description: (text) => theme.fg("muted", text),
-			scrollInfo: (text) => theme.fg("dim", text),
-			noMatch: (text) => theme.fg("warning", text),
+		const { container, selectList } = createSelectPanel({
+			theme,
+			title: "Project Sessions",
+			subtitle: `Newest first · ${sessions.length} session${sessions.length === 1 ? "" : "s"}`,
+			help: "↑↓ navigate • enter recover/open • esc cancel",
+			items,
+			maxHeight: MAX_SELECTOR_HEIGHT,
 		});
 		selectList.onSelect = (item) => done(item.value);
 		selectList.onCancel = () => done(null);
-		container.addChild(selectList);
-
-		container.addChild(new Text(theme.fg("dim", "↑↓ navigate • enter recover/open • esc cancel"), 1, 0));
-		container.addChild(new DynamicBorder((s: string) => theme.fg("accent", s)));
 
 		return {
 			render: (width: number) => container.render(width),

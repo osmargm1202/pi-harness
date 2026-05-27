@@ -4,6 +4,7 @@ import { join } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Editor, type EditorTheme, Key, matchesKey, Text, truncateToWidth, wrapTextWithAnsi } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
+import { createSelectListTheme } from "./lib/tui-select-panel.ts";
 
 const MAX_QUESTIONS = 4;
 const MIN_OPTIONS = 2;
@@ -149,13 +150,7 @@ async function runQuestionnaire(ctx: ExtensionContext, params: QuestionParams) {
 
 		const editorTheme: EditorTheme = {
 			borderColor: (s) => theme.fg("accent", s),
-			selectList: {
-				selectedPrefix: (t) => theme.fg("accent", t),
-				selectedText: (t) => theme.fg("accent", t),
-				description: (t) => theme.fg("muted", t),
-				scrollInfo: (t) => theme.fg("dim", t),
-				noMatch: (t) => theme.fg("warning", t),
-			},
+			selectList: createSelectListTheme(theme),
 		};
 		const editor = new Editor(tui, editorTheme);
 

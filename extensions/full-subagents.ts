@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { DEFAULT_FULL_SUBAGENTS_CONFIG, loadFullSubagentsConfig, type FullSubagentsConfig } from "./lib/full-subagents-config.ts";
-import { syncFullSubagentOverrides } from "./lib/full-subagents-agent-sync.ts";
+import { syncFullSubagentOverrides, validateFullSubagentBackings } from "./lib/full-subagents-agent-sync.ts";
 import {
 	FullSubagentPool,
 	createPiSubagentTransport,
@@ -16,7 +16,23 @@ const require = createRequire(import.meta.url);
 
 export const FULL_SUBAGENT_TASK_TOOL = "full_subagent_task";
 export const FULL_QUERY_TEAM_TOOL = "full_query_team";
-export const STRICT_DELEGATION_SNIPPET = "You are the parent orchestrator for full-subagents. Delegate meaningful design, coding, review, debugging, and verification work to full_subagent_task or full_query_team. Answer directly only for clarification, coordination, brief summaries, or selecting the next delegation step.";
+const STRICT_PARENT_BLOCKED_TOOLS = new Set([
+	"read",
+	"bash",
+	"edit",
+	"write",
+	"context_mode_ctx_execute",
+	"context_mode_ctx_execute_file",
+	"context_mode_ctx_batch_execute",
+]);
+export const STRICT_DELEGATION_SNIPPET = `You are the parent orchestrator for full-subagents.
+
+STRICT FULL-SUBAGENTS MODE:
+- Do not do meaningful work yourself: do not read project files, analyze code, design implementation details, write code, debug, review, or verify directly.
+- Your job is communication and orchestration only: clarify with the user, choose the right full subagent, delegate, summarize returned results, and ask the next coordination question.
+- Delegate all meaningful design, coding, review, debugging, research, and verification work to full_subagent_task or full_query_team.
+- Use the agent whose .md role matches the work: planning/design to planners, implementation/code changes to implementers, review to reviewers, verification to verifiers.
+- If no enabled full subagent fits the work, ask the user to enable/configure one instead of doing the work yourself.`;
 
 type SchemaFactory = {
 	Object: (properties: Record<string, unknown>, options?: Record<string, unknown>) => Record<string, unknown>;
@@ -67,6 +83,8 @@ export interface FullSubagentsRuntime {
 	getSnapshot(): FullSubagentSnapshot[];
 	runTask(agent: string, task: string, cwd: string): Promise<FullSubagentTaskResult>;
 	runTeam?(members: string[], task: string, cwd: string, execution: "parallel" | "serial"): Promise<FullSubagentTeamResult>;
+	stopTask?(agent: string, reason: string): void;
+	resetAgent?(agent: string): void;
 	shutdown(): void;
 }
 
@@ -88,16 +106,18 @@ function defaultRuntimeFactory(config: FullSubagentsConfig, ctx: ExtensionContex
 	if (configuredMembers.length === 0) return undefined;
 	return new FullSubagentPool(configuredMembers.map((agentName) => {
 		const agent = config.agents[agentName];
+		const makeTransport = () => createPiSubagentTransport({
+			agentName,
+			model: agent.model,
+			tools: listModeItems(agent.tools),
+			cwd: ctx.cwd,
+		});
 		return {
 			agentId: agentName,
 			agentName,
 			model: agent.model,
-			transport: createPiSubagentTransport({
-				agentName,
-				model: agent.model,
-				tools: listModeItems(agent.tools),
-				cwd: ctx.cwd,
-			}),
+			transport: makeTransport(),
+			createTransport: makeTransport,
 		};
 	}));
 }
@@ -167,8 +187,17 @@ export default function registerFullSubagents(pi: ExtensionAPI, options: FullSub
 	let config = DEFAULT_FULL_SUBAGENTS_CONFIG;
 	let snapshots: FullSubagentSnapshot[] = fallbackSnapshots(config);
 	let pool: FullSubagentsRuntime | undefined;
+	let lastSessionContext: ExtensionContext | undefined;
 
 	const getSnapshots = () => pool?.getSnapshot() ?? snapshots;
+	const createRuntime = (ctx: ExtensionContext) => {
+		pool = (options.createRuntime ?? defaultRuntimeFactory)(config, ctx);
+	};
+	const resetRuntime = (ctx: ExtensionContext) => {
+		pool?.shutdown();
+		pool = undefined;
+		if (config.enabled && !isFullSubagentChildRuntime()) createRuntime(ctx);
+	};
 
 	pi.on("session_start", async (_event: unknown, ctx: ExtensionContext) => {
 		config = loadFullSubagentsConfig(options.configPath ?? orgmConfigPath());
@@ -176,9 +205,27 @@ export default function registerFullSubagents(pi: ExtensionAPI, options: FullSub
 		pool?.shutdown();
 		pool = undefined;
 		if (isFullSubagentChildRuntime()) return;
-		const syncReport = syncFullSubagentOverrides(config, { cwd: ctx.cwd, userAgentsDir: options.userAgentsDir });
 		if (!config.enabled) return;
-		pool = (options.createRuntime ?? defaultRuntimeFactory)(config, ctx);
+		const backingReport = validateFullSubagentBackings(config, { cwd: ctx.cwd, userAgentsDir: options.userAgentsDir });
+		const syncReport = syncFullSubagentOverrides(config, { cwd: ctx.cwd, userAgentsDir: options.userAgentsDir });
+		if (backingReport.missing.length > 0) {
+			snapshots = backingReport.missing.map((agentName) => ({
+				agentId: agentName,
+				agentName,
+				model: config.agents[agentName]?.model,
+				state: "error",
+				activity: "missing .md agent doc",
+				contextTokens: 0,
+				contextWindow: 0,
+				contextPercent: 0,
+				compactCount: 0,
+				lastError: "missing backing .md agent document",
+			}));
+			if (ctx.hasUI) ctx.ui.notify(`Full subagents missing .md: ${backingReport.missing.join(", ")}`, "error");
+			return;
+		}
+		lastSessionContext = ctx;
+		createRuntime(ctx);
 		if (ctx.hasUI) {
 			installFullSubagentsWidget(ctx, getSnapshots, { showModel: true, showContext: true, showCompact: true, layout: config.widgetLayout });
 			const syncedCount = syncReport.synced.length + syncReport.updated.length;
@@ -190,7 +237,11 @@ export default function registerFullSubagents(pi: ExtensionAPI, options: FullSub
 	pi.on("before_agent_start", async (event: { systemPrompt?: string }) => {
 		if (isFullSubagentChildRuntime()) return undefined;
 		if (!config.strictDelegation) return undefined;
-		return { systemPrompt: `${event.systemPrompt ?? ""}\n\n${STRICT_DELEGATION_SNIPPET}` };
+		const enabledAgents = (config.teams[config.startupTeam] ?? [])
+			.filter((agentName) => Boolean(config.agents[agentName]))
+			.slice(0, config.maxAgents);
+		const agentList = enabledAgents.length > 0 ? `\n\nEnabled full subagents backed by .md docs: ${enabledAgents.join(", ")}.` : "";
+		return { systemPrompt: `${event.systemPrompt ?? ""}\n\n${STRICT_DELEGATION_SNIPPET}${agentList}` };
 	});
 
 	pi.on("session_shutdown", async (_event: unknown, ctx: ExtensionContext) => {
@@ -199,14 +250,45 @@ export default function registerFullSubagents(pi: ExtensionAPI, options: FullSub
 		clearFullSubagentsWidget(ctx);
 	});
 
+	pi.on("tool_call", async (event: { toolName?: string }) => {
+		if (!config.enabled || !config.strictDelegation || isFullSubagentChildRuntime()) return undefined;
+		const toolName = String(event.toolName ?? "");
+		if (!STRICT_PARENT_BLOCKED_TOOLS.has(toolName)) return undefined;
+		return {
+			block: true,
+			reason: `Full-subagents strict mode blocks parent tool '${toolName}'. Delegate work to ${FULL_SUBAGENT_TASK_TOOL} or ${FULL_QUERY_TEAM_TOOL}.`,
+		};
+	});
+
 	pi.registerCommand("orgm-full-subagents", {
-		description: "Show full subagents status: /orgm-full-subagents [init|restart <agent>|team <name>]",
+		description: "Show full subagents status: /orgm-full-subagents [init|stop|continue|reset|restart <agent|all>]",
 		handler: async (args: string, ctx: ExtensionContext) => {
 			const trimmed = args.trim();
+			const [command = "", target = "", ...rest] = trimmed.split(/\s+/);
 			if (trimmed === "init") {
 				config = initFullSubagentsConfig(options.configPath ?? orgmConfigPath());
 				snapshots = fallbackSnapshots(config);
 				if (ctx.hasUI) ctx.ui.notify("Initialized fullSubagents in orgm.json", "success");
+				return;
+			}
+			if (command === "stop" && target) {
+				const agents = target === "all" ? getSnapshots().map((snapshot) => snapshot.agentId) : [target];
+				for (const agent of agents) pool?.stopTask?.(agent, "manual stop");
+				if (ctx.hasUI) ctx.ui.notify(`Full subagents stopped: ${target}`, "warning");
+				return;
+			}
+			if (command === "continue" && target && rest.length > 0) {
+				const task = rest.join(" ");
+				void pool?.runTask(target, task, ctx.cwd).catch((error) => {
+					if (ctx.hasUI) ctx.ui.notify(`Full subagent continue failed: ${error instanceof Error ? error.message : String(error)}`, "error");
+				});
+				if (ctx.hasUI) ctx.ui.notify(`Full subagent continued: ${target}`, "info");
+				return;
+			}
+			if ((command === "reset" || command === "restart") && target) {
+				if (target === "all") resetRuntime(lastSessionContext ?? ctx);
+				else pool?.resetAgent?.(target);
+				if (ctx.hasUI) ctx.ui.notify(`Full subagents ${command}: ${target}`, "warning");
 				return;
 			}
 			if (!ctx.hasUI) return;

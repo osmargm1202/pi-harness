@@ -82,8 +82,10 @@ assert.equal(pool.getSnapshot()[0].state, "starting");
 fake.emit(createProtocolMessage("tdd-planner", "ready", { state: "idle", compactCount: 0 }));
 assert.equal(pool.getSnapshot()[0].state, "idle");
 
+const requestStartedBefore = Date.now();
 const requestId = pool.startTask("tdd-planner", "write a plan", "/repo");
 assert.equal(pool.getSnapshot()[0].state, "busy");
+assert(pool.getSnapshot()[0].activeSince! >= requestStartedBefore, "snapshot should record when active work started");
 assert.equal(fake.sent[0].endsWith("\n"), true);
 assert.equal(JSON.parse(fake.sent[0]).type, "task.start");
 assert.equal(JSON.parse(fake.sent[0]).requestId, requestId);
@@ -103,9 +105,13 @@ assert.equal(pool.getSnapshot()[0].compactCount, 1);
 fake.emit(createProtocolMessage("tdd-planner", "task.done", {
 	requestId,
 	text: "done",
+	contextTokens: 2500,
+	contextWindow: 10000,
 }));
 assert.equal(pool.getSnapshot()[0].state, "idle");
 assert.equal(pool.getSnapshot()[0].lastResult, "done");
+assert.equal(pool.getSnapshot()[0].activeSince, undefined);
+assert.equal(pool.getSnapshot()[0].contextPercent, 25);
 
 pool.cancelTask("tdd-planner", "manual");
 const cancelLine = fake.sent.at(-1)!;
@@ -162,6 +168,17 @@ await assertRejectsWithin(hungTaskPromise, /timed out/);
 assert.equal(hungTaskPool.getSnapshot()[0].state, "error");
 assert.match(hungTaskPool.getSnapshot()[0].lastError ?? "", /timed out/);
 assert.equal(hungTaskPool.getSnapshot()[0].requestId, undefined);
+
+const resetInitial = new FakeTransport();
+let resetReplacement: FakeTransport | undefined;
+const resetPool = new FullSubagentPool([
+	{ agentId: "tdd-reset", agentName: "tdd-reset", model: "test/model", transport: resetInitial, createTransport: () => (resetReplacement = new FakeTransport()) },
+]);
+resetPool.startTask("tdd-reset", "old work", "/repo");
+resetPool.resetAgent("tdd-reset");
+assert(resetReplacement, "resetAgent should create a replacement transport");
+assert.equal(resetPool.getSnapshot()[0].state, "starting");
+assert.equal(resetPool.getSnapshot()[0].activeSince, undefined);
 
 const completedBeforeTimeout = new FakeTransport();
 const completedBeforeTimeoutPool = new FullSubagentPool([
@@ -221,12 +238,19 @@ assert.match(rpcPrompt.message, /Full subagent task/);
 assert.match(rpcPrompt.message, /Working directory:\s+\/repo/);
 assert.match(rpcPrompt.message, /Task:\s+write tests/);
 child.stdout.write(`${JSON.stringify({ id: "req-1", type: "response", command: "prompt", success: true })}\n`);
-child.stdout.write(`${JSON.stringify({ type: "agent_start" })}\n`);
+child.stdout.write(`${JSON.stringify({ type: "agent_start", contextTokens: 1200, contextWindow: 10000 })}\n`);
+child.stdout.write(`${JSON.stringify({ type: "extension_ui_request", method: "permission" })}\n`);
+child.stdout.write(`${JSON.stringify({ type: "tool_result", status: "ok" })}\n`);
 child.stdout.write(`${JSON.stringify({
 	type: "agent_end",
 	messages: [{ role: "assistant", content: "child done" }],
+	contextTokens: 3200,
+	contextWindow: 10000,
 })}\n`);
-assert.deepEqual(protocolLines.map((line) => JSON.parse(line).type), ["ready", "status", "status", "task.done"]);
+assert.deepEqual(protocolLines.map((line) => JSON.parse(line).type), ["ready", "status", "status", "status", "status", "task.done"]);
+assert.equal(JSON.parse(protocolLines.at(-2)!).state, "busy", "tool_result should move an awaiting child back to working");
+assert.equal(JSON.parse(protocolLines.at(-1)!).contextTokens, 3200);
+assert.equal(JSON.parse(protocolLines.at(-1)!).contextWindow, 10000);
 assert.equal(JSON.parse(protocolLines.at(-1)!).requestId, "req-1");
 assert.equal(JSON.parse(protocolLines.at(-1)!).text, "child done");
 

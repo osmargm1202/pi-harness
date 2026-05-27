@@ -5,118 +5,36 @@ import {
 	formatCavemanStatus,
 	resolveInitialCavemanState,
 	type CavemanLevel,
-} from "./lib/caveman-state";
+} from "./lib/caveman-state.ts";
 import { Container, SelectList, Text, type SelectItem, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import {
 	type AgentStatusConfig,
 	loadAgentStatusConfig,
 	saveAgentStatusConfig,
-} from "./lib/agent-status-config";
+} from "./lib/agent-status-config.ts";
+import {
+	SUBAGENTS_EVENT,
+	SUBAGENT_STATUS_KEY as STATUS_KEY,
+	SUBAGENT_WIDGET_KEY as WIDGET_KEY,
+	deriveRuntimePlaceholder,
+	formatBar,
+	formatDeploymentLabel,
+	formatTokens,
+	shortenMiddle,
+	truncateStatusText as truncate,
+	type DeploymentState,
+	type DeploymentStatus,
+	type DeploymentTranscriptEntry,
+	type DeploymentTranscriptMap,
+	type RuntimeSnapshot,
+} from "./lib/subagent-runtime-model.ts";
+import { createSelectListTheme } from "./lib/tui-select-panel.ts";
 
 
-const SUBAGENTS_EVENT = "subagents:deployments-changed";
-const WIDGET_KEY = "pdd-orgm-agents";
-const STATUS_KEY = "pdd-orgm-agents";
 const DEPLOYMENT_GRID_MAX_COLUMNS = 6;
 const DEPLOYMENT_CARD_MIN_WIDTH = 24;
 const DEPLOYMENT_GRID_GAP = 2;
 const DEPLOYMENT_SELECTOR_MAX_HEIGHT = 12;
-
-type DeploymentStatus = "running" | "idle" | "done" | "error" | "paused_provider_error" | "awaiting_user_input";
-
-type RuntimeStatus = "idle" | "busy";
-type AgentLaunchBackend = "embedded";
-type TerminalState = "attached" | "missing" | "closed";
-type RecoverableReason = "provider_error";
-
-interface UsageStats {
-	input: number;
-	output: number;
-	cacheRead: number;
-	cacheWrite: number;
-	cost: number;
-	contextTokens: number;
-	turns: number;
-}
-
-interface DeploymentState {
-	deploymentId: string;
-	agent: string;
-	instanceNumber?: number;
-	source: "user" | "project";
-	tools: string[];
-	model?: string;
-	mode?: "ephemeral" | "persistent";
-	launchBackend?: AgentLaunchBackend;
-	runtimeId?: string;
-	reusedRuntime?: boolean;
-	reuseSummary?: string;
-	sessionFilePath?: string;
-	ownerSessionFile?: string;
-	parentRuntimeId?: string;
-	depth?: number;
-	contextWindow: number;
-	contextTokens: number;
-	status: DeploymentStatus;
-	summary: string;
-	currentActivity?: string;
-	turns: number;
-	usage: UsageStats;
-	exitCode?: number;
-	stopReason?: string;
-	errorMessage?: string;
-	failureKind?: "task_error" | "provider_error" | "orchestrator_error";
-	recoverableReason?: RecoverableReason;
-	expectedArtifactTopicKey?: string;
-	persistedArtifactTopicKey?: string;
-	persistedToPddMemory?: boolean;
-	pddMemoryWrites: number;
-	attemptedModels: string[];
-	primaryModel?: string;
-	fallbackModel?: string;
-	fallbackUsed: boolean;
-}
-
-interface RuntimeSnapshot {
-	runtimeId: string;
-	agent: string;
-	source: "user" | "project";
-	mode: "ephemeral" | "persistent";
-	launchBackend: AgentLaunchBackend;
-	model?: string;
-	sessionFilePath?: string;
-	ownerSessionFile?: string;
-	contextWindow: number;
-	contextTokens: number;
-	status: RuntimeStatus;
-	busyDeploymentId?: string;
-	lastUsedAt: number;
-	createdAt: number;
-	runs: number;
-	reuseCount: number;
-	parentRuntimeId?: string;
-	depth?: number;
-	lastStopReason?: string;
-	lastErrorMessage?: string;
-	terminalState?: TerminalState;
-	tmuxWindowId?: string;
-	tmuxPaneId?: string;
-	recoverableReason?: RecoverableReason;
-	awaitingUserInput?: boolean;
-	lastVisibleState?: DeploymentStatus;
-}
-
-type DeploymentTranscriptKind = "task" | "assistant" | "thinking" | "tool_call" | "tool_result" | "status" | "stderr" | "error";
-
-interface DeploymentTranscriptEntry {
-	kind: DeploymentTranscriptKind;
-	title: string;
-	text?: string;
-	toolName?: string;
-	ts: number;
-}
-
-type DeploymentTranscriptMap = Record<string, DeploymentTranscriptEntry[]>;
 
 function normalizeTranscriptEntries(entries: unknown): DeploymentTranscriptEntry[] {
 	if (!Array.isArray(entries)) return [];
@@ -145,35 +63,6 @@ function safeRequestRender(handle: { requestRender: () => void } | null | undefi
 	}
 }
 
-function truncate(text: string, max = 96): string {
-	const clean = text.replace(/\s+/g, " ").trim();
-	if (clean.length <= max) return clean;
-	return `${clean.slice(0, Math.max(0, max - 1))}…`;
-}
-
-function formatTokens(count: number): string {
-	if (!Number.isFinite(count) || count <= 0) return "0";
-	if (count < 1000) return `${count}`;
-	if (count < 10_000) return `${(count / 1000).toFixed(1)}k`;
-	if (count < 1_000_000) return `${Math.round(count / 1000)}k`;
-	return `${(count / 1_000_000).toFixed(1)}M`;
-}
-
-function formatBar(percent: number): string {
-	const normalized = Math.max(0, Math.min(100, Math.round(percent)));
-	const filled = Math.max(0, Math.min(10, Math.round(normalized / 10)));
-	return `[${"#".repeat(filled)}${"-".repeat(10 - filled)}]${normalized}%`;
-}
-
-function shortenMiddle(text: string, maxWidth: number): string {
-	if (visibleWidth(text) <= maxWidth) return text;
-	if (maxWidth <= 1) return "…";
-	if (maxWidth <= 6) return truncateToWidth(text, maxWidth);
-	const keep = Math.max(1, Math.floor((maxWidth - 1) / 2));
-	return `${text.slice(0, keep)}…${text.slice(-keep)}`;
-}
-
-
 function withInstanceNumbers(deployments: DeploymentState[]): DeploymentState[] {
 	const counters = new Map<string, number>();
 	return deployments.map((deployment) => {
@@ -181,51 +70,6 @@ function withInstanceNumbers(deployments: DeploymentState[]): DeploymentState[] 
 		counters.set(deployment.agent, next);
 		return { ...deployment, instanceNumber: deployment.instanceNumber ?? next };
 	});
-}
-
-function formatDeploymentLabel(deployment: DeploymentState): string {
-	return `${deployment.agent} ${deployment.instanceNumber ?? 1}`;
-}
-
-function deriveRuntimePlaceholder(runtime: RuntimeSnapshot): DeploymentState {
-	return {
-		deploymentId: `runtime:${runtime.runtimeId}`,
-		agent: runtime.agent,
-		instanceNumber: 1,
-		source: runtime.source,
-		tools: [],
-		model: runtime.model,
-		mode: runtime.mode,
-		launchBackend: runtime.launchBackend,
-		runtimeId: runtime.runtimeId,
-		reusedRuntime: runtime.reuseCount > 0,
-		reuseSummary: `runtime ${runtime.runtimeId} idle · ${runtime.reuseCount} reuses`,
-		sessionFilePath: runtime.sessionFilePath,
-		ownerSessionFile: runtime.ownerSessionFile,
-		parentRuntimeId: runtime.parentRuntimeId,
-		depth: runtime.depth ?? 0,
-		contextWindow: runtime.contextWindow,
-		contextTokens: runtime.contextTokens,
-		status: runtime.awaitingUserInput ? "awaiting_user_input" : runtime.recoverableReason === "provider_error" ? "paused_provider_error" : "idle",
-		summary: runtime.recoverableReason === "provider_error"
-			? `provider paused · ${runtime.agent}`
-			: runtime.awaitingUserInput
-				? `awaiting input · ${runtime.agent}`
-				: `persistent runtime idle · ${runtime.runs} runs`,
-		currentActivity: runtime.recoverableReason === "provider_error"
-			? `paused · provider error${runtime.tmuxPaneId ? ` · ${runtime.tmuxPaneId}` : ""}`
-			: runtime.awaitingUserInput
-				? "awaiting user input"
-				: `idle · reusable · ${runtime.reuseCount} reuses`,
-		turns: 0,
-		usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0, contextTokens: runtime.contextTokens, turns: 0 },
-		stopReason: runtime.lastStopReason,
-		errorMessage: runtime.lastErrorMessage,
-		recoverableReason: runtime.recoverableReason,
-		pddMemoryWrites: 0,
-		attemptedModels: [],
-		fallbackUsed: false,
-	};
 }
 
 function belongsToSession(entity: { ownerSessionFile?: string }, currentSessionFile?: string | null): boolean {
@@ -509,13 +353,7 @@ async function openDeploymentPanel(ctx: ExtensionContext, deployments: Deploymen
 		container.addChild(new DynamicBorder((s: string) => theme.fg("accent", s)));
 		container.addChild(new Text(theme.fg("accent", theme.bold("Subagent Deployments")), 1, 0));
 		container.addChild(new Text(theme.fg("muted", "Select deployment · Enter inspect · Esc close"), 1, 0));
-		const selectList = new SelectList(items, Math.min(items.length, DEPLOYMENT_SELECTOR_MAX_HEIGHT), {
-			selectedPrefix: (text) => theme.fg("accent", text),
-			selectedText: (text) => theme.fg("accent", text),
-			description: (text) => theme.fg("muted", text),
-			scrollInfo: (text) => theme.fg("dim", text),
-			noMatch: (text) => theme.fg("warning", text),
-		});
+		const selectList = new SelectList(items, Math.min(items.length, DEPLOYMENT_SELECTOR_MAX_HEIGHT), createSelectListTheme(theme));
 		selectList.onSelect = (item) => done(item.value);
 		selectList.onCancel = () => done(null);
 		container.addChild(selectList);

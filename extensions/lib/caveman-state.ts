@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getAgentDir, parseFrontmatter } from "@earendil-works/pi-coding-agent";
-import { loadOrgmConfig, orgmConfigPath, saveOrgmConfigSlice } from "./orgm-config";
-import { findInstalledSkillPath } from "./package-paths";
+import { loadOrgmConfigSlice, orgmConfigPath, saveOrgmConfigSlice } from "./orgm-config.ts";
+import { findInstalledSkillPath } from "./package-paths.ts";
 
 export const CAVEMAN_STATE_ENTRY = "caveman-level";
 export const CAVEMAN_STATE_EVENT = "caveman:state-changed";
@@ -61,7 +61,7 @@ export function loadCavemanConfig(configPath?: string): CavemanConfig {
 		showStatus: true,
 		skillPath: getDefaultCavemanSkillPath(),
 	};
-	const config = loadOrgmConfig(configPath).caveman;
+	const config = loadOrgmConfigSlice("caveman", configPath);
 	return {
 		defaultLevel: normalizeCavemanLevel(config.defaultLevel) ?? defaults.defaultLevel,
 		showStatus: config.showStatus,

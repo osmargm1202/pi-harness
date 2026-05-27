@@ -1,5 +1,5 @@
-import { findPrimaryAgent, SYSTEM_AGENT } from "./agent-discovery";
-import { loadOrgmConfig, type OrgmHostConfig } from "./orgm-config";
+import { findPrimaryAgent, SYSTEM_AGENT } from "./agent-discovery.ts";
+import { loadOrgmConfig, type OrgmHostConfig } from "./orgm-config.ts";
 
 export function resolveConfiguredPrimary(cwd: string, currentPrimary = SYSTEM_AGENT, config: OrgmHostConfig = loadOrgmConfig()): string {
 	if (currentPrimary && currentPrimary !== SYSTEM_AGENT) return currentPrimary;

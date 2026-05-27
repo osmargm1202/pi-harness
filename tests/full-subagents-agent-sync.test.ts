@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "nod
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { mergeFullSubagentsConfig } from "../extensions/lib/full-subagents-config.ts";
-import { syncFullSubagentOverrides } from "../extensions/lib/full-subagents-agent-sync.ts";
+import { syncFullSubagentOverrides, validateFullSubagentBackings } from "../extensions/lib/full-subagents-agent-sync.ts";
 
 const tempDir = mkdtempSync(join(tmpdir(), "full-subagents-agent-sync-"));
 try {
@@ -30,6 +30,10 @@ try {
 			missing: { model: "openai-codex/gpt-5.4" },
 		},
 	});
+
+	const backing = validateFullSubagentBackings(config, { cwd, userAgentsDir });
+	assert(backing.backed.includes("tdd-planner"));
+	assert.deepEqual(backing.missing, ["missing"]);
 
 	const report = syncFullSubagentOverrides(config, { cwd, userAgentsDir });
 	assert.deepEqual(report.synced, ["tdd-planner"]);

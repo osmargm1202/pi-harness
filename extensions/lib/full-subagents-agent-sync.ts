@@ -22,6 +22,11 @@ export interface FullSubagentSyncReport {
 	missing: string[];
 }
 
+export interface FullSubagentBackingValidation {
+	backed: string[];
+	missing: string[];
+}
+
 function userAgentRoot(options: FullSubagentSyncOptions): string {
 	return options.userAgentsDir ?? join(homedir(), ".pi", "agent", "agents");
 }
@@ -128,6 +133,18 @@ function upsertFrontmatter(markdown: string, fields: Record<string, string>): st
 
 function targetPathForAgent(agent: SyncableAgent, root: string): string {
 	return join(root, ...(agent.namespace ? agent.namespace.split("/") : []), `${agent.name}.md`);
+}
+
+export function validateFullSubagentBackings(config: FullSubagentsConfig, options: FullSubagentSyncOptions): FullSubagentBackingValidation {
+	const root = userAgentRoot(options);
+	const discoverable = discoverSyncableAgents(options.cwd, root);
+	const names = new Set<string>(Object.keys(config.agents));
+	for (const members of Object.values(config.teams)) {
+		for (const member of members) names.add(member);
+	}
+	const backed = Array.from(names).filter((name) => discoverable.has(name)).sort((a, b) => a.localeCompare(b));
+	const missing = Array.from(names).filter((name) => !discoverable.has(name)).sort((a, b) => a.localeCompare(b));
+	return { backed, missing };
 }
 
 export function syncFullSubagentOverrides(config: FullSubagentsConfig, options: FullSubagentSyncOptions): FullSubagentSyncReport {

@@ -2,7 +2,8 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import { basename, dirname, extname, join, relative } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { DynamicBorder, getMarkdownTheme } from "@earendil-works/pi-coding-agent";
-import { Container, Markdown, type SelectItem, SelectList, Text, matchesKey, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import { Container, Markdown, type SelectItem, Text, matchesKey, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import { createSelectPanel } from "./lib/tui-select-panel.ts";
 
 type DocKind = "spec" | "design" | "task" | "doc";
 
@@ -191,25 +192,18 @@ async function chooseDoc(
 	const items: SelectItem[] = docs.map(docToSelectItem);
 
 	return await ctx.ui.custom<SpecDoc | null>((_tui, theme, _kb, done) => {
-		const container = new Container();
-		container.addChild(new DynamicBorder((text: string) => theme.fg("accent", text)));
-		container.addChild(new Text(theme.fg("accent", theme.bold(title)), 1, 0));
-		container.addChild(new Text(theme.fg("muted", `${docs.length} doc${docs.length === 1 ? "" : "s"} · latest first`), 1, 0));
-
-		const selectList = new SelectList(items, Math.min(items.length, MAX_SELECTOR_HEIGHT), {
-			selectedPrefix: (text) => theme.fg("accent", text),
-			selectedText: (text) => theme.fg("accent", text),
-			description: (text) => theme.fg("muted", text),
-			scrollInfo: (text) => theme.fg("dim", text),
-			noMatch: (text) => theme.fg("warning", text),
+		const { container, selectList } = createSelectPanel({
+			theme,
+			title,
+			subtitle: `${docs.length} doc${docs.length === 1 ? "" : "s"} · latest first`,
+			help: "↑↓ navigate • enter open • q/esc close",
+			items,
+			maxHeight: MAX_SELECTOR_HEIGHT,
 		});
 		selectList.onSelect = (item) => {
 			done(byPath.get(item.value) ?? null);
 		};
 		selectList.onCancel = () => done(null);
-		container.addChild(selectList);
-		container.addChild(new Text(theme.fg("dim", "↑↓ navigate • enter open • q/esc close"), 1, 0));
-		container.addChild(new DynamicBorder((text: string) => theme.fg("accent", text)));
 
 		return {
 			render: (width: number) => container.render(width),

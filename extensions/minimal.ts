@@ -7,7 +7,7 @@ import {
 	type Theme,
 } from "@earendil-works/pi-coding-agent";
 import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
-import { loadOrgmConfig, saveOrgmConfigSlice } from "./lib/orgm-config";
+import { loadOrgmConfigSlice, saveOrgmConfigSlice } from "./lib/orgm-config.ts";
 import { renderSkillChipRows, type ChipStyleKind, type SkillStatus } from "./lib/minimal-skill.ts";
 import {
 	renderTitleLine,
@@ -22,13 +22,13 @@ import {
 	formatCavemanStatus,
 	loadCavemanConfig,
 	resolveInitialCavemanState,
-} from "./lib/caveman-state";
+} from "./lib/caveman-state.ts";
 import {
 	formatPrimaryLabel,
 	PRIMARY_STATE_EVENT,
 	restorePrimaryState,
 	SYSTEM_AGENT,
-} from "./lib/agent-discovery";
+} from "./lib/agent-discovery.ts";
 
 type MinimalSkillsAction = "on" | "off" | "toggle" | "clear";
 
@@ -37,7 +37,7 @@ export interface MinimalSkillsConfig {
 }
 
 export function loadMinimalSkillsConfig(configPath?: string): MinimalSkillsConfig {
-	return { ...loadOrgmConfig(configPath).minimalSkills };
+	return { ...loadOrgmConfigSlice("minimalSkills", configPath) };
 }
 
 function saveMinimalSkillsConfig(config: MinimalSkillsConfig): void {

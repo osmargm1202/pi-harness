@@ -53,7 +53,9 @@ Minimal `~/.pi/agent/orgm.json` slice:
 }
 ```
 
-`fullSubagents.agents` is the highest-priority per-subagent override layer for the full-subagents runtime. On `session_start`, configured agent overrides are also synced into `~/.pi/agent/agents/<namespace>/<agent>.md`, so local model/tool choices survive package git updates.
+`fullSubagents.agents` is the highest-priority per-subagent override layer for the full-subagents runtime. On `session_start`, enabled agents must resolve to a backing `.md` agent document; missing docs block runtime creation and show an error. Configured agent overrides are also synced into `~/.pi/agent/agents/<namespace>/<agent>.md`, so local model/tool choices survive package git updates.
+
+When `strictDelegation` is enabled, the parent agent is only an orchestrator/communicator: direct read, shell, edit, write, and context execution tools are blocked in the parent and meaningful work must be delegated to `full_subagent_task` or `full_query_team`.
 
 When enabled, the parent TUI shows a `Full subagents` widget. Set `widgetLayout` to `minimal` for compact skill-like rows or `full` for per-agent cards. Busy or compacting agents are highlighted, idle/awaiting agents are muted, and dead or errored agents are marked as down.
 
@@ -66,5 +68,8 @@ Commands:
 
 - `/orgm-full-subagents` — show configured pool status.
 - `/orgm-full-subagents init` — create or merge a safe `fullSubagents` slice into `~/.pi/agent/orgm.json` with `enabled: false` and startup-team agent stubs so it can be edited before activation.
-- `/orgm-full-subagents restart <agent>` — accepted command shape and placeholder for upcoming restart behavior; it does not actively restart an agent yet.
+- `/orgm-full-subagents stop <agent|all>` — abort active work without destroying the runtime context.
+- `/orgm-full-subagents continue <agent> <task>` — send a follow-up task to an existing runtime.
+- `/orgm-full-subagents restart <agent>` — replace one subagent runtime with a fresh process.
+- `/orgm-full-subagents reset all` — terminate the current pool and create a fresh pool.
 - `/orgm-full-subagents team <name>` — accepted command shape and placeholder for upcoming team switch behavior; it does not actively switch teams yet.

@@ -216,6 +216,9 @@ export function orgmConfigPath(home = homedir()): string {
 	return join(home, ".pi", "agent", "orgm.json");
 }
 
+export type OrgmConfigSliceKey = keyof OrgmHostConfig;
+export type WritableOrgmConfigSliceKey = keyof Pick<OrgmHostConfig, "defaultPrimaryAgent" | "caveman" | "minimalSkills" | "agentStatus" | "repoTree" | "title" | "fullSubagents">;
+
 export function loadOrgmConfig(configPath = orgmConfigPath()): OrgmHostConfig {
 	if (!existsSync(configPath)) return structuredClone(DEFAULT_ORGM_CONFIG);
 	try {
@@ -227,7 +230,11 @@ export function loadOrgmConfig(configPath = orgmConfigPath()): OrgmHostConfig {
 	}
 }
 
-export function saveOrgmConfigSlice<K extends keyof Pick<OrgmHostConfig, "defaultPrimaryAgent" | "caveman" | "minimalSkills" | "agentStatus" | "repoTree" | "title" | "fullSubagents">>(
+export function loadOrgmConfigSlice<K extends OrgmConfigSliceKey>(slice: K, configPath = orgmConfigPath()): OrgmHostConfig[K] {
+	return structuredClone(loadOrgmConfig(configPath)[slice]);
+}
+
+export function saveOrgmConfigSlice<K extends WritableOrgmConfigSliceKey>(
 	slice: K,
 	value: OrgmHostConfig[K],
 	configPath = orgmConfigPath(),

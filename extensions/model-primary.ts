@@ -1,6 +1,5 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
-import { DynamicBorder } from "@earendil-works/pi-coding-agent";
-import { Container, type SelectItem, SelectList, Text } from "@earendil-works/pi-tui";
+import { type SelectItem } from "@earendil-works/pi-tui";
 import {
 	discoverPrimaryAgents,
 	findPrimaryAgent,
@@ -12,6 +11,7 @@ import {
 } from "./lib/agent-discovery";
 import { resolveConfiguredPrimary } from "./lib/orgm-flow";
 import { saveOrgmConfigSlice } from "./lib/orgm-config";
+import { createSelectPanel } from "./lib/tui-select-panel.ts";
 
 const SUBAGENT_ENV_FLAG = "PI_PDD_SUBAGENT";
 const IS_SUBAGENT_RUNTIME = process.env[SUBAGENT_ENV_FLAG] === "1";
@@ -53,23 +53,16 @@ async function openSelectPalette(
 
 	try {
 		return await ctx.ui.custom<string | null>((tui, theme, _kb, done) => {
-			const container = new Container();
-			container.addChild(new DynamicBorder((s: string) => theme.fg("accent", s)));
-			container.addChild(new Text(theme.fg("accent", theme.bold(title)), 1, 0));
-			container.addChild(new Text(theme.fg("muted", subtitle), 1, 0));
-
-			const selectList = new SelectList(items, Math.min(items.length, 12), {
-				selectedPrefix: (t: string) => theme.fg("accent", t),
-				selectedText: (t: string) => theme.fg("accent", t),
-				description: (t: string) => theme.fg("muted", t),
-				scrollInfo: (t: string) => theme.fg("dim", t),
-				noMatch: (t: string) => theme.fg("warning", t),
+			const { container, selectList } = createSelectPanel({
+				theme,
+				title,
+				subtitle,
+				help: "↑↓ navigate • enter select • esc cancel",
+				items,
+				maxHeight: 12,
 			});
 			selectList.onSelect = (item) => done(item.value);
 			selectList.onCancel = () => done(null);
-			container.addChild(selectList);
-			container.addChild(new Text(theme.fg("dim", "↑↓ navigate • enter select • esc cancel"), 1, 0));
-			container.addChild(new DynamicBorder((s: string) => theme.fg("accent", s)));
 
 			return {
 				render: (w: number) => container.render(w),

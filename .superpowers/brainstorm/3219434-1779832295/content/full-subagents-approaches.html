@@ -1,0 +1,83 @@
+<h2>full-subagentes: 3 arquitecturas posibles</h2>
+<p class="subtitle">Tu objetivo: equipos persistentes configurados desde <code>orgm.json</code>, widget vivo/idle, comunicación sólida, y que el agente principal trabaje delegando siempre.</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">A · Pool JSON/RPC persistente</div>
+        <div class="mockup-body">
+          <div class="mock-nav">Principal Pi TUI</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+            <div class="placeholder" style="border-color:#3ddc97">tdd-planner · idle</div>
+            <div class="placeholder" style="border-color:#ffcc66">tdd-implementer · busy</div>
+            <div class="placeholder" style="border-color:#3ddc97">tdd-reviewer · idle</div>
+            <div class="placeholder" style="border-color:#3ddc97">tdd-verifier · idle</div>
+          </div>
+          <div class="mock-content" style="margin-top:10px">Com: JSONL/RPC sobre stdio/socket + leases</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Recomendado: pool persistente sin TUI visible</h3>
+      <p>Levanta 1-10 procesos Pi en modo JSON/RPC al inicio, con modelo/tools/skills/MCP propios. El principal les manda tareas y recibe eventos.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>MVP más estable</li><li>Subagentes reales con contextos separados</li><li>Widget fácil de alimentar</li></ul></div>
+        <div class="cons"><h4>Contras</h4><ul><li>No ves una TUI completa por subagente</li><li>Hay que definir protocolo robusto</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">B · Terminal panes</div>
+        <div class="mockup-body">
+          <div class="mock-nav">Kitty/tmux/Hyprland</div>
+          <div class="split" style="gap:6px">
+            <div class="placeholder">Main</div>
+            <div class="placeholder">Sub TUI 1</div>
+          </div>
+          <div class="split" style="gap:6px;margin-top:6px">
+            <div class="placeholder">Sub TUI 2</div>
+            <div class="placeholder">Sub TUI 3</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Full TUI por subagente en ventanas/panes</h3>
+      <p>Cada subagente corre Pi interactivo completo; la extensión principal abre ventanas o panes y sincroniza estado por archivos/socket.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Se siente literalmente como varios Pi vivos</li><li>Debug visual fácil</li></ul></div>
+        <div class="cons"><h4>Contras</h4><ul><li>Más frágil: terminales, foco, cierre, input</li><li>Difícil automatizar respuestas limpias</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">C · Una TUI multi-agente</div>
+        <div class="mockup-body">
+          <div class="mock-nav">Pi unified dashboard</div>
+          <div class="mock-sidebar">Agents panel</div>
+          <div class="mock-content">Logs, tools, context, compact count per agent</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Un solo Pi con TUI multi-panel</h3>
+      <p>El ideal visual: una TUI contiene varios agentes internos y paneles. Requiere tocar o extender más profundamente el runtime/TUI.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Mejor UX final</li><li>Sin ventanas externas</li></ul></div>
+        <div class="cons"><h4>Contras</h4><ul><li>Probablemente no es solo extensión</li><li>Más riesgo y más superficie core</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Mi recomendación</h3>
+  <p>Empezar con <strong>A</strong> como base: pool persistente de Pi subprocesses JSON/RPC + <code>full-subagents-com.ts</code> + <code>full-subagents-widget.ts</code>. Después añadir modo B como backend opcional de debug/visual. C queda como visión futura si el core/TUI permite múltiples runtimes embebidos.</p>
+</div>

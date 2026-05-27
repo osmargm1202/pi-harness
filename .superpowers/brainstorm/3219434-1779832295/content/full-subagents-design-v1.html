@@ -1,0 +1,83 @@
+<h2>Diseño v1 · full-subagents MVP completo</h2>
+<p class="subtitle">Base aprobada + detalles de configuración, protocolo, widget, errores y TDD.</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">orgm.json.fullSubagents</div>
+    <div class="mockup-body">
+<pre style="white-space:pre-wrap;font-size:12px;line-height:1.35">{
+  "fullSubagents": {
+    "enabled": true,
+    "strictDelegation": true,
+    "startupTeam": "tdd-core",
+    "maxAgents": 10,
+    "teams": {
+      "tdd-core": [
+        "tdd-brainstormer",
+        "tdd-planner",
+        "tdd-implementer",
+        "tdd-reviewer",
+        "tdd-verifier"
+      ]
+    },
+    "agents": {
+      "tdd-implementer": {
+        "model": "provider/model",
+        "tools": "all",
+        "skills": "all",
+        "mcp": "inherit",
+        "extensions": "inherit"
+      }
+    }
+  }
+}</pre>
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-header">Widget</div>
+    <div class="mockup-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="placeholder" style="border-color:#3ddc97;color:#3ddc97">● planner<br><span style="color:#a9b1d6">idle · sonnet · ctx 12%</span></div>
+        <div class="placeholder" style="border-color:#ffcc66;color:#ffcc66">◉ implementer<br><span style="color:#a9b1d6">busy · editing tests</span></div>
+        <div class="placeholder" style="border-color:#3ddc97;color:#3ddc97">● reviewer<br><span style="color:#a9b1d6">idle · compact 1</span></div>
+        <div class="placeholder" style="border-color:#f7768e;color:#f7768e">× verifier<br><span style="color:#a9b1d6">dead · restart available</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Herramientas/comandos del principal</h3>
+  <ul>
+    <li><code>full_subagent_task</code>: manda una tarea a un agente disponible.</li>
+    <li><code>full_query_team</code>: manda tareas a un equipo persistente en paralelo/serial.</li>
+    <li><code>/full-subagents</code>: abre panel/resumen de pool.</li>
+    <li><code>/full-subagents restart &lt;agent&gt;</code>: reinicia un subagente muerto o atorado.</li>
+    <li><code>/full-subagents team &lt;name&gt;</code>: cambia o levanta equipo configurado.</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h3>Protocolo MVP</h3>
+  <ul>
+    <li><strong>Parent → child:</strong> <code>task.start</code>, <code>task.cancel</code>, <code>compact.request</code>, <code>shutdown</code>.</li>
+    <li><strong>Child → parent:</strong> <code>ready</code>, <code>heartbeat</code>, <code>status</code>, <code>tool_event</code>, <code>message_delta</code>, <code>task.done</code>, <code>task.error</code>.</li>
+    <li><strong>Estado:</strong> idle, busy, compacting, awaiting_user, error, dead.</li>
+    <li><strong>Robustez:</strong> timeout, heartbeat, restart policy, transcript JSONL por agente.</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h3>Modo estricto</h3>
+  <p>La extensión inyecta en <code>before_agent_start</code> una política: el principal no implementa directamente salvo clarificación, resumen o tareas triviales. Para trabajo real debe llamar <code>full_subagent_task</code> o <code>full_query_team</code>.</p>
+</div>
+
+<div class="section">
+  <h3>Pruebas TDD</h3>
+  <ul>
+    <li>Config merge/defaults: <code>full-subagents-config.test.ts</code>.</li>
+    <li>Protocol parse/serialize/state transitions: <code>full-subagents-com.test.ts</code>.</li>
+    <li>Widget rendering idle/busy/dead/truncation: <code>full-subagents-widget.test.ts</code>.</li>
+    <li>Extension integration with fake subprocess transport: <code>full-subagents-extension.test.ts</code>.</li>
+  </ul>
+</div>

@@ -1,11 +1,9 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { loadAgentStatusConfig } from "../extensions/lib/agent-status-config.ts";
-import { loadCavemanConfig } from "../extensions/lib/caveman-state.ts";
-import { loadOrgmConfig, saveOrgmConfigSlice } from "../extensions/lib/orgm-config.ts";
-import { loadMinimalSkillsConfig } from "../extensions/minimal.ts";
+import { loadOrgmConfig, loadOrgmConfigSlice, saveOrgmConfigSlice } from "../extensions/lib/orgm-config.ts";
 
 const tempDir = mkdtempSync(join(tmpdir(), "orgm-config-"));
 const configPath = join(tempDir, "orgm.json");
@@ -25,29 +23,27 @@ try {
 	assert.equal(orgmConfig.repoTree.enabled, false, "repoTree.enabled should load from central orgm.json");
 	assert.equal(orgmConfig.repoTree.maxDepth, 5, "repoTree.maxDepth should load from central orgm.json");
 	assert.equal(orgmConfig.title.autoGenerate, false, "title.autoGenerate should load from central orgm.json");
+	assert.equal(loadOrgmConfigSlice("title", configPath).autoGenerate, false, "loadOrgmConfigSlice should load title slice");
+	assert.equal(loadOrgmConfigSlice("agentStatus", configPath).showWidget, false, "loadOrgmConfigSlice should load agentStatus slice");
 
-	assert.equal(
-		loadCavemanConfig(configPath).defaultLevel,
-		"lite",
-		"caveman.defaultLevel should load from central orgm.json",
-	);
-
-	assert.equal(
-		loadMinimalSkillsConfig(configPath).enabled,
-		false,
-		"minimalSkills.enabled should load from central orgm.json",
-	);
-
-	assert.equal(
-		loadAgentStatusConfig(configPath).showWidget,
-		false,
-		"agentStatus.showWidget should load from central orgm.json",
-	);
+	assert.equal(loadOrgmConfigSlice("caveman", configPath).defaultLevel, "lite", "caveman slice should load from central orgm.json");
+	assert.equal(loadOrgmConfigSlice("minimalSkills", configPath).enabled, false, "minimalSkills slice should load from central orgm.json");
+	assert.equal(loadOrgmConfigSlice("agentStatus", configPath).showWidget, false, "agentStatus slice should load from central orgm.json");
+	assert.equal(loadAgentStatusConfig(configPath).showWidget, false, "agentStatus wrapper should load through central slice helper");
 	saveOrgmConfigSlice("defaultPrimaryAgent", "pi", configPath);
 	saveOrgmConfigSlice("title", { autoGenerate: true }, configPath);
 	const savedConfig = loadOrgmConfig(configPath);
 	assert.equal(savedConfig.defaultPrimaryAgent, "pi", "defaultPrimaryAgent should persist through saveOrgmConfigSlice");
 	assert.equal(savedConfig.title.autoGenerate, true, "title config should persist through saveOrgmConfigSlice");
+
+	writeFileSync(configPath, JSON.stringify({
+		unknownFutureKey: { keep: true },
+		title: { autoGenerate: false },
+	}, null, 2), "utf8");
+	saveOrgmConfigSlice("title", { autoGenerate: true }, configPath);
+	const rawSaved = JSON.parse(readFileSync(configPath, "utf8"));
+	assert.deepEqual(rawSaved.unknownFutureKey, { keep: true }, "saveOrgmConfigSlice should preserve unknown top-level keys");
+	assert.equal(rawSaved.title.autoGenerate, true, "saveOrgmConfigSlice should write the requested slice");
 } finally {
 	rmSync(tempDir, { recursive: true, force: true });
 }

@@ -2,7 +2,7 @@ import type { AgentMessage } from "@earendil-works/pi-agent-core";
 import { complete, type Message } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionContext, SessionEntry } from "@earendil-works/pi-coding-agent";
 import { convertToLlm, serializeConversation } from "@earendil-works/pi-coding-agent";
-import { loadOrgmConfig, saveOrgmConfigSlice } from "./lib/orgm-config.ts";
+import { loadOrgmConfigSlice, saveOrgmConfigSlice } from "./lib/orgm-config.ts";
 import {
 	parseTitleCommand,
 	sanitizeTitle,
@@ -97,7 +97,7 @@ export default function titleExtension(pi: ExtensionAPI) {
 	let spinnerIndex = 0;
 	let generation: AbortController | null = null;
 	let autoAttempted = false;
-	let autoGenerate = loadOrgmConfig().title.autoGenerate;
+	let autoGenerate = loadOrgmConfigSlice("title").autoGenerate;
 
 	const emitTitleState = () => {
 		pi.events.emit(TITLE_STATE_EVENT, status);
@@ -158,7 +158,7 @@ export default function titleExtension(pi: ExtensionAPI) {
 	};
 
 	pi.on("session_start", async (_event, ctx) => {
-		autoGenerate = loadOrgmConfig().title.autoGenerate;
+		autoGenerate = loadOrgmConfigSlice("title").autoGenerate;
 		autoAttempted = false;
 		generation = null;
 		stopSpinner();

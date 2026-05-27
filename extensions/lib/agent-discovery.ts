@@ -1,7 +1,7 @@
 import { existsSync, lstatSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, parse, relative } from "node:path";
 import { getAgentDir, parseFrontmatter } from "@earendil-works/pi-coding-agent";
-import { getCurrentPackageAgentDirs, getCurrentPackageAgentsDir } from "./package-paths";
+import { getCurrentPackageAgentDirs, getCurrentPackageAgentsDir } from "./package-paths.ts";
 
 export type AgentSource = "user" | "project";
 export type AgentScope = "user" | "project" | "both";

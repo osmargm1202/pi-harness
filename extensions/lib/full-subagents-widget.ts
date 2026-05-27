@@ -27,6 +27,7 @@ export interface FullSubagentsWidgetOptions {
 	showContext: boolean;
 	showCompact: boolean;
 	layout: FullSubagentsWidgetLayout;
+	now?: number;
 }
 
 export const FULL_SUBAGENTS_WIDGET_KEY = "full-subagents";
@@ -62,10 +63,23 @@ function padCell(text: string, width: number): string {
 	return truncated + " ".repeat(Math.max(0, width - truncated.length));
 }
 
+function formatElapsed(ms: number): string {
+	const seconds = Math.max(0, Math.floor(ms / 1000));
+	const minutes = Math.floor(seconds / 60);
+	const remainder = seconds % 60;
+	return minutes > 0 ? `T+${minutes}m${remainder}s` : `T+${remainder}s`;
+}
+
+function elapsedPart(snapshot: FullSubagentSnapshot, options: FullSubagentsWidgetOptions): string | undefined {
+	if (!snapshot.activeSince) return undefined;
+	return formatElapsed((options.now ?? Date.now()) - snapshot.activeSince);
+}
+
 function renderMinimalAgentCell(snapshot: FullSubagentSnapshot, options: FullSubagentsWidgetOptions, width: number): string {
 	const parts = [
 		snapshot.agentName,
 		shortStatus(snapshot),
+		elapsedPart(snapshot, options),
 		options.showContext ? `${formatBar(snapshot.contextPercent)} ${snapshot.contextPercent}%` : undefined,
 		options.showCompact ? `C-${snapshot.compactCount}` : undefined,
 	].filter((part): part is string => Boolean(part));
@@ -81,20 +95,31 @@ function renderFullAgentCard(snapshot: FullSubagentSnapshot, options: FullSubage
 		`│${padCell(` ${shortStatus(snapshot)}`, innerWidth)}│`,
 	];
 	if (options.showModel && snapshot.model) lines.push(`│${padCell(` ${snapshot.model}`, innerWidth)}│`);
-	lines.push(`│${padCell(` ${formatBar(snapshot.contextPercent)} ${snapshot.contextPercent}% C-${snapshot.compactCount}`, innerWidth)}│`);
+	lines.push(`│${padCell(` ${formatBar(snapshot.contextPercent)} ${snapshot.contextPercent}% C-${snapshot.compactCount}${elapsedPart(snapshot, options) ? ` ${elapsedPart(snapshot, options)}` : ""}`, innerWidth)}│`);
 	if (snapshot.lastError) lines.push(`│${padCell(` ${snapshot.lastError}`, innerWidth)}│`);
 	else if (snapshot.activity) lines.push(`│${padCell(` ${snapshot.activity}`, innerWidth)}│`);
 	lines.push(`╰${"─".repeat(innerWidth)}╯`);
 	return lines.map((line) => truncateToWidth(line, width));
 }
 
+const MINIMAL_CELL_WIDTH = 50;
+const MINIMAL_GAP = " ";
+
+function minimalColumnCount(width: number, count: number): number {
+	return Math.max(1, Math.min(3, Math.floor((width + MINIMAL_GAP.length) / (MINIMAL_CELL_WIDTH + MINIMAL_GAP.length)) || 1, count));
+}
+
+function minimalCellWidth(width: number, columns: number): number {
+	const available = Math.floor((width - MINIMAL_GAP.length * Math.max(0, columns - 1)) / columns);
+	return width < MINIMAL_CELL_WIDTH ? Math.max(1, available) : Math.max(MINIMAL_CELL_WIDTH, available);
+}
+
 function renderMinimalWidgetLines(snapshots: FullSubagentSnapshot[], width: number, options: FullSubagentsWidgetOptions): string[] {
-	const cellWidth = 50;
-	const gap = " ";
-	const columns = Math.max(1, Math.min(3, Math.floor((width + gap.length) / (cellWidth + gap.length)) || 1, snapshots.length));
+	const columns = minimalColumnCount(width, snapshots.length);
+	const cellWidth = minimalCellWidth(width, columns);
 	const lines: string[] = [];
 	for (let index = 0; index < snapshots.length; index += columns) {
-		lines.push(truncateToWidth(snapshots.slice(index, index + columns).map((snapshot) => renderMinimalAgentCell(snapshot, options, cellWidth)).join(gap), width));
+		lines.push(truncateToWidth(snapshots.slice(index, index + columns).map((snapshot) => renderMinimalAgentCell(snapshot, options, cellWidth)).join(MINIMAL_GAP), width));
 	}
 	return lines;
 }
@@ -156,10 +181,16 @@ export function installFullSubagentsWidget(
 					return theme.fg(rowColor(snapshots.slice(snapshotRow, snapshotRow + columns)), line);
 				});
 			}
-			return lines.map((line, index) => {
-				if (index === 0) return theme.fg("accent", line);
-				return theme.fg(stateColor(snapshots[Math.max(0, index - 1)]?.state ?? "starting"), line);
-			});
+			const columns = minimalColumnCount(width, snapshots.length);
+			const cellWidth = minimalCellWidth(width, columns);
+			const rendered = [theme.fg("accent", lines[0] ?? "")];
+			for (let index = 0; index < snapshots.length; index += columns) {
+				const row = snapshots.slice(index, index + columns)
+					.map((snapshot) => theme.fg(stateColor(snapshot.state), renderMinimalAgentCell(snapshot, { ...options, color: true }, cellWidth)))
+					.join(MINIMAL_GAP);
+				rendered.push(truncateToWidth(row, width));
+			}
+			return rendered;
 		},
 	}));
 }

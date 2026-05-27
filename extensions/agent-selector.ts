@@ -10,7 +10,10 @@ import { dirname, basename } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { DynamicBorder } from "@earendil-works/pi-coding-agent";
 import { Container, Key, matchesKey, SelectList, Text, type SelectItem } from "@earendil-works/pi-tui";
-import { discoverDeployableAgents, type AgentConfig } from "./lib/agent-discovery";
+import { discoverDeployableAgents, type AgentConfig } from "./lib/agent-discovery.ts";
+import { createSelectListTheme } from "./lib/tui-select-panel.ts";
+
+const DEPRECATED_AGENT_MODELS = new Set(["openai-codex/gpt-5.3-codex-spark"]);
 
 export function collectConfiguredAgentModels(ctx: ExtensionContext, preferredModel?: string): string[] {
 	const models = new Set<string>();
@@ -20,10 +23,11 @@ export function collectConfiguredAgentModels(ctx: ExtensionContext, preferredMod
 	}
 
 	for (const agent of discoverDeployableAgents(ctx.cwd, "both")) {
-		if (agent.model?.trim()) models.add(agent.model.trim());
+		const model = agent.model?.trim();
+		if (model && !DEPRECATED_AGENT_MODELS.has(model)) models.add(model);
 	}
 
-	if (preferredModel?.trim()) models.add(preferredModel.trim());
+	if (preferredModel?.trim() && !DEPRECATED_AGENT_MODELS.has(preferredModel.trim())) models.add(preferredModel.trim());
 	return Array.from(models).sort((a, b) => a.localeCompare(b));
 }
 
@@ -172,13 +176,7 @@ async function openAgentModelPalette(ctx: ExtensionContext): Promise<void> {
 		lastRenderWidth = width;
 		const items = buildItems(width);
 		const listTextWidth = Math.max(1, width - 4);
-		selectList = new SelectList(items, Math.min(Math.max(items.length, 1), 12), {
-			selectedPrefix: (text) => ctx.ui.theme.fg("accent", text),
-			selectedText: (text) => ctx.ui.theme.fg("accent", text),
-			description: (text) => ctx.ui.theme.fg("muted", text),
-			scrollInfo: (text) => ctx.ui.theme.fg("dim", text),
-			noMatch: (text) => ctx.ui.theme.fg("warning", text),
-		}, {
+		selectList = new SelectList(items, Math.min(Math.max(items.length, 1), 12), createSelectListTheme(ctx.ui.theme), {
 			minPrimaryColumnWidth: listTextWidth,
 			maxPrimaryColumnWidth: listTextWidth,
 			truncatePrimary: ({ item, maxWidth, text }) => {

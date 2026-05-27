@@ -1,0 +1,58 @@
+<h2>Diseño v1 · Arquitectura MVP</h2>
+<p class="subtitle">Enfoque A + modo estricto por defecto: el principal orquesta, los subagentes trabajan.</p>
+
+<div class="mockup">
+  <div class="mockup-header">Flujo principal</div>
+  <div class="mockup-body">
+    <div style="display:grid;grid-template-columns:1.2fr .8fr 1.2fr;gap:14px;align-items:stretch">
+      <div class="placeholder" style="border-color:#7aa2f7">
+        <strong>full-subagents.ts</strong><br>
+        Extensión principal<br><br>
+        • lee orgm.json<br>
+        • inicia equipo<br>
+        • registra tools/comandos<br>
+        • impone delegación estricta
+      </div>
+      <div class="placeholder" style="border-color:#bb9af7">
+        <strong>full-subagents-com.ts</strong><br>
+        Protocolo<br><br>
+        JSONL/RPC<br>
+        request → events → final<br>
+        cancel/restart/heartbeat
+      </div>
+      <div class="placeholder" style="border-color:#9ece6a">
+        <strong>Pi subprocess pool</strong><br>
+        1-10 subagentes vivos<br><br>
+        • contexto propio<br>
+        • modelo propio<br>
+        • skills/tools/MCP/extensiones<br>
+        • compact propio
+      </div>
+    </div>
+    <div style="margin:18px 0;text-align:center;color:#a9b1d6">↓ eventos vivos</div>
+    <div class="placeholder" style="border-color:#f7768e">
+      <strong>full-subagents-widget.ts</strong> · tarjetas: idle/busy/dead, modelo, contexto, compactaciones, tarea actual, tools/skills, último resultado
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Contrato del MVP</h3>
+  <ul>
+    <li><strong>Pool persistente por sesión:</strong> al iniciar Pi, la extensión levanta el equipo configurado.</li>
+    <li><strong>Subagente real:</strong> proceso Pi separado, no una llamada LLM dentro del principal.</li>
+    <li><strong>Comunicación:</strong> JSONL/RPC sobre stdio como primera opción; filesystem solo para logs/transcript y recuperación.</li>
+    <li><strong>Modo estricto:</strong> el principal recibe instrucciones de sistema y tools para delegar trabajo significativo al pool.</li>
+    <li><strong>Widget vivo:</strong> busy = color activo/animado; idle = color tenue; dead/error = rojo/gris.</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h3>Módulos</h3>
+  <ul>
+    <li><code>extensions/full-subagents.ts</code>: registro de extensión, comandos, tools, lifecycle.</li>
+    <li><code>extensions/lib/full-subagents-com.ts</code>: protocolo, subprocess manager, mensajes, restart/cancel.</li>
+    <li><code>extensions/lib/full-subagents-widget.ts</code>: render de tarjetas y footer/status.</li>
+    <li><code>extensions/lib/full-subagents-config.ts</code>: merge/validación de <code>orgm.json.fullSubagents</code>.</li>
+  </ul>
+</div>

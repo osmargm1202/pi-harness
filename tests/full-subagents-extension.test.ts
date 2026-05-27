@@ -55,6 +55,8 @@ const result = await beforeAgentStart(
 );
 assert(result.systemPrompt.includes("base prompt"));
 assert(result.systemPrompt.includes(STRICT_DELEGATION_SNIPPET));
+assert.match(result.systemPrompt, /do not read project files/i);
+assert.match(result.systemPrompt, /implementation\/code changes to implementers/i);
 
 const taskTool = tools.find((tool) => tool.name === FULL_SUBAGENT_TASK_TOOL);
 const taskResult = await taskTool.execute(
@@ -86,6 +88,9 @@ assert.equal(teamResult.details.runtimeAvailable, false);
 class FakeRuntime implements FullSubagentsRuntime {
 	readonly tasks: Array<{ agent: string; task: string; cwd: string }> = [];
 	readonly teams: Array<{ members: string[]; task: string; cwd: string; execution: "parallel" | "serial" }> = [];
+	readonly stopped: Array<{ agent: string; reason: string }> = [];
+	readonly resetAgents: string[] = [];
+	shutdownCount = 0;
 	private snapshotAgents: string[];
 
 	constructor(agentNames: string[]) {
@@ -110,6 +115,14 @@ class FakeRuntime implements FullSubagentsRuntime {
 		return { requestId: `fake-${agent}`, text: `child result from ${agent}: ${task}` };
 	}
 
+	stopTask(agent: string, reason: string) {
+		this.stopped.push({ agent, reason });
+	}
+
+	resetAgent(agent: string) {
+		this.resetAgents.push(agent);
+	}
+
 	async runTeam(members: string[], task: string, cwd: string, execution: "parallel" | "serial") {
 		this.teams.push({ members, task, cwd, execution });
 		return {
@@ -119,7 +132,9 @@ class FakeRuntime implements FullSubagentsRuntime {
 		};
 	}
 
-	shutdown() {}
+	shutdown() {
+		this.shutdownCount += 1;
+	}
 }
 
 const tempDir = mkdtempSync(join(tmpdir(), "full-subagents-extension-"));
@@ -132,6 +147,11 @@ try {
 	writeFileSync(
 		join(projectAgentsDir, "alpha.md"),
 		`---\nname: alpha\ndescription: Alpha agent\nmodel: stale/alpha\ntools: read, bash\n---\n\nAlpha body\n`,
+		"utf8",
+	);
+	writeFileSync(
+		join(projectAgentsDir, "beta.md"),
+		`---\nname: beta\ndescription: Beta agent\n---\n\nBeta body\n`,
 		"utf8",
 	);
 	writeFileSync(
@@ -153,6 +173,7 @@ try {
 
 	const configured = createFakePi();
 	let createdRuntime: FakeRuntime | undefined;
+	const createdRuntimes: FakeRuntime[] = [];
 	registerFullSubagents(configured.fakePi, {
 		configPath,
 		userAgentsDir,
@@ -161,6 +182,7 @@ try {
 			assert.equal(config.agents.alpha.model, "test/alpha");
 			const startupMembers = config.teams[config.startupTeam] ?? [];
 			createdRuntime = new FakeRuntime(startupMembers);
+			createdRuntimes.push(createdRuntime);
 			return createdRuntime;
 		},
 	});
@@ -225,6 +247,47 @@ try {
 	assert.equal(serialTeam.details.requestId, "team-serial");
 	assert.equal(serialTeam.details.result, "serial child results: alpha,beta -> review slice");
 	assert.deepEqual(createdRuntime.teams, [{ members: ["alpha", "beta"], task: "review slice", cwd: "/repo", execution: "serial" }]);
+
+	const strictReadBlock = await configured.handlers.get("tool_call")?.[0](
+		{ toolName: "read", input: { path: "README.md" } },
+		{ cwd: projectRoot, hasUI: false, ui: {}, sessionManager: { getSessionFile: () => undefined } },
+	);
+	assert.equal(strictReadBlock.block, true, "strict full-subagents mode should block parent read/tool work");
+	assert.match(strictReadBlock.reason, /Delegate work to full_subagent_task/);
+
+	await configuredCommand.handler("stop alpha", { cwd: projectRoot, hasUI: false, ui: {}, sessionManager: { getSessionFile: () => undefined } });
+	assert.deepEqual(createdRuntime.stopped, [{ agent: "alpha", reason: "manual stop" }]);
+	await configuredCommand.handler("continue alpha finish the slice", { cwd: projectRoot, hasUI: false, ui: {}, sessionManager: { getSessionFile: () => undefined } });
+	assert.deepEqual(createdRuntime.tasks.at(-1), { agent: "alpha", task: "finish the slice", cwd: projectRoot });
+	await configuredCommand.handler("restart alpha", { cwd: projectRoot, hasUI: false, ui: {}, sessionManager: { getSessionFile: () => undefined } });
+	assert.deepEqual(createdRuntime.resetAgents, ["alpha"]);
+	await configuredCommand.handler("reset all", { cwd: projectRoot, hasUI: false, ui: {}, sessionManager: { getSessionFile: () => undefined } });
+	assert.equal(createdRuntimes[0].shutdownCount, 1, "reset all should terminate the old runtime pool");
+	assert.equal(createdRuntimes.length, 2, "reset all should create a fresh runtime pool");
+
+	const missingConfigPath = join(tempDir, "missing-orgm.json");
+	writeFileSync(
+		missingConfigPath,
+		JSON.stringify({ fullSubagents: { enabled: true, startupTeam: "solo", teams: { solo: ["ghost"] }, agents: { ghost: {} } } }),
+		"utf8",
+	);
+	const missingPi = createFakePi();
+	let missingRuntimeCreated = false;
+	const notifications: string[] = [];
+	registerFullSubagents(missingPi.fakePi, {
+		configPath: missingConfigPath,
+		userAgentsDir,
+		createRuntime() {
+			missingRuntimeCreated = true;
+			return new FakeRuntime(["ghost"]);
+		},
+	});
+	await missingPi.handlers.get("session_start")?.[0](
+		{},
+		{ cwd: projectRoot, hasUI: true, ui: { notify(message: string) { notifications.push(message); }, setWidget() {} }, sessionManager: { getSessionFile: () => undefined } },
+	);
+	assert.equal(missingRuntimeCreated, false, "missing backing .md must block full-subagent runtime creation");
+	assert(notifications.some((message) => /missing \.md.*ghost/i.test(message)), "missing backing .md should be visible to the user");
 
 	const childRuntime = createFakePi();
 	let childRuntimeCreated = false;

@@ -37,6 +37,7 @@ export interface FullSubagentRuntimeConfig {
 	agentName: string;
 	model?: string;
 	transport: FullSubagentTransport;
+	createTransport?: () => FullSubagentTransport;
 }
 
 export interface FullSubagentSnapshot {
@@ -53,6 +54,7 @@ export interface FullSubagentSnapshot {
 	lastResult?: string;
 	lastError?: string;
 	lastHeartbeatAt?: number;
+	activeSince?: number;
 }
 
 interface RuntimeRecord {
@@ -211,20 +213,24 @@ class PiRpcSubagentTransport implements FullSubagentTransport {
 			return;
 		}
 		if (event.type === "response" && event.command === "prompt" && event.success === true) {
-			this.emitProtocol("status", { requestId: textValue(event.id) ?? this.activeRequestId, state: "busy", activity: "prompt accepted" });
+			this.emitProtocol("status", { requestId: textValue(event.id) ?? this.activeRequestId, state: "busy", activity: "prompt accepted", ...contextPayload(event) });
 			return;
 		}
 		if (event.type === "agent_start") {
-			this.emitProtocol("status", { requestId: this.activeRequestId, state: "busy", activity: "running" });
+			this.emitProtocol("status", { requestId: this.activeRequestId, state: "busy", activity: "running", ...contextPayload(event) });
 			return;
 		}
 		if (event.type === "extension_ui_request") {
-			this.emitProtocol("status", { requestId: this.activeRequestId, state: "awaiting_user", activity: textValue(event.method) ?? "awaiting user" });
+			this.emitProtocol("status", { requestId: this.activeRequestId, state: "awaiting_user", activity: textValue(event.method) ?? "awaiting user", ...contextPayload(event) });
+			return;
+		}
+		if (event.type === "tool_result" || event.type === "tool_response" || event.type === "extension_ui_response") {
+			this.emitProtocol("status", { requestId: this.activeRequestId, state: "busy", activity: "running", ...contextPayload(event) });
 			return;
 		}
 		if (event.type === "agent_end") {
 			const requestId = this.activeRequestId;
-			this.emitProtocol("task.done", { requestId, text: extractAgentEndText(event) ?? "done" });
+			this.emitProtocol("task.done", { requestId, text: extractAgentEndText(event) ?? "done", ...contextPayload(event) });
 			this.activeRequestId = undefined;
 		}
 	}
@@ -280,6 +286,16 @@ function textValue(value: unknown): string | undefined {
 
 function numberValue(value: unknown, fallback: number): number {
 	return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function contextPayload(record: Record<string, unknown>): Record<string, number> {
+	const usage = typeof record.usage === "object" && record.usage !== null ? record.usage as Record<string, unknown> : {};
+	const contextTokens = numberValue(record.contextTokens ?? record.context_tokens ?? usage.contextTokens ?? usage.context_tokens, NaN);
+	const contextWindow = numberValue(record.contextWindow ?? record.context_window ?? usage.contextWindow ?? usage.context_window, NaN);
+	return {
+		...(Number.isFinite(contextTokens) ? { contextTokens } : {}),
+		...(Number.isFinite(contextWindow) ? { contextWindow } : {}),
+	};
 }
 
 function stateValue(value: unknown, fallback: FullSubagentState): FullSubagentState {
@@ -346,8 +362,7 @@ export class FullSubagentPool {
 				compactCount: 0,
 			};
 			this.runtimes.set(config.agentId, { config, snapshot });
-			config.transport.onMessage((line) => this.handleLine(config.agentId, line));
-			config.transport.onExit(() => this.markDead(config.agentId));
+			this.attachTransport(config.agentId, config.transport);
 		}
 	}
 
@@ -399,6 +414,22 @@ export class FullSubagentPool {
 		})));
 	}
 
+	stopTask(agentId: string, reason: string): void {
+		this.cancelTask(agentId, reason);
+	}
+
+	resetAgent(agentId: string): void {
+		const runtime = this.requireRuntime(agentId);
+		if (!runtime.config.createTransport) throw new Error(`Cannot reset full subagent without transport factory: ${agentId}`);
+		runtime.config.transport.kill();
+		runtime.config.transport = runtime.config.createTransport();
+		runtime.snapshot.state = "starting";
+		runtime.snapshot.activity = "restarting";
+		runtime.snapshot.requestId = undefined;
+		runtime.snapshot.activeSince = undefined;
+		this.attachTransport(agentId, runtime.config.transport);
+	}
+
 	shutdown(): void {
 		for (const runtime of this.runtimes.values()) {
 			runtime.config.transport.send(serializeProtocolLine(createProtocolMessage(runtime.config.agentId, "shutdown")));
@@ -406,11 +437,20 @@ export class FullSubagentPool {
 		}
 	}
 
+	private attachTransport(agentId: string, transport: FullSubagentTransport): void {
+		transport.onMessage((line) => this.handleLine(agentId, line));
+		transport.onExit(() => {
+			const runtime = this.runtimes.get(agentId);
+			if (runtime?.config.transport === transport) this.markDead(agentId);
+		});
+	}
+
 	private startTaskWithRequestId(agentId: string, requestId: string, task: string, cwd: string): void {
 		const runtime = this.requireRuntime(agentId);
 		runtime.snapshot.state = "busy";
 		runtime.snapshot.activity = task;
 		runtime.snapshot.requestId = requestId;
+		runtime.snapshot.activeSince = Date.now();
 		runtime.config.transport.send(serializeProtocolLine(createProtocolMessage(agentId, "task.start", { requestId, task, cwd })));
 	}
 
@@ -427,6 +467,7 @@ export class FullSubagentPool {
 		runtime.snapshot.state = "dead";
 		runtime.snapshot.activity = "process exited";
 		runtime.snapshot.requestId = undefined;
+		runtime.snapshot.activeSince = undefined;
 	}
 
 	private rejectCurrentTask(runtime: RuntimeRecord, message: string): void {
@@ -458,6 +499,7 @@ export class FullSubagentPool {
 			runtime.snapshot.state = "error";
 			runtime.snapshot.activity = "error";
 			runtime.snapshot.requestId = undefined;
+			runtime.snapshot.activeSince = undefined;
 			runtime.snapshot.lastError = message;
 		}
 		this.rejectPendingTask(requestId, message);
@@ -492,13 +534,18 @@ export class FullSubagentPool {
 			runtime.snapshot.contextWindow = numberValue(message.contextWindow, runtime.snapshot.contextWindow);
 			runtime.snapshot.contextPercent = contextPercent(runtime.snapshot.contextTokens, runtime.snapshot.contextWindow);
 			runtime.snapshot.compactCount = numberValue(message.compactCount, runtime.snapshot.compactCount);
+			if ((runtime.snapshot.state === "busy" || runtime.snapshot.state === "awaiting_user" || runtime.snapshot.state === "compacting") && !runtime.snapshot.activeSince) runtime.snapshot.activeSince = Date.now();
 		}
 		if (message.type === "task.done") {
 			const text = textValue(message.text) ?? "done";
 			runtime.snapshot.state = "idle";
 			runtime.snapshot.activity = "idle";
 			runtime.snapshot.requestId = undefined;
+			runtime.snapshot.activeSince = undefined;
 			runtime.snapshot.lastResult = text;
+			runtime.snapshot.contextTokens = numberValue(message.contextTokens, runtime.snapshot.contextTokens);
+			runtime.snapshot.contextWindow = numberValue(message.contextWindow, runtime.snapshot.contextWindow);
+			runtime.snapshot.contextPercent = contextPercent(runtime.snapshot.contextTokens, runtime.snapshot.contextWindow);
 			const requestId = textValue(message.requestId);
 			if (requestId) this.resolvePendingTask(requestId, { requestId, text });
 		}
@@ -508,6 +555,7 @@ export class FullSubagentPool {
 			runtime.snapshot.state = "error";
 			runtime.snapshot.activity = "error";
 			runtime.snapshot.requestId = undefined;
+			runtime.snapshot.activeSince = undefined;
 			runtime.snapshot.lastError = error;
 			if (requestId) this.rejectPendingTask(requestId, error);
 		}

@@ -34,13 +34,38 @@ import {
 	type AgentSource,
 	discoverDeployableAgents,
 	getPackageAgentDirs,
-} from "./lib/agent-discovery";
+} from "./lib/agent-discovery.ts";
+import {
+	SUBAGENTS_EVENT,
+	SUBAGENT_ENV_FLAG,
+	SUBAGENT_STATUS_KEY as STATUS_KEY,
+	SUBAGENT_WIDGET_KEY as WIDGET_KEY,
+	formatBar,
+	formatTokens,
+	getDeployAgentInlineRuntimeParts,
+	getDeployAgentInlineStatusText,
+	shortenMiddle,
+	truncateStatusText as truncate,
+	zeroUsage,
+	type AgentDeployMode,
+	type AgentLaunchBackend,
+	type DeploymentState,
+	type DeploymentStatus,
+	type DeploymentTranscriptEntry,
+	type DeploymentTranscriptKind,
+	type FailureKind,
+	type RecoverableReason,
+	type RuntimeSnapshot,
+	type RuntimeStatus,
+	type TerminalState,
+	type UsageStats,
+} from "./lib/subagent-runtime-model.ts";
+export {
+	getDeployAgentInlineRuntimeParts,
+	getDeployAgentInlineStatusText,
+} from "./lib/subagent-runtime-model.ts";
 
 // ─── Widget / status keys ───────────────────────────────────────────────────
-const WIDGET_KEY = "pdd-orgm-agents";
-const STATUS_KEY = "pdd-orgm-agents";
-const SUBAGENT_ENV_FLAG = "PI_PDD_SUBAGENT";
-const SUBAGENTS_EVENT = "subagents:deployments-changed";
 const SUBAGENT_PROVIDER_STOP_EVENT = "subagents:provider-stop";
 const DEFAULT_CONTEXT_WINDOW = 200_000;
 const GLOBAL_FALLBACK_MODEL =
@@ -54,19 +79,7 @@ const SUBAGENT_TRANSCRIPT_MAX_LINES = 400;
 const SUBAGENT_UI_REFRESH_DEBOUNCE_MS = 120;
 
 // ─── Types ──────────────────────────────────────────────────────────────────
-type DeploymentStatus =
-	| "running"
-	| "done"
-	| "error"
-	| "paused_provider_error"
-	| "awaiting_user_input";
-type AgentDeployMode = "ephemeral" | "persistent";
 type AgentReuseMode = "prefer" | "require" | "never";
-type AgentLaunchBackend = "embedded";
-type RuntimeStatus = "idle" | "busy";
-type TerminalState = "attached" | "missing" | "closed";
-type RecoverableReason = "provider_error";
-type FailureKind = "task_error" | "provider_error" | "orchestrator_error";
 
 interface ProviderStopDetails {
 	deploymentId?: string;
@@ -78,72 +91,6 @@ interface ProviderStopDetails {
 	recoverableReason?: "provider_error";
 	tmuxPaneId?: string;
 	tmuxWindowId?: string;
-}
-
-interface UsageStats {
-	input: number;
-	output: number;
-	cacheRead: number;
-	cacheWrite: number;
-	cost: number;
-	contextTokens: number;
-	turns: number;
-}
-
-interface DeploymentState {
-	deploymentId: string;
-	agent: string;
-	instanceNumber: number;
-	source: AgentSource;
-	tools: string[];
-	model?: string;
-	mode: AgentDeployMode;
-	launchBackend: AgentLaunchBackend;
-	runtimeId?: string;
-	reusedRuntime: boolean;
-	reuseSummary?: string;
-	sessionFilePath?: string;
-	ownerSessionFile?: string;
-	parentRuntimeId?: string;
-	depth: number;
-	contextWindow: number;
-	contextTokens: number;
-	status: DeploymentStatus;
-	summary: string;
-	currentActivity?: string;
-	turns: number;
-	usage: UsageStats;
-	exitCode?: number;
-	stopReason?: string;
-	errorMessage?: string;
-	failureKind?: FailureKind;
-	recoverableReason?: RecoverableReason;
-	expectedArtifactTopicKey?: string;
-	persistedArtifactTopicKey?: string;
-	persistedToPddMemory?: boolean;
-	pddMemoryWrites: number;
-	attemptedModels: string[];
-	primaryModel?: string;
-	fallbackModel?: string;
-	fallbackUsed: boolean;
-}
-
-type DeploymentTranscriptKind =
-	| "task"
-	| "assistant"
-	| "thinking"
-	| "tool_call"
-	| "tool_result"
-	| "status"
-	| "stderr"
-	| "error";
-
-interface DeploymentTranscriptEntry {
-	kind: DeploymentTranscriptKind;
-	title: string;
-	text?: string;
-	toolName?: string;
-	ts: number;
 }
 
 interface AgentPromptAudit {
@@ -231,37 +178,6 @@ interface TeamConfig {
 	members: string[];
 	source: AgentSource;
 	filePath: string;
-}
-
-interface RuntimeSnapshot {
-	runtimeId: string;
-	agent: string;
-	source: AgentSource;
-	mode: AgentDeployMode;
-	launchBackend: AgentLaunchBackend;
-	model?: string;
-	sessionFilePath?: string;
-	ownerSessionFile?: string;
-	contextWindow: number;
-	contextTokens: number;
-	status: RuntimeStatus;
-	busyDeploymentId?: string;
-	lastUsedAt: number;
-	createdAt: number;
-	runs: number;
-	reuseCount: number;
-	parentRuntimeId?: string;
-	depth: number;
-	lastStopReason?: string;
-	lastErrorMessage?: string;
-	terminalState?: TerminalState;
-	pid?: number;
-	processStartedAt?: number;
-	tmuxWindowId?: string;
-	tmuxPaneId?: string;
-	recoverableReason?: RecoverableReason;
-	awaitingUserInput?: boolean;
-	lastVisibleState?: DeploymentStatus;
 }
 
 interface QueryTeamQuery {
@@ -437,18 +353,6 @@ function stripFrontmatter(markdown: string): string {
 	return match?.[1]?.trim() ?? trimmed;
 }
 
-function zeroUsage(): UsageStats {
-	return {
-		input: 0,
-		output: 0,
-		cacheRead: 0,
-		cacheWrite: 0,
-		cost: 0,
-		contextTokens: 0,
-		turns: 0,
-	};
-}
-
 function parseTools(value: unknown): string[] {
 	if (typeof value !== "string") return [];
 	return value
@@ -468,12 +372,6 @@ function sanitizeFileLabel(value: string): string {
 	);
 }
 
-function truncate(text: string, max = 96): string {
-	const clean = text.replace(/\s+/g, " ").trim();
-	if (clean.length <= max) return clean;
-	return `${clean.slice(0, Math.max(0, max - 1))}…`;
-}
-
 function formatActivity(toolName: string, args: any): string {
 	if (toolName === "bash") {
 		const command =
@@ -489,20 +387,6 @@ function formatActivity(toolName: string, args: any): string {
 	if (toolName === "write" && typeof args?.path === "string")
 		return `write ${truncate(args.path, 72)}`;
 	return toolName;
-}
-
-function formatTokens(count: number): string {
-	if (!Number.isFinite(count) || count <= 0) return "0";
-	if (count < 1000) return `${count}`;
-	if (count < 10_000) return `${(count / 1000).toFixed(1)}k`;
-	if (count < 1_000_000) return `${Math.round(count / 1000)}k`;
-	return `${(count / 1_000_000).toFixed(1)}M`;
-}
-
-function formatBar(percent: number): string {
-	const normalized = Math.max(0, Math.min(100, Math.round(percent)));
-	const filled = Math.max(0, Math.min(10, Math.round(normalized / 10)));
-	return `[${"#".repeat(filled)}${"-".repeat(10 - filled)}]${normalized}%`;
 }
 
 function getToolShellBg(
@@ -528,23 +412,6 @@ function createToolShell(
 	return box;
 }
 
-export function getDeployAgentInlineStatusText(details: Pick<AgentRunDetails, "deploymentId" | "source">): string {
-	const instance = details.deploymentId.includes("#")
-		? `#${details.deploymentId.split("#").pop()}`
-		: details.deploymentId;
-	return `${instance} · ${details.source}`;
-}
-
-export function getDeployAgentInlineRuntimeParts(
-	details: Pick<AgentRunDetails, "runtimeId" | "reusedRuntime" | "depth">,
-): string[] {
-	return [
-		details.runtimeId ? `runtime: ${details.runtimeId}` : undefined,
-		details.reusedRuntime ? "reused" : "new",
-		details.depth ? `depth: ${details.depth}` : undefined,
-	].filter((part): part is string => Boolean(part));
-}
-
 function buildAgentContentText(details: AgentRunDetails): string {
 	return [
 		`Subagent ${details.deploymentId} ${details.status}.`,
@@ -558,14 +425,6 @@ function buildAgentContentText(details: AgentRunDetails): string {
 	]
 		.filter(Boolean)
 		.join("\n");
-}
-
-function shortenMiddle(text: string, maxWidth: number): string {
-	if (visibleWidth(text) <= maxWidth) return text;
-	if (maxWidth <= 1) return "…";
-	if (maxWidth <= 6) return truncateToWidth(text, maxWidth);
-	const keep = Math.max(1, Math.floor((maxWidth - 1) / 2));
-	return `${text.slice(0, keep)}…${text.slice(-keep)}`;
 }
 
 function getExpectedArtifactTopicKey(

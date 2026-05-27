@@ -1,4 +1,4 @@
-import { loadOrgmConfig, orgmConfigPath, saveOrgmConfigSlice } from "./orgm-config";
+import { loadOrgmConfigSlice, orgmConfigPath, saveOrgmConfigSlice } from "./orgm-config.ts";
 
 export interface AgentStatusConfig {
 	showWidget: boolean;
@@ -27,7 +27,7 @@ export function getAgentStatusConfigPath(): string {
 }
 
 export function loadAgentStatusConfig(configPath?: string): AgentStatusConfig {
-	return { ...loadOrgmConfig(configPath).agentStatus };
+	return { ...loadOrgmConfigSlice("agentStatus", configPath) };
 }
 
 export function saveAgentStatusConfig(config: AgentStatusConfig, configPath?: string): void {
