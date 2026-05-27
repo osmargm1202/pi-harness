@@ -11,6 +11,7 @@ import {
 } from "./lib/full-subagents-com.ts";
 import { clearFullSubagentsWidget, installFullSubagentsWidget } from "./lib/full-subagents-widget.ts";
 import { orgmConfigPath, saveOrgmConfigSlice } from "./lib/orgm-config.ts";
+import { loadReportConfig } from "./lib/report-config.ts";
 
 const require = createRequire(import.meta.url);
 
@@ -160,6 +161,7 @@ function initFullSubagentsConfig(configPath: string): FullSubagentsConfig {
 		};
 	}
 	saveOrgmConfigSlice("fullSubagents", initialized, configPath);
+	saveOrgmConfigSlice("report", loadReportConfig(configPath), configPath);
 	return initialized;
 }
 

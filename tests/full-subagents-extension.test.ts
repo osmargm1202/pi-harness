@@ -180,6 +180,7 @@ try {
 	assert.equal(initializedConfig.fullSubagents.enabled, true, "init should preserve an existing enabled setting");
 	assert.equal(initializedConfig.fullSubagents.startupTeam, "solo", "init should preserve an existing startup team");
 	assert.deepEqual(initializedConfig.fullSubagents.teams.solo, ["alpha", "beta"], "init should preserve existing teams");
+	assert.deepEqual(initializedConfig.report, { enabled: true, intervalMinutes: 10 }, "init should add default report config when missing");
 
 	const blankConfigPath = join(tempDir, "blank-orgm.json");
 	const blankCommandPi = createFakePi();
@@ -198,6 +199,7 @@ try {
 	]);
 	assert.deepEqual(Object.keys(blankInitializedConfig.fullSubagents.agents), blankInitializedConfig.fullSubagents.teams["tdd-core"]);
 	assert.equal(blankInitializedConfig.fullSubagents.agents["tdd-planner"].tools, "inherit");
+	assert.deepEqual(blankInitializedConfig.report, { enabled: true, intervalMinutes: 10 }, "init should create default report config");
 
 	const configuredTaskTool = configured.tools.find((tool) => tool.name === FULL_SUBAGENT_TASK_TOOL);
 	const routedTask = await configuredTaskTool.execute(
