@@ -15,6 +15,8 @@ const TOOL_ALIASES = new Map<string, string>([
 	["glob", "find"],
 ]);
 
+const ALLOWED_PI_TOOLS = new Set(["read", "write", "edit", "bash", "grep", "find", "ls"]);
+
 export function parseFrontmatter(markdown: string, filename = "agent.md"): ParsedFrontmatter {
 	const normalized = markdown.replace(/\r\n/g, "\n");
 	const match = normalized.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
@@ -45,9 +47,10 @@ export function normalizeTools(tools: string | string[]): string[] {
 		const trimmed = value.trim();
 		if (!trimmed) continue;
 		const canonical = TOOL_ALIASES.get(trimmed.toLowerCase()) ?? trimmed.toLowerCase();
-		if (!normalized.includes(canonical)) {
-			normalized.push(canonical);
+		if (!ALLOWED_PI_TOOLS.has(canonical) || normalized.includes(canonical)) {
+			continue;
 		}
+		normalized.push(canonical);
 	}
 	return normalized;
 }
@@ -104,7 +107,7 @@ export function generateCategoryRouter({
 	return `${renderFrontmatter({
 		name: categorySlug,
 		description: `${title} router agent`,
-		tools: "read, grep, find, ls, query_team, deploy_agent",
+		tools: "read, grep, find, ls, bash, query_team, deploy_agent",
 		team: categorySlug,
 	})}${promptLines.join("\n")}\n`;
 }

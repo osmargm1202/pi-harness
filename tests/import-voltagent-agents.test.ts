@@ -29,6 +29,20 @@ assert.match(converted, /You are a senior backend developer\./);
 assert.doesNotMatch(converted, /Glob/);
 assert.doesNotMatch(converted, /Grep/);
 
+const filteredUnsupportedTools = convertAgentMarkdown(
+	`---
+name: researcher
+description: "Tool filtering regression."
+tools: Read, Task, WebFetch, Glob
+---
+You investigate.
+`,
+	"researcher.md",
+);
+assert.match(filteredUnsupportedTools, /tools: read, find/);
+assert.doesNotMatch(filteredUnsupportedTools, /task/);
+assert.doesNotMatch(filteredUnsupportedTools, /webfetch/);
+
 const router = generateCategoryRouter({
 	categorySlug: "01-core-development",
 	categoryTitle: "Core Development",
@@ -36,6 +50,7 @@ const router = generateCategoryRouter({
 });
 assert.match(router, /name: 01-core-development/);
 assert.match(router, /team: "01-core-development"/);
+assert.match(router, /tools: read, grep, find, ls, bash, query_team, deploy_agent/);
 assert.match(router, /query_team/);
 assert.match(router, /deploy_agent/);
 assert.match(router, /backend-developer/);
