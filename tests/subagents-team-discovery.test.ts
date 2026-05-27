@@ -11,6 +11,15 @@ assert.equal(piOrchestrator.source, "user");
 assert(piOrchestrator.filePath.endsWith("/agents/teams.yaml"));
 assert(piOrchestrator.members.includes("skill-expert"), "package pi-orchestrator should include skill-expert");
 
+const coreDevelopment = packageTeams.find((team) => team.name === "01-core-development");
+assert(coreDevelopment, "package-bundled VoltAgent core development team should be discovered");
+assert.equal(coreDevelopment.source, "user");
+assert(coreDevelopment.members.includes("backend-developer"), "core development team should include backend-developer");
+
+const researchAnalysis = packageTeams.find((team) => team.name === "10-research-analysis");
+assert(researchAnalysis, "package-bundled VoltAgent research analysis team should be discovered");
+assert(researchAnalysis.members.includes("research-analyst"), "research analysis team should include research-analyst");
+
 const projectRoot = mkdtempSync(join(tmpdir(), "pi-harness-team-project-"));
 const projectAgentsDir = join(projectRoot, ".pi", "agents");
 mkdirSync(projectAgentsDir, { recursive: true });
