@@ -8,13 +8,19 @@ import type {
 } from "@earendil-works/pi-coding-agent";
 
 const QUESTION_TOOL_NAMES = new Set(["ask_user_question", "question"]);
+const PERMISSION_TOOL_NAMES = new Set([
+	"ask_user_permission",
+	"request_permission",
+	"permission_request",
+	"confirm_permission",
+]);
 const DONE_TIMEOUT_MS = 8000;
 const STICKY_TIMEOUT_MS = 0;
 const MAX_BODY_LENGTH = 220;
 const FOCUS_PID_HINT = "pi-focus-pid";
 const KITTY_DESKTOP_ENTRY = "kitty";
 
-type NotificationType = "question" | "done";
+type NotificationType = "question" | "permission" | "done";
 
 type NotifyCommand = {
 	command: string;
@@ -179,7 +185,7 @@ function notify(
 		if (!notifyCommand) return;
 
 		const folder = folderName(ctx.cwd);
-		const sticky = type === "question";
+		const sticky = type === "question" || type === "permission";
 		const title = `Pi ${type} · ${folder}`;
 		const body = truncate(`${folder} · ${type} · ${text}`);
 		const args = [
@@ -215,6 +221,11 @@ function getStringField(
 		if (typeof value === "string" && value.trim()) return value;
 	}
 	return undefined;
+}
+
+function isPermissionToolName(toolName: string): boolean {
+	const normalized = toolName.trim().toLowerCase();
+	return PERMISSION_TOOL_NAMES.has(normalized);
 }
 
 function getQuestionText(event: ToolCallEvent): string {
@@ -271,6 +282,11 @@ export default function (pi: ExtensionAPI) {
 	pi.on("tool_call", (event, ctx) => {
 		if (QUESTION_TOOL_NAMES.has(event.toolName)) {
 			notify("question", ctx, getQuestionText(event));
+			return undefined;
+		}
+
+		if (isPermissionToolName(event.toolName)) {
+			notify("permission", ctx, getQuestionText(event));
 			return undefined;
 		}
 
