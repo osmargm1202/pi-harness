@@ -1,11 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
-import {
-	DEFAULT_FULL_SUBAGENTS_CONFIG,
-	type FullSubagentsConfig,
-	mergeFullSubagentsConfig,
-} from "./full-subagents-config.ts";
 
 export type OrgmFlowName = "normal" | "pi-orchestrator" | "sdd-tdd" | string;
 
@@ -55,7 +50,6 @@ export interface OrgmHostConfig {
 	caveman: OrgmCavemanConfig;
 	minimalSkills: OrgmMinimalSkillsConfig;
 	agentStatus: OrgmAgentStatusConfig;
-	fullSubagents: FullSubagentsConfig;
 }
 
 export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
@@ -95,7 +89,6 @@ export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
 		showActivity: true,
 		showCaveman: true,
 	},
-	fullSubagents: structuredClone(DEFAULT_FULL_SUBAGENTS_CONFIG),
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -167,11 +160,30 @@ export function mergeAgentStatusConfig(value: unknown): OrgmAgentStatusConfig {
 	};
 }
 
+const KNOWN_ORGM_CONFIG_KEYS = [
+	"defaultPrimaryAgent",
+	"flows",
+	"git",
+	"repoTree",
+	"title",
+	"caveman",
+	"minimalSkills",
+	"agentStatus",
+] as const;
+
+function preserveUnknownTopLevelValues(raw: Record<string, unknown>): Record<string, unknown> {
+	const next: Record<string, unknown> = { ...raw };
+	for (const key of KNOWN_ORGM_CONFIG_KEYS) delete next[key];
+	return next;
+}
+
 function mergeOrgmConfig(raw: Record<string, unknown>): OrgmHostConfig {
 	const flows = isRecord(raw.flows)
-		? Object.fromEntries(Object.entries(raw.flows).filter(([, value]) => typeof value === "string")) as Record<string, string>
+		? Object.fromEntries(Object.entries(raw.flows).filter(([, value]) => typeof value === "string") as Record<string, string>)
 		: DEFAULT_ORGM_CONFIG.flows;
+	const unknownTopLevel = preserveUnknownTopLevelValues(raw);
 	return {
+		...(unknownTopLevel as OrgmHostConfig),
 		defaultPrimaryAgent: typeof raw.defaultPrimaryAgent === "string" && raw.defaultPrimaryAgent.trim()
 			? raw.defaultPrimaryAgent.trim()
 			: DEFAULT_ORGM_CONFIG.defaultPrimaryAgent,
@@ -182,7 +194,6 @@ function mergeOrgmConfig(raw: Record<string, unknown>): OrgmHostConfig {
 		caveman: mergeCavemanConfig(raw.caveman),
 		minimalSkills: mergeMinimalSkillsConfig(raw.minimalSkills),
 		agentStatus: mergeAgentStatusConfig(raw.agentStatus),
-		fullSubagents: mergeFullSubagentsConfig(raw.fullSubagents),
 	};
 }
 
@@ -217,7 +228,7 @@ export function orgmConfigPath(home = homedir()): string {
 }
 
 export type OrgmConfigSliceKey = keyof OrgmHostConfig;
-export type WritableOrgmConfigSliceKey = keyof Pick<OrgmHostConfig, "defaultPrimaryAgent" | "caveman" | "minimalSkills" | "agentStatus" | "repoTree" | "title" | "fullSubagents">;
+export type WritableOrgmConfigSliceKey = keyof Pick<OrgmHostConfig, "defaultPrimaryAgent" | "caveman" | "minimalSkills" | "agentStatus" | "repoTree" | "title">;
 
 export function loadOrgmConfig(configPath = orgmConfigPath()): OrgmHostConfig {
 	if (!existsSync(configPath)) return structuredClone(DEFAULT_ORGM_CONFIG);

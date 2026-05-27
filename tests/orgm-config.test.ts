@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { loadAgentStatusConfig } from "../extensions/lib/agent-status-config.ts";
-import { loadOrgmConfig, loadOrgmConfigSlice, saveOrgmConfigSlice } from "../extensions/lib/orgm-config.ts";
+import { loadOrgmConfig, loadOrgmConfigSlice, saveOrgmConfigSlice, type OrgmHostConfig } from "../extensions/lib/orgm-config.ts";
 
 const tempDir = mkdtempSync(join(tmpdir(), "orgm-config-"));
 const configPath = join(tempDir, "orgm.json");
@@ -38,12 +38,25 @@ try {
 
 	writeFileSync(configPath, JSON.stringify({
 		unknownFutureKey: { keep: true },
+		fullSubagents: { legacyPilot: true, startupTeam: "legacy" },
 		title: { autoGenerate: false },
 	}, null, 2), "utf8");
 	saveOrgmConfigSlice("title", { autoGenerate: true }, configPath);
 	const rawSaved = JSON.parse(readFileSync(configPath, "utf8"));
 	assert.deepEqual(rawSaved.unknownFutureKey, { keep: true }, "saveOrgmConfigSlice should preserve unknown top-level keys");
 	assert.equal(rawSaved.title.autoGenerate, true, "saveOrgmConfigSlice should write the requested slice");
+
+	const preserved = loadOrgmConfig(configPath) as OrgmHostConfig & { [key: string]: unknown };
+	assert.deepEqual(
+		preserved.unknownFutureKey,
+		{ keep: true },
+		"loadOrgmConfig should keep unknown future keys to avoid config key loss",
+	);
+	assert.deepEqual(
+		preserved.fullSubagents,
+		{ legacyPilot: true, startupTeam: "legacy" },
+		"loadOrgmConfig should preserve fullSubagents as unknown local config key",
+	);
 } finally {
 	rmSync(tempDir, { recursive: true, force: true });
 }

@@ -35,3 +35,13 @@ assert.deepEqual(
 	[],
 	"all registered pi command names must use the orgm-* namespace with no legacy aliases",
 );
+
+const extensionSources = roots
+	.flatMap(collectTypeScriptFiles)
+	.map((file) => readFileSync(file, "utf8"));
+const bannedActiveTokens = ["full_subagent_task", "full_query_team", "orgm-full-subagents", "/full-subagents", "strict full-subagents", "FULL_SUBAGENT"];
+assert.deepEqual(
+	extensionSources.filter((source) => bannedActiveTokens.some((token) => source.includes(token))),
+	[],
+	"active extension sources must not include deprecated full-subagents tooling or prompts",
+);
