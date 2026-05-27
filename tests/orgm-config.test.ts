@@ -25,6 +25,7 @@ try {
 	assert.equal(orgmConfig.title.autoGenerate, false, "title.autoGenerate should load from central orgm.json");
 	assert.equal(loadOrgmConfigSlice("title", configPath).autoGenerate, false, "loadOrgmConfigSlice should load title slice");
 	assert.equal(loadOrgmConfigSlice("agentStatus", configPath).showWidget, false, "loadOrgmConfigSlice should load agentStatus slice");
+	assert.equal(loadOrgmConfigSlice("primaryAuto", configPath).enabled, true, "primaryAuto.enabled should default to true when missing");
 
 	assert.equal(loadOrgmConfigSlice("caveman", configPath).defaultLevel, "lite", "caveman slice should load from central orgm.json");
 	assert.equal(loadOrgmConfigSlice("minimalSkills", configPath).enabled, false, "minimalSkills slice should load from central orgm.json");
@@ -32,9 +33,11 @@ try {
 	assert.equal(loadAgentStatusConfig(configPath).showWidget, false, "agentStatus wrapper should load through central slice helper");
 	saveOrgmConfigSlice("defaultPrimaryAgent", "pi", configPath);
 	saveOrgmConfigSlice("title", { autoGenerate: true }, configPath);
+	saveOrgmConfigSlice("primaryAuto", { enabled: false }, configPath);
 	const savedConfig = loadOrgmConfig(configPath);
 	assert.equal(savedConfig.defaultPrimaryAgent, "pi", "defaultPrimaryAgent should persist through saveOrgmConfigSlice");
 	assert.equal(savedConfig.title.autoGenerate, true, "title config should persist through saveOrgmConfigSlice");
+	assert.equal(savedConfig.primaryAuto.enabled, false, "primaryAuto config should persist through saveOrgmConfigSlice");
 
 	writeFileSync(configPath, JSON.stringify({
 		unknownFutureKey: { keep: true },

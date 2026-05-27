@@ -8,21 +8,44 @@ import {
 	PRIMARY_STATE_ENTRY,
 	restorePrimaryState,
 	SYSTEM_AGENT,
-} from "./lib/agent-discovery";
-import { resolveConfiguredPrimary } from "./lib/orgm-flow";
-import { saveOrgmConfigSlice } from "./lib/orgm-config";
+} from "./lib/agent-discovery.ts";
+import {
+	normalizePrimaryAutoDecision,
+	PRIMARY_AUTO_STATE_ENTRY,
+	restorePrimaryAutoState,
+	routePrimaryAuto,
+	type PrimaryAutoCandidate,
+	type PrimaryAutoDecision,
+} from "./lib/primary-auto.ts";
+import { loadOrgmConfig, saveOrgmConfigSlice } from "./lib/orgm-config.ts";
+import { resolveConfiguredPrimary } from "./lib/orgm-flow.ts";
 import { createSelectPanel } from "./lib/tui-select-panel.ts";
 
-const SUBAGENT_ENV_FLAG = "PI_PDD_SUBAGENT";
-const IS_SUBAGENT_RUNTIME = process.env[SUBAGENT_ENV_FLAG] === "1";
+function isSubagentRuntime(): boolean {
+	return process.env.PI_PDD_SUBAGENT === "1" || process.env.PI_SUBAGENT_RUNTIME_ID !== undefined || process.env.PI_SUBAGENT_RUNTIME_DEPTH !== undefined;
+}
 
 interface SelectorItem extends SelectItem {
 	description: string;
 }
 
-function setPrimaryAgent(pi: ExtensionAPI, name: string): void {
+interface ModelPrimaryOptions {
+	configPath?: string;
+	routePrimary?: (args: {
+		ctx: ExtensionContext;
+		prompt: string;
+		candidates: PrimaryAutoCandidate[];
+		fallback: string;
+	}) => Promise<Pick<PrimaryAutoDecision, "selectedName" | "reason"> | PrimaryAutoDecision | undefined>;
+}
+
+function setPrimaryAgent(
+	pi: ExtensionAPI,
+	name: string,
+	options?: { persistConfig?: boolean; configPath?: string },
+): void {
 	pi.appendEntry(PRIMARY_STATE_ENTRY, { selectedName: name });
-	saveOrgmConfigSlice("defaultPrimaryAgent", name);
+	if (options?.persistConfig !== false) saveOrgmConfigSlice("defaultPrimaryAgent", name, options?.configPath);
 	pi.events.emit(PRIMARY_STATE_EVENT, { selectedName: name });
 }
 
@@ -41,6 +64,18 @@ function buildSelectorItems(currentPrimary: string, cwd: string): SelectorItem[]
 		});
 	}
 	return items;
+}
+
+function buildPrimaryAutoCandidates(cwd: string): PrimaryAutoCandidate[] {
+	return discoverPrimaryAgents(cwd, "both").map((agent) => ({
+		name: agent.name,
+		description: agent.description,
+		source: agent.source,
+	}));
+}
+
+function hasExistingConversation(entries: readonly any[]): boolean {
+	return entries.some((entry) => entry?.type === "message" || entry?.type === "compaction");
 }
 
 async function openSelectPalette(
@@ -83,19 +118,63 @@ async function openSelectPalette(
 	}
 }
 
-export default function (pi: ExtensionAPI) {
+export default function modelPrimaryExtension(pi: ExtensionAPI, options: ModelPrimaryOptions = {}) {
 	let currentPrimary = SYSTEM_AGENT;
+	let primaryAutoEnabled = loadOrgmConfig(options.configPath).primaryAuto.enabled;
+	let primaryAutoAttempted = false;
+	const routePrimary = options.routePrimary ?? routePrimaryAuto;
+
+	const persistPrimaryAutoState = (decision: PrimaryAutoDecision) => {
+		pi.appendEntry(PRIMARY_AUTO_STATE_ENTRY, {
+			attempted: true,
+			selectedName: decision.selectedName,
+			reason: decision.reason,
+			raw: decision.raw,
+			source: decision.source,
+			createdAt: Date.now(),
+		});
+	};
 
 	pi.on("session_start", async (_event, ctx) => {
+		const config = loadOrgmConfig(options.configPath);
+		const entries = ctx.sessionManager.getEntries();
+		const savedAutoState = restorePrimaryAutoState(entries);
+		primaryAutoEnabled = config.primaryAuto.enabled;
+		primaryAutoAttempted = savedAutoState?.attempted ?? hasExistingConversation(entries);
 		currentPrimary = resolveConfiguredPrimary(
 			ctx.cwd,
-			restorePrimaryState(ctx.sessionManager.getEntries(), ctx.cwd, "both"),
+			restorePrimaryState(entries, ctx.cwd, "both"),
+			config,
 		);
+		if (savedAutoState?.selectedName) currentPrimary = resolveConfiguredPrimary(ctx.cwd, savedAutoState.selectedName, config);
 		pi.events.emit(PRIMARY_STATE_EVENT, { selectedName: currentPrimary });
 	});
 
 	pi.on("before_agent_start", async (event, ctx) => {
-		if (IS_SUBAGENT_RUNTIME) return;
+		if (isSubagentRuntime()) return;
+
+		if (primaryAutoEnabled && !primaryAutoAttempted) {
+			const candidates = buildPrimaryAutoCandidates(ctx.cwd);
+			let decision: PrimaryAutoDecision;
+			try {
+				const routed = await routePrimary({
+					ctx,
+					prompt: event.prompt,
+					candidates,
+					fallback: currentPrimary,
+				});
+				decision = normalizePrimaryAutoDecision(routed, candidates, currentPrimary);
+			} catch (error) {
+				console.error("primaryAuto route error:", error);
+				decision = { selectedName: currentPrimary, source: "fallback" };
+			}
+
+			primaryAutoAttempted = true;
+			currentPrimary = decision.selectedName;
+			setPrimaryAgent(pi, currentPrimary, { persistConfig: false, configPath: options.configPath });
+			persistPrimaryAutoState(decision);
+		}
+
 		if (currentPrimary === SYSTEM_AGENT) return;
 
 		try {
@@ -140,11 +219,33 @@ ${primary.systemPrompt}
 
 			if (result && result !== currentPrimary) {
 				currentPrimary = result;
-				setPrimaryAgent(pi, currentPrimary);
+				setPrimaryAgent(pi, currentPrimary, { configPath: options.configPath });
 				ctx.ui.notify(`Primary agent: ${formatPrimaryLabel(currentPrimary)}`, "success");
 			} else if (result === currentPrimary) {
 				ctx.ui.notify(`Already active: ${formatPrimaryLabel(currentPrimary)}`, "info");
 			}
+		},
+	});
+
+	pi.registerCommand("orgm-primary-auto", {
+		description: "Set first-request automatic primary routing: true or false",
+		getArgumentCompletions: (prefix) => {
+			const value = prefix.trim().toLowerCase();
+			return ["true", "false"]
+				.filter((item) => !value || item.startsWith(value))
+				.map((item) => ({ value: item, label: item }));
+		},
+		handler: async (args, ctx) => {
+			const value = args.trim().toLowerCase();
+			if (value !== "true" && value !== "false") {
+				ctx.ui.notify(`Primary auto ${primaryAutoEnabled ? "enabled" : "disabled"}`, primaryAutoEnabled ? "info" : "warning");
+				ctx.ui.notify("Usage: /orgm-primary-auto <true|false>", "info");
+				return;
+			}
+
+			primaryAutoEnabled = value === "true";
+			saveOrgmConfigSlice("primaryAuto", { enabled: primaryAutoEnabled }, options.configPath);
+			ctx.ui.notify(`Primary auto ${primaryAutoEnabled ? "enabled" : "disabled"}`, primaryAutoEnabled ? "success" : "warning");
 		},
 	});
 
@@ -161,7 +262,7 @@ ${primary.systemPrompt}
 
 			if (result && result !== currentPrimary) {
 				currentPrimary = result;
-				setPrimaryAgent(pi, currentPrimary);
+				setPrimaryAgent(pi, currentPrimary, { configPath: options.configPath });
 				ctx.ui.notify(`Primary agent: ${formatPrimaryLabel(currentPrimary)}`, "success");
 			} else if (result === currentPrimary) {
 				ctx.ui.notify(`Already active: ${formatPrimaryLabel(currentPrimary)}`, "info");
