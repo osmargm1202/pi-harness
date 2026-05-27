@@ -18,7 +18,7 @@ const MAX_BODY_LENGTH = 220;
 const FOCUS_PID_HINT = "pi-focus-pid";
 const KITTY_DESKTOP_ENTRY = "kitty";
 
-type NotificationType = "question" | "permission";
+type NotificationType = "question" | "permission" | "done";
 
 type NotifyCommand = {
 	command: string;
@@ -93,6 +93,17 @@ function isDistroboxRuntime(): boolean {
 			process.env.container === "podman" ||
 			process.env.container === "docker",
 	);
+}
+
+function isSubagentRuntime(): boolean {
+	if (process.env.PI_PDD_SUBAGENT === "1") return true;
+	if (process.env.PI_SUBAGENT_RUNTIME_ID?.trim()) return true;
+
+	const runtimeDepth = Number.parseInt(
+		process.env.PI_SUBAGENT_RUNTIME_DEPTH || "0",
+		10,
+	);
+	return Number.isFinite(runtimeDepth) && runtimeDepth > 0;
 }
 
 function commandExists(command: string): boolean {
@@ -241,4 +252,9 @@ export default function (pi: ExtensionAPI) {
 		return undefined;
 	});
 
+	pi.on("agent_end", (_event, ctx) => {
+		if (isSubagentRuntime()) return undefined;
+		notify("done", ctx, "Work complete.");
+		return undefined;
+	});
 }
