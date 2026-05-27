@@ -6,7 +6,7 @@ import {
 	rmSync,
 	writeFileSync,
 } from "node:fs";
-import { basename, dirname, join, relative, sep } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 type FrontmatterValue = string | string[];
@@ -131,6 +131,22 @@ export function convertAgentMarkdown(markdown: string, filename = "agent.md"): s
 	const rendered = renderFrontmatter(convertedFrontmatter);
 	const trimmedBody = body.trim();
 	return trimmedBody ? `${rendered}${trimmedBody}\n` : rendered;
+}
+
+export function buildImportedAgent(markdown: string, fileName: string): ImportedAgent {
+	const content = convertAgentMarkdown(markdown, fileName);
+	const { frontmatter } = parseFrontmatter(content, fileName);
+	const agentName = frontmatter.name?.trim();
+	if (!agentName) {
+		throw new Error(`Imported agent missing name frontmatter in ${fileName}`);
+	}
+
+	return {
+		// Keep upstream filename stable on disk. Team membership and collision checks use `name`.
+		fileName,
+		agentName,
+		content,
+	};
 }
 
 export function titleFromCategorySlug(categorySlug: string): string {
@@ -323,13 +339,7 @@ export async function importVoltAgentAgents(rootDir = getRepoRoot()): Promise<Vo
 		const agents: ImportedAgent[] = [];
 		for (const agentEntry of agentEntries) {
 			const markdown = await fetchText(agentEntry.download_url!);
-			const fileName = agentEntry.name;
-			const agentName = basename(fileName, ".md");
-			agents.push({
-				fileName,
-				agentName,
-				content: convertAgentMarkdown(markdown, fileName),
-			});
+			agents.push(buildImportedAgent(markdown, agentEntry.name));
 		}
 		importedCategories.push({
 			categorySlug: categoryEntry.name,

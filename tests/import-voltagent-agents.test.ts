@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
 	assertNoExistingAgentNameCollisions,
+	buildImportedAgent,
 	buildManifest,
 	convertAgentMarkdown,
 	ensureManagedCategoryDir,
@@ -76,6 +77,27 @@ assert.match(router, /query_team/);
 assert.match(router, /deploy_agent/);
 assert.match(router, /backend-developer/);
 assert.match(router, /frontend-developer/);
+
+const renamedAgent = buildImportedAgent(
+	`---
+name: real-agent
+description: "Name should drive import metadata."
+tools: Read
+---
+Real agent prompt.
+`,
+	"foo-file.md",
+);
+assert.equal(renamedAgent.fileName, "foo-file.md");
+assert.equal(renamedAgent.agentName, "real-agent");
+assert.match(renamedAgent.content, /name: real-agent/);
+const routerWithRenamedAgent = generateCategoryRouter({
+	categorySlug: "01-core-development",
+	categoryTitle: "Core Development",
+	members: [renamedAgent.agentName],
+});
+assert.match(routerWithRenamedAgent, /real-agent/);
+assert.doesNotMatch(routerWithRenamedAgent, /foo-file/);
 
 const merged = mergeTeamsYaml(
 	`pi-orchestrator:\n  - ext-expert\n\nsdd-orchestrator:\n  - sdd-init\n`,
