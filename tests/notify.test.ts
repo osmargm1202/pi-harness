@@ -65,6 +65,9 @@ async function main(): Promise<void> {
 	assert.equal(notificationLines.length, 2, "only questions and permissions should notify");
 	assert.match(log, /notify-send/, "notifications should call notify-send through distrobox-host-exec");
 	assert.match(log, /-u critical/, "notifications should be critical so swaync shows a popup");
+	assert.match(log, /-e/, "notifications should be transient instead of persistent history entries");
+	assert.match(log, /-t [1-9]\d*/, "notifications should set a non-zero timeout so they auto-dismiss");
+	assert.doesNotMatch(log, /-t 0(\s|$)/, "notifications should not be sticky forever");
 	assert.match(log, /Pi\\ question/, "ask_user_question should send a question notification");
 	assert.match(log, /Pi\\ permission/, "permission prompts should send a permission notification");
 	assert.doesNotMatch(log, /Pi\\ done/, "agent_end should not send a final loop completion notification");

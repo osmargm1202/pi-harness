@@ -13,7 +13,7 @@ const PERMISSION_TOOL_NAMES = new Set([
 	"permission_request",
 	"confirm_permission",
 ]);
-const STICKY_TIMEOUT_MS = 0;
+const AUTO_DISMISS_TIMEOUT_MS = 8_000;
 const MAX_BODY_LENGTH = 220;
 const FOCUS_PID_HINT = "pi-focus-pid";
 const KITTY_DESKTOP_ENTRY = "kitty";
@@ -164,8 +164,9 @@ function notify(
 			"Pi",
 			"-u",
 			"critical",
+			"-e",
 			"-t",
-			String(STICKY_TIMEOUT_MS),
+			String(AUTO_DISMISS_TIMEOUT_MS),
 			...getNotificationHints(),
 			title,
 			body,
