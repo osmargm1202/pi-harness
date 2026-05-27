@@ -194,6 +194,11 @@ export function parseTeams(teamsYaml: string): Map<string, string[]> {
 
 export function mergeTeamsYaml(existingYaml: string, newTeams: Map<string, string[]>): string {
 	const merged = parseTeams(existingYaml);
+	for (const teamName of merged.keys()) {
+		if (CATEGORY_DIR_PATTERN.test(teamName)) {
+			merged.delete(teamName);
+		}
+	}
 	for (const [teamName, members] of newTeams.entries()) {
 		merged.set(teamName, [...members]);
 	}

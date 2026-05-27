@@ -86,6 +86,16 @@ assert.match(merged, /sdd-orchestrator:\n  - sdd-init/);
 assert.match(merged, /01-core-development:\n  - backend-developer\n  - frontend-developer/);
 assert.match(merged, /02-language-specialists:\n  - python-pro/);
 
+const mergedWithoutStaleManagedTeams = mergeTeamsYaml(
+	`01-core-development:\n  - backend-developer\n\n02-language-specialists:\n  - python-pro\n\npi-orchestrator:\n  - ext-expert\n`,
+	new Map([
+		["01-core-development", ["fullstack-engineer"]],
+	]),
+);
+assert.match(mergedWithoutStaleManagedTeams, /01-core-development:\n  - fullstack-engineer/);
+assert.doesNotMatch(mergedWithoutStaleManagedTeams, /02-language-specialists:/);
+assert.match(mergedWithoutStaleManagedTeams, /pi-orchestrator:\n  - ext-expert/);
+
 const entries = filterAgentEntries([
 	{ type: "dir", name: ".claude-plugin", path: "categories/01-core-development/.claude-plugin", download_url: null, url: "" },
 	{ type: "file", name: "README.md", path: "categories/01-core-development/README.md", download_url: "https://example.invalid/readme", url: "" },
