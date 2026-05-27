@@ -101,6 +101,18 @@ export function buildPiChildArgs(input: PiChildArgsInput): string[] {
 	return args;
 }
 
+export function buildPiChildEnv(options: { existingEnv?: NodeJS.ProcessEnv } = {}): NodeJS.ProcessEnv {
+	const existingEnv = options.existingEnv ?? process.env;
+	const currentDepth = Number.parseInt(existingEnv.PI_SUBAGENT_DEPTH ?? "0", 10);
+	const nextDepth = Number.isFinite(currentDepth) && currentDepth >= 0 ? currentDepth + 1 : 1;
+	return {
+		...existingEnv,
+		PI_FULL_SUBAGENT_CHILD: "1",
+		PI_SUBAGENT_CHILD: "1",
+		PI_SUBAGENT_DEPTH: String(nextDepth),
+	};
+}
+
 interface RpcChildProcessLike {
 	stdout: Readable;
 	stderr?: Readable;
@@ -110,7 +122,7 @@ interface RpcChildProcessLike {
 }
 
 export function createPiSubagentTransport(input: PiSubagentTransportInput): FullSubagentTransport {
-	const child = spawn(input.command ?? "pi", buildPiChildArgs(input), { cwd: input.cwd });
+	const child = spawn(input.command ?? "pi", buildPiChildArgs(input), { cwd: input.cwd, env: buildPiChildEnv() });
 	return createPiRpcSubagentTransport(input, child);
 }
 

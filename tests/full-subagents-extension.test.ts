@@ -43,7 +43,8 @@ registerFullSubagents(fakePi);
 
 assert(tools.some((tool) => tool.name === FULL_SUBAGENT_TASK_TOOL));
 assert(tools.some((tool) => tool.name === FULL_QUERY_TEAM_TOOL));
-assert(commands.has("full-subagents"));
+assert(commands.has("orgm-full-subagents"));
+assert(!commands.has("full-subagents"), "legacy full-subagents command should not be registered");
 
 const beforeAgentStart = handlers.get("before_agent_start")?.[0];
 assert(beforeAgentStart, "before_agent_start handler should be registered");
@@ -173,6 +174,31 @@ try {
 	assert.match(syncedAgent, /^model: test\/alpha$/m);
 	assert.match(syncedAgent, /Alpha body/);
 
+	const configuredCommand = configured.commands.get("orgm-full-subagents");
+	await configuredCommand.handler("init", { cwd: projectRoot, hasUI: false, ui: {}, sessionManager: { getSessionFile: () => undefined } });
+	const initializedConfig = JSON.parse(readFileSync(configPath, "utf8"));
+	assert.equal(initializedConfig.fullSubagents.enabled, true, "init should preserve an existing enabled setting");
+	assert.equal(initializedConfig.fullSubagents.startupTeam, "solo", "init should preserve an existing startup team");
+	assert.deepEqual(initializedConfig.fullSubagents.teams.solo, ["alpha", "beta"], "init should preserve existing teams");
+
+	const blankConfigPath = join(tempDir, "blank-orgm.json");
+	const blankCommandPi = createFakePi();
+	registerFullSubagents(blankCommandPi.fakePi, { configPath: blankConfigPath, userAgentsDir });
+	await blankCommandPi.commands.get("orgm-full-subagents").handler("init", { cwd: projectRoot, hasUI: false, ui: {}, sessionManager: { getSessionFile: () => undefined } });
+	const blankInitializedConfig = JSON.parse(readFileSync(blankConfigPath, "utf8"));
+	assert.equal(blankInitializedConfig.fullSubagents.enabled, false, "init should create a safe disabled default");
+	assert.equal(blankInitializedConfig.fullSubagents.startupTeam, "tdd-core");
+	assert.equal(blankInitializedConfig.fullSubagents.widgetLayout, "minimal", "init should default to compact minimal layout");
+	assert.deepEqual(blankInitializedConfig.fullSubagents.teams["tdd-core"], [
+		"tdd-brainstormer",
+		"tdd-planner",
+		"tdd-implementer",
+		"tdd-reviewer",
+		"tdd-verifier",
+	]);
+	assert.deepEqual(Object.keys(blankInitializedConfig.fullSubagents.agents), blankInitializedConfig.fullSubagents.teams["tdd-core"]);
+	assert.equal(blankInitializedConfig.fullSubagents.agents["tdd-planner"].tools, "inherit");
+
 	const configuredTaskTool = configured.tools.find((tool) => tool.name === FULL_SUBAGENT_TASK_TOOL);
 	const routedTask = await configuredTaskTool.execute(
 		"call-3",
@@ -199,6 +225,34 @@ try {
 	assert.equal(serialTeam.details.requestId, "team-serial");
 	assert.equal(serialTeam.details.result, "serial child results: alpha,beta -> review slice");
 	assert.deepEqual(createdRuntime.teams, [{ members: ["alpha", "beta"], task: "review slice", cwd: "/repo", execution: "serial" }]);
+
+	const childRuntime = createFakePi();
+	let childRuntimeCreated = false;
+	registerFullSubagents(childRuntime.fakePi, {
+		configPath,
+		userAgentsDir,
+		createRuntime() {
+			childRuntimeCreated = true;
+			return new FakeRuntime(["alpha"]);
+		},
+	});
+	const previousChildEnv = process.env.PI_FULL_SUBAGENT_CHILD;
+	process.env.PI_FULL_SUBAGENT_CHILD = "1";
+	try {
+		await childRuntime.handlers.get("session_start")?.[0](
+			{},
+			{ cwd: projectRoot, hasUI: false, ui: {}, sessionManager: { getSessionFile: () => undefined } },
+		);
+		const childPrompt = await childRuntime.handlers.get("before_agent_start")?.[0](
+			{ systemPrompt: "child prompt" },
+			{ cwd: projectRoot, hasUI: false, ui: {}, sessionManager: { getSessionFile: () => undefined } },
+		);
+		assert.equal(childRuntimeCreated, false, "full subagent child sessions must not create nested runtimes");
+		assert.equal(childPrompt, undefined, "full subagent child sessions must not receive strict delegation prompt");
+	} finally {
+		if (previousChildEnv === undefined) delete process.env.PI_FULL_SUBAGENT_CHILD;
+		else process.env.PI_FULL_SUBAGENT_CHILD = previousChildEnv;
+	}
 } finally {
 	rmSync(tempDir, { recursive: true, force: true });
 }

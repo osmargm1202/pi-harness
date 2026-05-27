@@ -10,7 +10,7 @@ import {
 	type FullSubagentTaskResult,
 } from "./lib/full-subagents-com.ts";
 import { clearFullSubagentsWidget, installFullSubagentsWidget } from "./lib/full-subagents-widget.ts";
-import { orgmConfigPath } from "./lib/orgm-config.ts";
+import { orgmConfigPath, saveOrgmConfigSlice } from "./lib/orgm-config.ts";
 
 const require = createRequire(import.meta.url);
 
@@ -139,6 +139,30 @@ function fallbackSnapshots(config: FullSubagentsConfig): FullSubagentSnapshot[] 
 	}));
 }
 
+function envFlag(name: string): boolean {
+	const value = process.env[name]?.trim().toLowerCase();
+	return value === "1" || value === "true";
+}
+
+function isFullSubagentChildRuntime(): boolean {
+	return envFlag("PI_FULL_SUBAGENT_CHILD") || envFlag("PI_SUBAGENT_CHILD");
+}
+
+function initFullSubagentsConfig(configPath: string): FullSubagentsConfig {
+	const initialized = loadFullSubagentsConfig(configPath);
+	const startupMembers = initialized.teams[initialized.startupTeam] ?? [];
+	for (const agentName of startupMembers) {
+		initialized.agents[agentName] ??= {
+			tools: "inherit",
+			skills: "inherit",
+			mcp: "inherit",
+			extensions: "inherit",
+		};
+	}
+	saveOrgmConfigSlice("fullSubagents", initialized, configPath);
+	return initialized;
+}
+
 export default function registerFullSubagents(pi: ExtensionAPI, options: FullSubagentsRegisterOptions = {}) {
 	let config = DEFAULT_FULL_SUBAGENTS_CONFIG;
 	let snapshots: FullSubagentSnapshot[] = fallbackSnapshots(config);
@@ -151,11 +175,12 @@ export default function registerFullSubagents(pi: ExtensionAPI, options: FullSub
 		snapshots = fallbackSnapshots(config);
 		pool?.shutdown();
 		pool = undefined;
+		if (isFullSubagentChildRuntime()) return;
 		const syncReport = syncFullSubagentOverrides(config, { cwd: ctx.cwd, userAgentsDir: options.userAgentsDir });
 		if (!config.enabled) return;
 		pool = (options.createRuntime ?? defaultRuntimeFactory)(config, ctx);
 		if (ctx.hasUI) {
-			installFullSubagentsWidget(ctx, getSnapshots, { showModel: true, showContext: true, showCompact: true });
+			installFullSubagentsWidget(ctx, getSnapshots, { showModel: true, showContext: true, showCompact: true, layout: config.widgetLayout });
 			const syncedCount = syncReport.synced.length + syncReport.updated.length;
 			const syncSuffix = syncedCount > 0 ? `, synced ${syncedCount} override(s)` : "";
 			ctx.ui.notify(`Full subagents startup team: ${config.startupTeam} (${snapshots.length})${syncSuffix}`, "info");
@@ -163,6 +188,7 @@ export default function registerFullSubagents(pi: ExtensionAPI, options: FullSub
 	});
 
 	pi.on("before_agent_start", async (event: { systemPrompt?: string }) => {
+		if (isFullSubagentChildRuntime()) return undefined;
 		if (!config.strictDelegation) return undefined;
 		return { systemPrompt: `${event.systemPrompt ?? ""}\n\n${STRICT_DELEGATION_SNIPPET}` };
 	});
@@ -173,10 +199,16 @@ export default function registerFullSubagents(pi: ExtensionAPI, options: FullSub
 		clearFullSubagentsWidget(ctx);
 	});
 
-	pi.registerCommand("full-subagents", {
-		description: "Show full subagents status: /full-subagents [restart <agent>|team <name>]",
+	pi.registerCommand("orgm-full-subagents", {
+		description: "Show full subagents status: /orgm-full-subagents [init|restart <agent>|team <name>]",
 		handler: async (args: string, ctx: ExtensionContext) => {
 			const trimmed = args.trim();
+			if (trimmed === "init") {
+				config = initFullSubagentsConfig(options.configPath ?? orgmConfigPath());
+				snapshots = fallbackSnapshots(config);
+				if (ctx.hasUI) ctx.ui.notify("Initialized fullSubagents in orgm.json", "success");
+				return;
+			}
 			if (!ctx.hasUI) return;
 			if (!trimmed) {
 				ctx.ui.notify(`Full subagents: ${getSnapshots().length} configured`, "info");

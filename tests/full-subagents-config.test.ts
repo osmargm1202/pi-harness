@@ -13,6 +13,7 @@ assert.equal(DEFAULT_FULL_SUBAGENTS_CONFIG.enabled, false);
 assert.equal(DEFAULT_FULL_SUBAGENTS_CONFIG.strictDelegation, true);
 assert.equal(DEFAULT_FULL_SUBAGENTS_CONFIG.maxAgents, 5);
 assert.equal(DEFAULT_FULL_SUBAGENTS_CONFIG.startupTeam, "tdd-core");
+assert.equal(DEFAULT_FULL_SUBAGENTS_CONFIG.widgetLayout, "minimal");
 assert.deepEqual(DEFAULT_FULL_SUBAGENTS_CONFIG.teams["tdd-core"], [
 	"tdd-brainstormer",
 	"tdd-planner",
@@ -26,6 +27,7 @@ const merged = mergeFullSubagentsConfig({
 	strictDelegation: false,
 	maxAgents: 99,
 	startupTeam: "custom",
+	widgetLayout: "full",
 	teams: { custom: ["alpha", "", "beta", "alpha"] },
 	agents: {
 		alpha: {
@@ -41,6 +43,7 @@ assert.equal(merged.enabled, true);
 assert.equal(merged.strictDelegation, false);
 assert.equal(merged.maxAgents, 10);
 assert.equal(merged.startupTeam, "custom");
+assert.equal(merged.widgetLayout, "full");
 assert.deepEqual(merged.teams.custom, ["alpha", "beta"]);
 assert.deepEqual(merged.agents.alpha.tools, ["read", "bash"]);
 assert.equal(merged.agents.alpha.skills, "all");

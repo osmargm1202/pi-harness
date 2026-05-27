@@ -10,11 +10,14 @@ export interface FullSubagentAgentConfig {
 	extensions: FullSubagentListMode;
 }
 
+export type FullSubagentsWidgetLayout = "minimal" | "full";
+
 export interface FullSubagentsConfig {
 	enabled: boolean;
 	strictDelegation: boolean;
 	startupTeam: string;
 	maxAgents: number;
+	widgetLayout: FullSubagentsWidgetLayout;
 	teams: Record<string, string[]>;
 	agents: Record<string, FullSubagentAgentConfig>;
 }
@@ -32,6 +35,7 @@ export const DEFAULT_FULL_SUBAGENTS_CONFIG: FullSubagentsConfig = {
 	strictDelegation: true,
 	startupTeam: "tdd-core",
 	maxAgents: 5,
+	widgetLayout: "minimal",
 	teams: { "tdd-core": [...DEFAULT_TDD_CORE_TEAM] },
 	agents: {},
 };
@@ -84,6 +88,10 @@ function mergeTeams(value: unknown): Record<string, string[]> {
 	return merged;
 }
 
+function mergeWidgetLayout(value: unknown): FullSubagentsWidgetLayout {
+	return value === "full" || value === "minimal" ? value : DEFAULT_FULL_SUBAGENTS_CONFIG.widgetLayout;
+}
+
 function mergeAgents(value: unknown): Record<string, FullSubagentAgentConfig> {
 	const agents: Record<string, FullSubagentAgentConfig> = {};
 	if (!isRecord(value)) return agents;
@@ -103,6 +111,7 @@ export function mergeFullSubagentsConfig(value: unknown): FullSubagentsConfig {
 			: DEFAULT_FULL_SUBAGENTS_CONFIG.strictDelegation,
 		startupTeam: cleanName(raw.startupTeam) ?? DEFAULT_FULL_SUBAGENTS_CONFIG.startupTeam,
 		maxAgents: clampMaxAgents(raw.maxAgents),
+		widgetLayout: mergeWidgetLayout(raw.widgetLayout),
 		teams: mergeTeams(raw.teams),
 		agents: mergeAgents(raw.agents),
 	};

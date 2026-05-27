@@ -4,6 +4,7 @@ import { PassThrough } from "node:stream";
 import {
 	FullSubagentPool,
 	buildPiChildArgs,
+	buildPiChildEnv,
 	createPiRpcSubagentTransport,
 	createProtocolMessage,
 	parseProtocolLine,
@@ -194,6 +195,15 @@ assert.deepEqual(
 		"read,bash",
 	],
 );
+
+const childEnv = buildPiChildEnv({ existingEnv: { PATH: "/bin", PI_FULL_SUBAGENT_CHILD: "0" } });
+assert.equal(childEnv.PATH, "/bin");
+assert.equal(childEnv.PI_FULL_SUBAGENT_CHILD, "1");
+assert.equal(childEnv.PI_SUBAGENT_CHILD, "1");
+assert.equal(childEnv.PI_SUBAGENT_DEPTH, "1");
+
+const nestedChildEnv = buildPiChildEnv({ existingEnv: { PI_SUBAGENT_DEPTH: "2" } });
+assert.equal(nestedChildEnv.PI_SUBAGENT_DEPTH, "3");
 
 const child = new FakeChildProcess();
 const rpcTransport = createPiRpcSubagentTransport({ agentName: "tdd-planner", tools: [], cwd: "/repo" }, child);

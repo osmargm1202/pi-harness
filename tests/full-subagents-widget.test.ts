@@ -15,28 +15,40 @@ const base: FullSubagentSnapshot = {
 };
 
 const lines = renderFullSubagentsWidgetLines([
-	base,
+	{ ...base, lastResult: "planned" },
 	{ ...base, agentId: "tdd-implementer", agentName: "tdd-implementer", state: "busy", activity: "editing failing tests", contextPercent: 55 },
 	{ ...base, agentId: "tdd-verifier", agentName: "tdd-verifier", state: "dead", activity: "process exited", lastError: "exit 1" },
-], 80, {
+], 104, {
 	color: false,
 	showModel: true,
 	showContext: true,
 	showCompact: true,
+	layout: "minimal",
 });
 
 assert(lines[0].includes("Full subagents"));
 assert(lines.some((line) => line.includes("tdd-planner")));
-assert(lines.some((line) => line.includes("idle")));
+assert(lines.some((line) => line.includes("done-idle")));
 assert(lines.some((line) => line.includes("tdd-implementer")));
-assert(lines.some((line) => line.includes("busy")));
+assert(lines.some((line) => line.includes("work")));
 assert(lines.some((line) => line.includes("tdd-verifier")));
 assert(lines.some((line) => line.includes("dead")));
-assert(lines.some((line) => line.includes("ctx 55%")));
-assert(lines.some((line) => line.includes("compact 1")));
-assert(lines.every((line) => line.length <= 80));
+assert(lines.some((line) => line.includes("[#---------] 10% C-1")));
+assert(lines.some((line) => line.includes("[######----] 55% C-1")));
+assert(lines.some((line) => line.includes(" | | ")), "wide minimal layout should place multiple agents on one row");
+assert(lines.every((line) => line.length <= 104));
+
+const fullLines = renderFullSubagentsWidgetLines([
+	base,
+	{ ...base, agentId: "tdd-await", agentName: "tdd-await", state: "awaiting_user", activity: "waiting permission" },
+], 80, { color: false, showModel: true, showContext: true, showCompact: true, layout: "full" });
+assert(fullLines.some((line) => line.includes("╭ tdd-planner")));
+assert(fullLines.some((line) => line.includes("│ idle")));
+assert(fullLines.some((line) => line.includes("│ await")));
+assert(fullLines.some((line) => line.includes("anthropic/claude-sonnet-4-5")));
+assert(fullLines.every((line) => line.length <= 80));
 
 const narrow = renderFullSubagentsWidgetLines([
 	{ ...base, agentName: "agent-with-a-very-long-name-that-must-truncate", activity: "activity with many words that must also truncate" },
-], 32, { color: false, showModel: true, showContext: true, showCompact: true });
+], 32, { color: false, showModel: true, showContext: true, showCompact: true, layout: "minimal" });
 assert(narrow.every((line) => line.length <= 32));
