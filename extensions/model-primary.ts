@@ -157,6 +157,10 @@ export default function modelPrimaryExtension(pi: ExtensionAPI, options: ModelPr
 			const candidates = buildPrimaryAutoCandidates(ctx.cwd);
 			let decision: PrimaryAutoDecision;
 			try {
+				if (ctx.hasUI) {
+					ctx.ui.setWorkingMessage?.("Auto-Primary-Agent...");
+					ctx.ui.setStatus?.("primary-auto", "Auto-Primary-Agent...");
+				}
 				const routed = await routePrimary({
 					ctx,
 					prompt: event.prompt,
@@ -167,6 +171,11 @@ export default function modelPrimaryExtension(pi: ExtensionAPI, options: ModelPr
 			} catch (error) {
 				console.error("primaryAuto route error:", error);
 				decision = { selectedName: currentPrimary, source: "fallback" };
+			} finally {
+				if (ctx.hasUI) {
+					ctx.ui.setWorkingMessage?.();
+					ctx.ui.setStatus?.("primary-auto", undefined);
+				}
 			}
 
 			primaryAutoAttempted = true;

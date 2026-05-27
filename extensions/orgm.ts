@@ -10,8 +10,9 @@ import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { countActiveExtensions } from "./lib/orgm-extensions";
-import { registerSddCompatibilityCommands } from "./lib/orgm-flow";
+import { initializeOrgmConfig, orgmConfigPath } from "./lib/orgm-config.ts";
+import { countActiveExtensions } from "./lib/orgm-extensions.ts";
+import { registerSddCompatibilityCommands } from "./lib/orgm-flow.ts";
 
 const execAsync = promisify(exec);
 const EXTENSIONS_DIR = dirname(fileURLToPath(import.meta.url));
@@ -324,6 +325,15 @@ export default function (pi: ExtensionAPI) {
 	pi.on("session_shutdown", async () => {
 		stopAnimation();
 		headerHandle = null;
+	});
+
+	pi.registerCommand("orgm-init", {
+		description: "Materialize full ~/.pi/agent/orgm.json defaults",
+		handler: async (_args: string, ctx: ExtensionContext) => {
+			const configPath = orgmConfigPath();
+			initializeOrgmConfig(configPath);
+			ctx.ui.notify(`ORGM config initialized: ${configPath}`, "success");
+		},
 	});
 
 	pi.registerCommand("orgm-header", {

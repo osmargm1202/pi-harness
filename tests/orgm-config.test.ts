@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { loadAgentStatusConfig } from "../extensions/lib/agent-status-config.ts";
-import { loadOrgmConfig, loadOrgmConfigSlice, saveOrgmConfigSlice, type OrgmHostConfig } from "../extensions/lib/orgm-config.ts";
+import { initializeOrgmConfig, loadOrgmConfig, loadOrgmConfigSlice, saveOrgmConfigSlice, type OrgmHostConfig } from "../extensions/lib/orgm-config.ts";
 
 const tempDir = mkdtempSync(join(tmpdir(), "orgm-config-"));
 const configPath = join(tempDir, "orgm.json");
@@ -59,6 +59,16 @@ try {
 		preserved.fullSubagents,
 		{ legacyPilot: true, startupTeam: "legacy" },
 		"loadOrgmConfig should preserve fullSubagents as unknown local config key",
+	);
+
+	const initializedPath = join(tempDir, "initialized-orgm.json");
+	const initialized = initializeOrgmConfig(initializedPath);
+	const initializedRaw = JSON.parse(readFileSync(initializedPath, "utf8"));
+	assert.equal(initialized.primaryAuto.enabled, true, "initializeOrgmConfig should return primaryAuto enabled by default");
+	assert.deepEqual(
+		initializedRaw.primaryAuto,
+		{ enabled: true },
+		"initializeOrgmConfig should write primaryAuto enabled into generated orgm.json",
 	);
 } finally {
 	rmSync(tempDir, { recursive: true, force: true });

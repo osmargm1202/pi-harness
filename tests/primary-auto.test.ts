@@ -42,6 +42,8 @@ function makeHarness(options?: {
 	const appendEntries: Array<{ customType: string; data: unknown }> = [];
 	const emitted: Array<{ event: string; data: unknown }> = [];
 	const notifications: Array<{ message: string; kind: string }> = [];
+	const workingMessages: Array<string | undefined> = [];
+	const statuses: Array<{ id: string; message?: string }> = [];
 
 	const pi = {
 		on(event: string, handler: Handler) {
@@ -68,6 +70,12 @@ function makeHarness(options?: {
 			notify(message: string, kind: string) {
 				notifications.push({ message, kind });
 			},
+			setWorkingMessage(message?: string) {
+				workingMessages.push(message);
+			},
+			setStatus(id: string, message?: string) {
+				statuses.push({ id, message });
+			},
 		},
 		sessionManager: {
 			getEntries: () => options?.entries ?? [],
@@ -79,7 +87,7 @@ function makeHarness(options?: {
 		routePrimary: options?.routePrimary,
 	} as never);
 
-	return { handlers, commands, appendEntries, emitted, notifications, ctx };
+	return { handlers, commands, appendEntries, emitted, notifications, workingMessages, statuses, ctx };
 }
 
 {
@@ -119,6 +127,16 @@ function makeHarness(options?: {
 			prompt: "Implement approved feature primary-auto",
 		}, harness.ctx);
 		assert.equal(routeCalls, 1, "first request should route once");
+		assert.deepEqual(
+			harness.workingMessages,
+			["Auto-Primary-Agent...", undefined],
+			"primary-auto should show and clear working message around routing",
+		);
+		assert.deepEqual(
+			harness.statuses,
+			[{ id: "primary-auto", message: "Auto-Primary-Agent..." }, { id: "primary-auto", message: undefined }],
+			"primary-auto should set and clear footer status around routing",
+		);
 		assert.equal(JSON.parse(readFileSync(configPath, "utf8")).defaultPrimaryAgent, "pi", "auto routing should not rewrite defaultPrimaryAgent config");
 		assert.equal(
 			firstResult?.systemPrompt.includes("loaded from `pi-orchestrator`"),
@@ -145,6 +163,46 @@ function makeHarness(options?: {
 			secondResult?.systemPrompt.includes("loaded from `pi-orchestrator`"),
 			true,
 			"selected primary should stay active for later prompts in same session",
+		);
+	} finally {
+		setSubagentEnv(previousEnv);
+		rmSync(tempDir, { recursive: true, force: true });
+	}
+}
+
+{
+	const tempDir = mkdtempSync(join(tmpdir(), "primary-auto-route-error-"));
+	const configPath = join(tempDir, "orgm.json");
+	writeFileSync(configPath, JSON.stringify({ defaultPrimaryAgent: "pi" }, null, 2));
+	const previousEnv = setSubagentEnv({
+		PI_PDD_SUBAGENT: undefined,
+		PI_SUBAGENT_RUNTIME_ID: undefined,
+		PI_SUBAGENT_RUNTIME_DEPTH: undefined,
+	});
+
+	const harness = makeHarness({
+		configPath,
+		routePrimary: async () => {
+			throw new Error("route boom");
+		},
+	});
+
+	try {
+		await harness.handlers.get("session_start")?.({ reason: "startup" }, harness.ctx);
+		const result = await harness.handlers.get("before_agent_start")?.({
+			systemPrompt: "base system prompt",
+			prompt: "Route should fail safely",
+		}, harness.ctx);
+		assert.equal(result, undefined, "route failures should fall back to base system prompt when fallback primary is pi");
+		assert.deepEqual(
+			harness.workingMessages,
+			["Auto-Primary-Agent...", undefined],
+			"primary-auto should clear working message after router failure",
+		);
+		assert.deepEqual(
+			harness.statuses,
+			[{ id: "primary-auto", message: "Auto-Primary-Agent..." }, { id: "primary-auto", message: undefined }],
+			"primary-auto should clear footer status after router failure",
 		);
 	} finally {
 		setSubagentEnv(previousEnv);

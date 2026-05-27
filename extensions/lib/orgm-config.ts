@@ -262,6 +262,13 @@ export function loadOrgmConfigSlice<K extends OrgmConfigSliceKey>(slice: K, conf
 	return structuredClone(loadOrgmConfig(configPath)[slice]);
 }
 
+export function initializeOrgmConfig(configPath = orgmConfigPath()): OrgmHostConfig {
+	const initialized = loadOrgmConfig(configPath);
+	mkdirSync(dirname(configPath), { recursive: true });
+	writeFileSync(configPath, `${JSON.stringify(initialized, null, 2)}\n`, "utf8");
+	return structuredClone(initialized);
+}
+
 export function saveOrgmConfigSlice<K extends WritableOrgmConfigSliceKey>(
 	slice: K,
 	value: OrgmHostConfig[K],
