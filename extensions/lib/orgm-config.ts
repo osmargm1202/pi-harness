@@ -240,7 +240,7 @@ export function isBlockedGitRoot(cwd: string, ignoreRoots = DEFAULT_ORGM_CONFIG.
 	return false;
 }
 
-export function orgmConfigPath(home = homedir()): string {
+export function orgmConfigPath(home = process.env.HOME ?? homedir()): string {
 	return join(home, ".pi", "agent", "orgm.json");
 }
 
