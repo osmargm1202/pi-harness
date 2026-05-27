@@ -240,6 +240,34 @@ function renderMarkdownContent(text: string, width: number): string[] {
 	return wrapPlainText(safeText, width);
 }
 
+export function renderDocViewerRows(options: {
+	innerWidth: number;
+	viewerBodyLines: number;
+	titleLine: string;
+	metaLine: string;
+	scrollLine: string;
+	helpLine: string;
+	bodyLines: string[];
+	scrollOffset: number;
+}): string[] {
+	const { innerWidth, viewerBodyLines, titleLine, metaLine, scrollLine, helpLine, bodyLines } = options;
+	const bodyWidth = Math.max(1, innerWidth - 2);
+	const maxScroll = Math.max(0, bodyLines.length - viewerBodyLines);
+	const rangeStart = Math.min(maxScroll, Math.max(0, options.scrollOffset));
+	const lines: string[] = [
+		`╭${"─".repeat(innerWidth)}╮`,
+		`│${padLine(titleLine, innerWidth)}│`,
+		`│${padLine(metaLine, innerWidth)}│`,
+		`│${padLine(scrollLine, innerWidth)}│`,
+	];
+	for (let i = 0; i < viewerBodyLines; i += 1) {
+		lines.push(`│ ${padLine(bodyLines[rangeStart + i] ?? "", bodyWidth)} │`);
+	}
+	lines.push(`│${padLine(helpLine, innerWidth)}│`);
+	lines.push(`╰${"─".repeat(innerWidth)}╯`);
+	return lines;
+}
+
 async function openDocViewer(ctx: ExtensionContext, doc: SpecDoc): Promise<void> {
 	if (!ctx.hasUI) return;
 
@@ -274,24 +302,17 @@ async function openDocViewer(ctx: ExtensionContext, doc: SpecDoc): Promise<void>
 				const maxScroll = Math.max(0, bodyLines.length - VIEWER_BODY_LINES);
 				if (scrollOffset > maxScroll) scrollOffset = maxScroll;
 				if (scrollOffset < 0) scrollOffset = 0;
-				const rangeStart = scrollOffset;
-				const rangeEnd = Math.min(bodyLines.length, rangeStart + VIEWER_BODY_LINES);
-				const titleLine = `${doc.kind.toUpperCase()} · ${doc.name}`;
-				const metaLine = `${formatTimestamp(doc.modified)} · ${doc.relativePath}`;
-				const scrollLine = `Lines ${bodyLines.length === 0 ? 0 : rangeStart + 1}-${rangeEnd} of ${bodyLines.length} · offset ${scrollOffset}`;
-				const helpLine = "↑/↓ or j/k scroll • pageUp/pageDown jump • esc/q close";
-				const lines: string[] = [
-					theme.fg("accent", `╭${"─".repeat(innerWidth)}╮`),
-					theme.fg("accent", `│${padLine(theme.fg("text", titleLine), innerWidth)}│`),
-					theme.fg("accent", `│${padLine(theme.fg("muted", metaLine), innerWidth)}│`),
-					theme.fg("accent", `│${padLine(theme.fg("dim", scrollLine), innerWidth)}│`),
-				];
-				for (let i = 0; i < VIEWER_BODY_LINES; i += 1) {
-					lines.push(theme.fg("accent", `│${padLine(bodyLines[rangeStart + i] ?? "", bodyWidth)}│`));
-				}
-				lines.push(theme.fg("accent", `│${padLine(theme.fg("dim", helpLine), innerWidth)}│`));
-				lines.push(theme.fg("accent", `╰${"─".repeat(innerWidth)}╯`));
-				return lines.map((line) => truncateToWidth(line, width));
+				const rangeEnd = Math.min(bodyLines.length, scrollOffset + VIEWER_BODY_LINES);
+				return renderDocViewerRows({
+					innerWidth,
+					viewerBodyLines: VIEWER_BODY_LINES,
+					titleLine: theme.fg("text", `${doc.kind.toUpperCase()} · ${doc.name}`),
+					metaLine: theme.fg("muted", `${formatTimestamp(doc.modified)} · ${doc.relativePath}`),
+					scrollLine: theme.fg("dim", `Lines ${bodyLines.length === 0 ? 0 : scrollOffset + 1}-${rangeEnd} of ${bodyLines.length} · offset ${scrollOffset}`),
+					helpLine: theme.fg("dim", "↑/↓ or j/k scroll • pageUp/pageDown jump • esc/q close"),
+					bodyLines,
+					scrollOffset,
+				}).map((line) => theme.fg("accent", truncateToWidth(line, width)));
 			},
 			invalidate: () => {},
 			handleInput: (data: string) => {
