@@ -1,5 +1,5 @@
 import { StringEnum } from "@earendil-works/pi-ai";
-import type { ExtensionAPI, ExtensionContext, Theme } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext, SessionEntry, Theme } from "@earendil-works/pi-coding-agent";
 import { Text, truncateToWidth } from "@earendil-works/pi-tui";
 import { Type, type Static } from "typebox";
 
@@ -30,6 +30,9 @@ export interface TaskDetails {
 	error?: string;
 }
 
+export const TODO_RESET_MARKER = "<!-- orgm:todos:reset:v1 -->";
+const TODO_RESET_ENTRY_TYPE = "orgm-todos-reset";
+
 const TaskStatusSchema = StringEnum(["pending", "in_progress", "completed", "deleted"] as const);
 const TaskActionSchema = StringEnum(["create", "update", "list", "get", "delete", "clear"] as const);
 
@@ -50,7 +53,11 @@ const TaskMutationParamsSchema = Type.Object({
 
 export type TaskMutationParams = Static<typeof TaskMutationParamsSchema>;
 
-let state: TaskState = { tasks: [], nextId: 1 };
+export function emptyTaskState(): TaskState {
+	return { tasks: [], nextId: 1 };
+}
+
+let state: TaskState = emptyTaskState();
 let overlayCtx: ExtensionContext | null = null;
 let overlayMounted = false;
 let overlayHandle: { requestRender(): void } | null = null;
@@ -246,7 +253,7 @@ export function applyMutation(current: TaskState, action: TaskAction, params: Ta
 		}
 
 		case "clear":
-			return { state: { tasks: [], nextId: 1 }, tasks: [], summary: "Cleared all todos" };
+			return { state: emptyTaskState(), tasks: [], summary: "Cleared all todos" };
 	}
 }
 
@@ -321,16 +328,48 @@ function detailsSnapshot(details: unknown): TaskState | undefined {
 	return { tasks: candidate.tasks as Task[], nextId: candidate.nextId };
 }
 
-function replayFromBranch(ctx: ExtensionContext): void {
+export function isTodoResetInput(text: string): boolean {
+	return text.trim() === TODO_RESET_MARKER;
+}
+
+function messageText(message: { content?: unknown; text?: unknown }): string {
+	if (typeof message.text === "string") return message.text;
+	if (typeof message.content === "string") return message.content;
+	if (!Array.isArray(message.content)) return "";
+	return message.content
+		.map((part) =>
+			part && typeof part === "object" && (part as { type?: unknown }).type === "text" && typeof (part as { text?: unknown }).text === "string"
+				? (part as { text: string }).text
+				: "",
+		)
+		.join("");
+}
+
+function isResetEntry(entry: SessionEntry): boolean {
+	if (entry.type === "custom") return entry.customType === TODO_RESET_ENTRY_TYPE;
+	if (entry.type !== "message") return false;
+	const message = entry.message as { role?: string; content?: unknown; text?: unknown };
+	return message.role === "user" && isTodoResetInput(messageText(message));
+}
+
+export function replayTodoStateFromEntries(entries: Iterable<SessionEntry>): TaskState {
 	let snapshot: TaskState | undefined;
-	for (const entry of ctx.sessionManager.getBranch()) {
+	for (const entry of entries) {
+		if (isResetEntry(entry)) {
+			snapshot = undefined;
+			continue;
+		}
 		if (entry.type !== "message") continue;
 		const message = entry.message as { role?: string; toolName?: string; details?: unknown };
 		if (message.role !== "toolResult" || message.toolName !== "todo") continue;
 		const candidate = detailsSnapshot(message.details);
 		if (candidate) snapshot = candidate;
 	}
-	state = snapshot ? cloneState(snapshot) : { tasks: [], nextId: 1 };
+	return snapshot ? cloneState(snapshot) : emptyTaskState();
+}
+
+function replayFromBranch(ctx: ExtensionContext): void {
+	state = replayTodoStateFromEntries(ctx.sessionManager.getBranch());
 }
 
 function buildOverlayLines(theme: Theme, width: number): string[] {
@@ -393,6 +432,16 @@ function refreshOverlay(ctx = overlayCtx): void {
 }
 
 export default function (pi: ExtensionAPI) {
+	pi.on("input", async (event, ctx) => {
+		if (event.source === "extension") return { action: "continue" };
+		if (!isTodoResetInput(event.text)) return { action: "continue" };
+		state = emptyTaskState();
+		pi.appendEntry(TODO_RESET_ENTRY_TYPE, { marker: TODO_RESET_MARKER, resetAt: Date.now() });
+		refreshOverlay(ctx);
+		if (ctx.hasUI) ctx.ui.notify("Todos reset", "info");
+		return { action: "handled" };
+	});
+
 	pi.on("session_start", async (_event, ctx) => {
 		replayFromBranch(ctx);
 		refreshOverlay(ctx);

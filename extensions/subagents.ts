@@ -76,6 +76,9 @@ const DEPLOYMENT_GRID_GAP = 2;
 const SUBAGENT_COMPLETION_STALL_TIMEOUT_MS = 4_000;
 const SUBAGENT_FORCE_KILL_TIMEOUT_MS = 3_000;
 const SUBAGENT_TRANSCRIPT_MAX_LINES = 400;
+const SUBAGENT_DETAILS_TRANSCRIPT_MAX_ENTRIES = 80;
+const SUBAGENT_INLINE_TRANSCRIPT_COLLAPSED_ENTRIES = 3;
+const SUBAGENT_INLINE_TRANSCRIPT_EXPANDED_ENTRIES = 18;
 const SUBAGENT_UI_REFRESH_DEBOUNCE_MS = 120;
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -139,6 +142,7 @@ interface AgentRunDetails {
 	primaryModel?: string;
 	fallbackModel?: string;
 	fallbackUsed?: boolean;
+	transcript?: DeploymentTranscriptEntry[];
 	interactionOutcome?:
 		| "completed"
 		| "awaiting_user_input_relayed"
@@ -205,6 +209,7 @@ interface QueryTeamResultItem {
 	deploymentId: string;
 	stopReason?: string;
 	errorMessage?: string;
+	transcript?: DeploymentTranscriptEntry[];
 	interactionOutcome?: AgentRunDetails["interactionOutcome"];
 	awaitingUserInput?: boolean;
 	auditPrompt?: AgentPromptAudit;
@@ -425,6 +430,95 @@ function buildAgentContentText(details: AgentRunDetails): string {
 	]
 		.filter(Boolean)
 		.join("\n");
+}
+
+export interface InlineTranscriptGroup {
+	heading: string;
+	transcript?: DeploymentTranscriptEntry[];
+}
+
+function cloneTranscriptEntries(
+	entries: DeploymentTranscriptEntry[] | undefined,
+	maxEntries = SUBAGENT_DETAILS_TRANSCRIPT_MAX_ENTRIES,
+): DeploymentTranscriptEntry[] {
+	if (!entries?.length) return [];
+	return entries.slice(-maxEntries).map((entry) => ({ ...entry }));
+}
+
+function normalizeTranscriptText(text: string | undefined, max = 120): string | undefined {
+	if (!text) return undefined;
+	return truncate(text.replace(/\s+/g, " ").trim(), max);
+}
+
+function formatCollapsedTranscriptEntry(entry: DeploymentTranscriptEntry): string {
+	const label =
+		entry.kind === "assistant"
+			? "assistant"
+			: entry.kind === "tool_call" || entry.kind === "tool_result"
+				? `tool ${entry.toolName || "activity"}`
+				: entry.kind;
+	const summary =
+		normalizeTranscriptText(entry.text) || normalizeTranscriptText(entry.title, 96);
+	return summary ? `${label} · ${summary}` : label;
+}
+
+function formatExpandedTranscriptEntry(
+	entry: DeploymentTranscriptEntry,
+	theme: any,
+): string[] {
+	const label = theme.fg(
+		entry.kind === "error"
+			? "error"
+			: entry.kind === "assistant"
+				? "success"
+				: entry.kind === "thinking"
+					? "warning"
+					: "muted",
+		entry.kind,
+	);
+	const lines = [`${label} · ${entry.title}`];
+	if (entry.text) lines.push(`  ${entry.text.split("\n").join("\n  ")}`);
+	return lines;
+}
+
+function pickCollapsedTranscriptEntries(
+	entries: DeploymentTranscriptEntry[],
+): DeploymentTranscriptEntry[] {
+	const important = entries.filter(
+		(entry) => !["thinking", "stderr"].includes(entry.kind),
+	);
+	const source = important.length > 0 ? important : entries;
+	return source.slice(-SUBAGENT_INLINE_TRANSCRIPT_COLLAPSED_ENTRIES);
+}
+
+export function buildInlineTranscriptLines(
+	groups: InlineTranscriptGroup[],
+	theme: any,
+	expanded: boolean,
+): string[] {
+	const lines: string[] = [];
+	for (const group of groups) {
+		const transcript = cloneTranscriptEntries(
+			group.transcript,
+			expanded
+				? SUBAGENT_INLINE_TRANSCRIPT_EXPANDED_ENTRIES
+				: SUBAGENT_DETAILS_TRANSCRIPT_MAX_ENTRIES,
+		);
+		if (transcript.length === 0) continue;
+		if (expanded) {
+			if (lines.length > 0) lines.push("");
+			lines.push(theme.fg("accent", `Timeline · ${group.heading}`));
+			for (const entry of transcript)
+				lines.push(...formatExpandedTranscriptEntry(entry, theme));
+			continue;
+		}
+		const previewEntries = pickCollapsedTranscriptEntries(transcript);
+		if (previewEntries.length === 0) continue;
+		lines.push(theme.fg("accent", `Recent trace · ${group.heading}`));
+		for (const entry of previewEntries)
+			lines.push(theme.fg("muted", formatCollapsedTranscriptEntry(entry)));
+	}
+	return lines;
 }
 
 function getExpectedArtifactTopicKey(
@@ -1472,6 +1566,9 @@ export default function (pi: ExtensionAPI) {
 		refreshUI(ctx);
 	};
 
+	const getDeploymentTranscriptDetails = (deploymentId: string) =>
+		cloneTranscriptEntries(deploymentTranscripts.get(deploymentId));
+
 	const nextDeploymentNumber = (agentName: string): number => {
 		const next = (deploymentCountsByAgent.get(agentName) ?? 0) + 1;
 		deploymentCountsByAgent.set(agentName, next);
@@ -1655,6 +1752,7 @@ export default function (pi: ExtensionAPI) {
 				primaryModel: deployment.primaryModel,
 				fallbackModel: deployment.fallbackModel,
 				fallbackUsed: deployment.fallbackUsed,
+				transcript: getDeploymentTranscriptDetails(deployment.deploymentId),
 				interactionOutcome,
 				awaitingUserInput: Boolean(questionPayload),
 				questionPayload,
@@ -2352,6 +2450,9 @@ export default function (pi: ExtensionAPI) {
 		});
 		refreshUI(params.ctx);
 		emitProgress();
+		const detailTranscript = getDeploymentTranscriptDetails(
+			deployment.deploymentId,
+		);
 		if (deployment.status === "done") {
 			promptDeployments = promptDeployments.filter(
 				(item) => item.deploymentId !== deployment.deploymentId,
@@ -2408,6 +2509,7 @@ ${finalText}`
 			primaryModel: deployment.primaryModel,
 			fallbackModel: deployment.fallbackModel,
 			fallbackUsed: deployment.fallbackUsed,
+			transcript: detailTranscript,
 			interactionOutcome,
 			awaitingUserInput: Boolean(questionPayload),
 			questionPayload,
@@ -2609,6 +2711,7 @@ ${finalText}`
 					deploymentId: run.details.deploymentId,
 					stopReason: run.details.stopReason,
 					errorMessage: run.details.errorMessage,
+					transcript: run.details.transcript,
 					interactionOutcome: run.details.interactionOutcome,
 					awaitingUserInput: run.details.awaitingUserInput,
 					auditPrompt: run.details.auditPrompt,
@@ -2791,6 +2894,14 @@ ${finalText}`
 						`${item.status === "done" ? "✓" : "✗"} ${item.member} · ${item.summary}`,
 				)
 				.join("\n");
+			const transcriptLines = buildInlineTranscriptLines(
+				details.results.map((item) => ({
+					heading: `member ${item.member} · ${item.deploymentId}`,
+					transcript: item.transcript,
+				})),
+				theme,
+				options.expanded,
+			);
 			const expandedPromptLines = options.expanded
 				? details.results.flatMap((item) =>
 						formatPromptAuditLines(theme, item.auditPrompt),
@@ -2814,6 +2925,7 @@ ${finalText}`
 					header + hint,
 					meta,
 					members || "(no results)",
+					...transcriptLines,
 					...expandedPromptLines,
 					...expandedOutputLines,
 				]
@@ -3053,6 +3165,11 @@ ${finalText}`
 				? theme.fg("muted", `activity: ${details.currentActivity}`)
 				: "";
 			const summary = details.summary;
+			const transcriptLines = buildInlineTranscriptLines(
+				[{ heading: `deploy ${details.deploymentId}`, transcript: details.transcript }],
+				theme,
+				options.expanded,
+			);
 			const expandedOutputLines =
 				options.expanded && details.fullOutput
 					? [theme.fg("accent", "Full output"), details.fullOutput]
@@ -3074,6 +3191,7 @@ ${finalText}`
 					activityLine,
 					auditHint,
 					summary,
+					...transcriptLines,
 					details.errorMessage ? theme.fg("error", details.errorMessage) : "",
 					...(options.expanded
 						? formatPromptAuditLines(theme, details.auditPrompt)
