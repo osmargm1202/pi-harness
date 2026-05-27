@@ -388,6 +388,10 @@ export function resolveRootDirArg(argv: string[], cwd: string): string {
 	return argv[2] ?? cwd;
 }
 
+export function formatCliError(error: unknown): string {
+	return error instanceof Error ? error.message : String(error);
+}
+
 function unquote(value: string): string {
 	if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
 		return value.slice(1, -1);
@@ -410,5 +414,8 @@ async function main(): Promise<void> {
 }
 
 if (import.meta.main) {
-	await main();
+	main().catch((error) => {
+		console.error(formatCliError(error));
+		process.exitCode = 1;
+	});
 }

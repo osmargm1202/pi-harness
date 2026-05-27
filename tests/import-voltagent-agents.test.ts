@@ -7,6 +7,7 @@ import {
 	convertAgentMarkdown,
 	ensureManagedCategoryDir,
 	filterAgentEntries,
+	formatCliError,
 	generateCategoryRouter,
 	mergeTeamsYaml,
 	parseFrontmatter,
@@ -150,4 +151,20 @@ assert.equal(
 	resolveRootDirArg(["bun", "scripts/import-voltagent-agents.ts"], "/tmp/worktree"),
 	"/tmp/worktree",
 	"cwd should be fallback when CLI root arg missing",
+);
+
+assert.equal(
+	formatCliError(new Error("boom")),
+	"boom",
+	"cli should print clean Error message",
+);
+assert.equal(
+	formatCliError("plain failure"),
+	"plain failure",
+	"cli should stringify non-Error failures",
+);
+assert.equal(
+	formatCliError({ code: 42 }),
+	"[object Object]",
+	"cli should use String() contract for unknown failures",
 );
