@@ -534,7 +534,14 @@ export class FullSubagentPool {
 			runtime.snapshot.contextWindow = numberValue(message.contextWindow, runtime.snapshot.contextWindow);
 			runtime.snapshot.contextPercent = contextPercent(runtime.snapshot.contextTokens, runtime.snapshot.contextWindow);
 			runtime.snapshot.compactCount = numberValue(message.compactCount, runtime.snapshot.compactCount);
-			if ((runtime.snapshot.state === "busy" || runtime.snapshot.state === "awaiting_user" || runtime.snapshot.state === "compacting") && !runtime.snapshot.activeSince) runtime.snapshot.activeSince = Date.now();
+			const messageRequestId = textValue(message.requestId);
+			const isCurrentTaskStatus = runtime.snapshot.requestId !== undefined && (messageRequestId === undefined || messageRequestId === runtime.snapshot.requestId);
+			if (
+				(runtime.snapshot.state === "busy" || runtime.snapshot.state === "awaiting_user" || runtime.snapshot.state === "compacting") &&
+				!runtime.snapshot.activeSince &&
+				isCurrentTaskStatus
+			)
+				runtime.snapshot.activeSince = Date.now();
 		}
 		if (message.type === "task.done") {
 			const text = textValue(message.text) ?? "done";

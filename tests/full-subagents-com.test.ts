@@ -113,6 +113,15 @@ assert.equal(pool.getSnapshot()[0].lastResult, "done");
 assert.equal(pool.getSnapshot()[0].activeSince, undefined);
 assert.equal(pool.getSnapshot()[0].contextPercent, 25);
 
+const preTaskAwaiting = new FakeTransport();
+const preTaskAwaitingPool = new FullSubagentPool([
+	{ agentId: "tdd-await", agentName: "tdd-await", model: "test/model", transport: preTaskAwaiting },
+]);
+preTaskAwaiting.emit(createProtocolMessage("tdd-await", "ready", { state: "idle" }));
+preTaskAwaiting.emit(createProtocolMessage("tdd-await", "status", { state: "awaiting_user", activity: "waiting for input" }));
+assert.equal(preTaskAwaitingPool.getSnapshot()[0].state, "awaiting_user");
+assert.equal(preTaskAwaitingPool.getSnapshot()[0].activeSince, undefined);
+
 pool.cancelTask("tdd-planner", "manual");
 const cancelLine = fake.sent.at(-1)!;
 assert.equal(cancelLine.endsWith("\n"), true);

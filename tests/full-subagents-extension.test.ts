@@ -9,6 +9,11 @@ import registerFullSubagents, {
 	type FullSubagentsRuntime,
 } from "../extensions/full-subagents.ts";
 
+const previousFullSubagentChildEnv = process.env.PI_FULL_SUBAGENT_CHILD;
+const previousSubagentChildEnv = process.env.PI_SUBAGENT_CHILD;
+delete process.env.PI_FULL_SUBAGENT_CHILD;
+delete process.env.PI_SUBAGENT_CHILD;
+
 function createFakePi() {
 	const handlers = new Map<string, Function[]>();
 	const tools: any[] = [];
@@ -155,6 +160,21 @@ try {
 		"utf8",
 	);
 	writeFileSync(
+		join(projectAgentsDir, "gamma.md"),
+		`---\nname: gamma\ndescription: Gamma agent\n---\n\nGamma body\n`,
+		"utf8",
+	);
+	writeFileSync(
+		join(projectAgentsDir, "delta.md"),
+		`---\nname: delta\ndescription: Delta agent\n---\n\nDelta body\n`,
+		"utf8",
+	);
+	writeFileSync(
+		join(projectAgentsDir, "epsilon.md"),
+		`---\nname: epsilon\ndescription: Epsilon agent\n---\n\nEpsilon body\n`,
+		"utf8",
+	);
+	writeFileSync(
 		configPath,
 		JSON.stringify({
 			fullSubagents: {
@@ -192,6 +212,44 @@ try {
 		{ cwd: projectRoot, hasUI: false, ui: {}, sessionManager: { getSessionFile: () => undefined } },
 	);
 	assert(createdRuntime, "session_start should create a runtime when enabled configured agents exist");
+
+	const partialConfigPath = join(tempDir, "partial-orgm.json");
+	let partialRuntimeConfig: any;
+	const partialConfigured = createFakePi();
+	writeFileSync(
+		partialConfigPath,
+		JSON.stringify({
+			fullSubagents: {
+				enabled: true,
+				startupTeam: "solo",
+				maxAgents: 5,
+				teams: { solo: ["alpha", "beta", "gamma", "delta", "epsilon"] },
+				agents: {
+					alpha: { model: "test/alpha" },
+					beta: { model: "test/beta" },
+					gamma: { model: "test/gamma" },
+					delta: { model: "test/delta" },
+				},
+			},
+		}),
+		"utf8",
+	);
+	registerFullSubagents(partialConfigured.fakePi, {
+		configPath: partialConfigPath,
+		userAgentsDir,
+		createRuntime(config, ctx) {
+			assert.equal(ctx.cwd, projectRoot);
+			partialRuntimeConfig = structuredClone(config);
+			return new FakeRuntime(config.teams.solo);
+		},
+	});
+	await partialConfigured.handlers.get("session_start")?.[0](
+		{},
+		{ cwd: projectRoot, hasUI: false, ui: {}, sessionManager: { getSessionFile: () => undefined } },
+	);
+	assert(partialRuntimeConfig, "runtime bootstrap should normalize missing team member agent config");
+	assert.equal(partialRuntimeConfig.agents.epsilon.tools, "inherit");
+
 	const syncedAgent = readFileSync(join(userAgentsDir, "sdd-orchestrator", "alpha.md"), "utf8");
 	assert.match(syncedAgent, /^model: test\/alpha$/m);
 	assert.match(syncedAgent, /Alpha body/);
@@ -318,4 +376,8 @@ try {
 	}
 } finally {
 	rmSync(tempDir, { recursive: true, force: true });
+	if (previousFullSubagentChildEnv === undefined) delete process.env.PI_FULL_SUBAGENT_CHILD;
+	else process.env.PI_FULL_SUBAGENT_CHILD = previousFullSubagentChildEnv;
+	if (previousSubagentChildEnv === undefined) delete process.env.PI_SUBAGENT_CHILD;
+	else process.env.PI_SUBAGENT_CHILD = previousSubagentChildEnv;
 }

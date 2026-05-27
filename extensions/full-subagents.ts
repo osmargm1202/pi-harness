@@ -98,14 +98,30 @@ function listModeItems(value: FullSubagentsConfig["agents"][string]["tools"]): s
 	return Array.isArray(value) ? value : [];
 }
 
+function startupTeamMembers(config: FullSubagentsConfig): string[] {
+	return (config.teams[config.startupTeam] ?? []).slice(0, config.maxAgents);
+}
+
+function defaultAgentConfig(): NonNullable<FullSubagentsConfig["agents"][string]> {
+	return {
+		tools: "inherit",
+		skills: "inherit",
+		mcp: "inherit",
+		extensions: "inherit",
+	};
+}
+
+function ensureStartupTeamAgents(config: FullSubagentsConfig): void {
+	for (const agentName of startupTeamMembers(config)) {
+		config.agents[agentName] ??= defaultAgentConfig();
+	}
+}
+
 function defaultRuntimeFactory(config: FullSubagentsConfig, ctx: ExtensionContext): FullSubagentsRuntime | undefined {
-	const members = config.teams[config.startupTeam] ?? [];
-	const configuredMembers = members
-		.filter((agentName) => Boolean(config.agents[agentName]))
-		.slice(0, config.maxAgents);
-	if (configuredMembers.length === 0) return undefined;
-	return new FullSubagentPool(configuredMembers.map((agentName) => {
-		const agent = config.agents[agentName];
+	const members = startupTeamMembers(config);
+	if (members.length === 0) return undefined;
+	return new FullSubagentPool(members.map((agentName) => {
+		const agent = config.agents[agentName] ?? defaultAgentConfig();
 		const makeTransport = () => createPiSubagentTransport({
 			agentName,
 			model: agent.model,
@@ -145,8 +161,7 @@ async function runTeamThroughRuntime(
 }
 
 function fallbackSnapshots(config: FullSubagentsConfig): FullSubagentSnapshot[] {
-	const members = config.teams[config.startupTeam] ?? [];
-	return members.slice(0, config.maxAgents).map((agentName) => ({
+	return startupTeamMembers(config).map((agentName) => ({
 		agentId: agentName,
 		agentName,
 		model: config.agents[agentName]?.model,
@@ -170,15 +185,7 @@ function isFullSubagentChildRuntime(): boolean {
 
 function initFullSubagentsConfig(configPath: string): FullSubagentsConfig {
 	const initialized = loadFullSubagentsConfig(configPath);
-	const startupMembers = initialized.teams[initialized.startupTeam] ?? [];
-	for (const agentName of startupMembers) {
-		initialized.agents[agentName] ??= {
-			tools: "inherit",
-			skills: "inherit",
-			mcp: "inherit",
-			extensions: "inherit",
-		};
-	}
+	ensureStartupTeamAgents(initialized);
 	saveOrgmConfigSlice("fullSubagents", initialized, configPath);
 	return initialized;
 }
@@ -206,6 +213,8 @@ export default function registerFullSubagents(pi: ExtensionAPI, options: FullSub
 		pool = undefined;
 		if (isFullSubagentChildRuntime()) return;
 		if (!config.enabled) return;
+		ensureStartupTeamAgents(config);
+		snapshots = fallbackSnapshots(config);
 		const backingReport = validateFullSubagentBackings(config, { cwd: ctx.cwd, userAgentsDir: options.userAgentsDir });
 		const syncReport = syncFullSubagentOverrides(config, { cwd: ctx.cwd, userAgentsDir: options.userAgentsDir });
 		if (backingReport.missing.length > 0) {
@@ -237,9 +246,7 @@ export default function registerFullSubagents(pi: ExtensionAPI, options: FullSub
 	pi.on("before_agent_start", async (event: { systemPrompt?: string }) => {
 		if (isFullSubagentChildRuntime()) return undefined;
 		if (!config.strictDelegation) return undefined;
-		const enabledAgents = (config.teams[config.startupTeam] ?? [])
-			.filter((agentName) => Boolean(config.agents[agentName]))
-			.slice(0, config.maxAgents);
+		const enabledAgents = startupTeamMembers(config);
 		const agentList = enabledAgents.length > 0 ? `\n\nEnabled full subagents backed by .md docs: ${enabledAgents.join(", ")}.` : "";
 		return { systemPrompt: `${event.systemPrompt ?? ""}\n\n${STRICT_DELEGATION_SNIPPET}${agentList}` };
 	});
