@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
+import { mkdtempSync, mkdirSync, writeFileSync, existsSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import {
 	buildManifest,
 	convertAgentMarkdown,
+	ensureManagedCategoryDir,
 	filterAgentEntries,
 	generateCategoryRouter,
 	mergeTeamsYaml,
@@ -97,3 +101,31 @@ assert.equal(manifest.sourceRef, "main");
 assert.equal(manifest.categories[0].category, "01-core-development");
 assert.equal(manifest.categories[0].count, 2);
 assert.deepEqual(manifest.categories[0].agents, ["backend-developer", "frontend-developer"]);
+
+const agentsRoot = mkdtempSync(join(tmpdir(), "voltagent-import-"));
+const agentsDir = join(agentsRoot, "agents");
+mkdirSync(join(agentsDir, "01-core-development"), { recursive: true });
+
+assert.throws(
+	() => ensureManagedCategoryDir(agentsDir, "01-core-development"),
+	(error) => {
+		assert.match(String(error), /Refusing to overwrite existing VoltAgent category directory/);
+		assert.match(String(error), /agents\/voltagent-manifest\.json/);
+		assert.match(String(error), /01-core-development/);
+		return true;
+	},
+);
+
+const manifestRoot = mkdtempSync(join(tmpdir(), "voltagent-import-"));
+const manifestAgentsDir = join(manifestRoot, "agents");
+const managedCategoryDir = join(manifestAgentsDir, "01-core-development");
+mkdirSync(managedCategoryDir, { recursive: true });
+writeFileSync(
+	join(manifestAgentsDir, "voltagent-manifest.json"),
+	`${JSON.stringify(buildManifest(new Map([["01-core-development", ["backend-developer"]]])), null, 2)}\n`,
+);
+ensureManagedCategoryDir(manifestAgentsDir, "01-core-development");
+assert.equal(existsSync(managedCategoryDir), false, "managed category dir should be removed before overwrite");
+
+const emptyRoot = mkdtempSync(join(tmpdir(), "voltagent-import-"));
+ensureManagedCategoryDir(join(emptyRoot, "agents"), "01-core-development");

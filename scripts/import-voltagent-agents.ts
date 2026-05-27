@@ -1,7 +1,6 @@
 import {
 	existsSync,
 	mkdirSync,
-	readdirSync,
 	readFileSync,
 	rmSync,
 	writeFileSync,
@@ -298,9 +297,9 @@ export async function importVoltAgentAgents(rootDir = getRepoRoot()): Promise<Vo
 	}
 
 	const agentsDir = join(rootDir, "agents");
-	cleanupManagedCategoryDirs(agentsDir);
 
 	for (const category of importedCategories) {
+		ensureManagedCategoryDir(agentsDir, category.categorySlug);
 		const categoryDir = join(agentsDir, category.categorySlug);
 		mkdirSync(categoryDir, { recursive: true });
 		writeFileSync(
@@ -325,12 +324,50 @@ export async function importVoltAgentAgents(rootDir = getRepoRoot()): Promise<Vo
 	return manifest;
 }
 
-function cleanupManagedCategoryDirs(agentsDir: string): void {
-	if (!existsSync(agentsDir)) return;
-	for (const entry of readdirSync(agentsDir, { withFileTypes: true })) {
-		if (!entry.isDirectory()) continue;
-		if (!CATEGORY_DIR_PATTERN.test(entry.name)) continue;
-		rmSync(join(agentsDir, entry.name), { recursive: true, force: true });
+export function ensureManagedCategoryDir(agentsDir: string, categorySlug: string): void {
+	const categoryDir = join(agentsDir, categorySlug);
+	if (!existsSync(categoryDir)) return;
+
+	const manifestPath = join(agentsDir, "voltagent-manifest.json");
+	const manifest = readVoltAgentManifest(manifestPath);
+	const hasMatchingCategory = manifest?.sourceRepo === SOURCE_REPO
+		&& manifest.sourceRef === SOURCE_REF
+		&& manifest.categories.some((category) => category.category === categorySlug);
+
+	if (!hasMatchingCategory) {
+		throw new Error(
+			`Refusing to overwrite existing VoltAgent category directory ${categoryDir} without matching ${manifestPath} entry for ${SOURCE_REPO}@${SOURCE_REF} category ${categorySlug}.`,
+		);
+	}
+
+	rmSync(categoryDir, { recursive: true, force: true });
+}
+
+function readVoltAgentManifest(manifestPath: string): VoltAgentManifest | null {
+	if (!existsSync(manifestPath)) return null;
+	try {
+		const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as Partial<VoltAgentManifest>;
+		if (!Array.isArray(manifest.categories)) return null;
+		return {
+			sourceRepo: typeof manifest.sourceRepo === "string" ? manifest.sourceRepo : "",
+			sourceRef: typeof manifest.sourceRef === "string" ? manifest.sourceRef : "",
+			generatedAt: typeof manifest.generatedAt === "string" ? manifest.generatedAt : "",
+			categories: manifest.categories
+				.filter((category): category is VoltAgentManifest["categories"][number] => {
+					return typeof category === "object"
+						&& category != null
+						&& typeof category.category === "string"
+						&& typeof category.count === "number"
+						&& Array.isArray(category.agents);
+				})
+				.map((category) => ({
+					category: category.category,
+					count: category.count,
+					agents: category.agents.filter((agent): agent is string => typeof agent === "string"),
+				})),
+		};
+	} catch {
+		return null;
 	}
 }
 
