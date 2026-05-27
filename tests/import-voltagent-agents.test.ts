@@ -75,6 +75,13 @@ assert.match(router, /team: "01-core-development"/);
 assert.match(router, /tools: read, grep, find, ls, bash, query_team, deploy_agent/);
 assert.match(router, /query_team/);
 assert.match(router, /deploy_agent/);
+assert.match(router, /mandatory orchestrator/i);
+assert.match(router, /coordinator-only/i);
+assert.match(router, /do not execute implementation, research, or task work inline/i);
+assert.match(router, /only inline work is user-facing synthesis/i);
+assert.match(router, /deploy_agent.*concrete work|concrete work.*deploy_agent/i);
+assert.match(router, /query_team.*specific team members|specific team members.*query_team/i);
+assert.match(router, /parallel.*independent/i);
 assert.match(router, /backend-developer/);
 assert.match(router, /frontend-developer/);
 
