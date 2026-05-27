@@ -10,6 +10,7 @@ import {
 	generateCategoryRouter,
 	mergeTeamsYaml,
 	parseFrontmatter,
+	resolveRootDirArg,
 } from "../scripts/import-voltagent-agents.ts";
 
 const upstreamAgent = `---
@@ -139,3 +140,14 @@ assert.equal(existsSync(managedCategoryDir), false, "managed category dir should
 
 const emptyRoot = mkdtempSync(join(tmpdir(), "voltagent-import-"));
 ensureManagedCategoryDir(join(emptyRoot, "agents"), "01-core-development");
+
+assert.equal(
+	resolveRootDirArg(["bun", "scripts/import-voltagent-agents.ts", "."], "/tmp/worktree"),
+	".",
+	"explicit CLI root arg should win over cwd",
+);
+assert.equal(
+	resolveRootDirArg(["bun", "scripts/import-voltagent-agents.ts"], "/tmp/worktree"),
+	"/tmp/worktree",
+	"cwd should be fallback when CLI root arg missing",
+);

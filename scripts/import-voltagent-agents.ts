@@ -384,6 +384,10 @@ function getRepoRoot(): string {
 	return dirname(dirname(fileURLToPath(import.meta.url)));
 }
 
+export function resolveRootDirArg(argv: string[], cwd: string): string {
+	return argv[2] ?? cwd;
+}
+
 function unquote(value: string): string {
 	if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
 		return value.slice(1, -1);
@@ -399,7 +403,7 @@ function formatYamlScalar(key: string, value: string): string {
 }
 
 async function main(): Promise<void> {
-	const manifest = await importVoltAgentAgents();
+	const manifest = await importVoltAgentAgents(resolveRootDirArg(process.argv, process.cwd()));
 	console.log(
 		`Imported ${manifest.categories.reduce((sum, category) => sum + category.count, 0)} agents across ${manifest.categories.length} categories.`,
 	);
