@@ -1,11 +1,12 @@
 import {
 	existsSync,
 	mkdirSync,
+	readdirSync,
 	readFileSync,
 	rmSync,
 	writeFileSync,
 } from "node:fs";
-import { basename, dirname, join } from "node:path";
+import { basename, dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 type FrontmatterValue = string | string[];
@@ -265,6 +266,49 @@ export function assertNoAgentNameCollisions(categories: ImportedCategory[]): voi
 	}
 }
 
+export function assertNoExistingAgentNameCollisions(
+	rootDir: string,
+	categories: ImportedCategory[],
+): void {
+	const agentsDir = join(rootDir, "agents");
+	if (!existsSync(agentsDir)) return;
+
+	const importedAgentOrigins = new Map<string, string>();
+	for (const category of categories) {
+		for (const agent of category.agents) {
+			importedAgentOrigins.set(agent.agentName, `${category.categorySlug}/${agent.fileName}`);
+		}
+	}
+	if (importedAgentOrigins.size === 0) return;
+
+	const existingManifest = readVoltAgentManifest(join(agentsDir, "voltagent-manifest.json"));
+	const managedCategoryDirs = new Set(
+		existingManifest?.sourceRepo === SOURCE_REPO && existingManifest.sourceRef === SOURCE_REF
+			? existingManifest.categories.map((category) => category.category)
+			: [],
+	);
+
+	for (const filePath of listMarkdownFiles(agentsDir)) {
+		const relativeFromAgents = relative(agentsDir, filePath);
+		const [topLevelDir] = relativeFromAgents.split(sep);
+		if (topLevelDir && managedCategoryDirs.has(topLevelDir)) {
+			continue;
+		}
+
+		const displayPath = toPosixPath(relative(rootDir, filePath));
+		const { frontmatter } = parseFrontmatter(readFileSync(filePath, "utf8"), displayPath);
+		const existingName = frontmatter.name?.trim();
+		if (!existingName) continue;
+
+		const importedOrigin = importedAgentOrigins.get(existingName);
+		if (importedOrigin) {
+			throw new Error(
+				`Existing agent name collision for ${existingName}: imported ${importedOrigin} conflicts with ${displayPath}`,
+			);
+		}
+	}
+}
+
 export async function importVoltAgentAgents(rootDir = getRepoRoot()): Promise<VoltAgentManifest> {
 	const categoriesUrl = buildContentsApiUrl(CATEGORY_ROOT);
 	const categoryEntries = await fetchJson<GitHubContentEntry[]>(categoriesUrl);
@@ -295,6 +339,7 @@ export async function importVoltAgentAgents(rootDir = getRepoRoot()): Promise<Vo
 	}
 
 	assertNoAgentNameCollisions(importedCategories);
+	assertNoExistingAgentNameCollisions(rootDir, importedCategories);
 
 	const teams = new Map<string, string[]>();
 	for (const category of importedCategories) {
@@ -378,6 +423,27 @@ function readVoltAgentManifest(manifestPath: string): VoltAgentManifest | null {
 
 function buildContentsApiUrl(path: string): string {
 	return `https://api.github.com/repos/${SOURCE_REPO}/contents/${path}?ref=${SOURCE_REF}`;
+}
+
+function listMarkdownFiles(dir: string): string[] {
+	if (!existsSync(dir)) return [];
+
+	const files: string[] = [];
+	for (const entry of readdirSync(dir, { withFileTypes: true })) {
+		const entryPath = join(dir, entry.name);
+		if (entry.isDirectory()) {
+			files.push(...listMarkdownFiles(entryPath));
+			continue;
+		}
+		if (entry.isFile() && entry.name.endsWith(".md")) {
+			files.push(entryPath);
+		}
+	}
+	return files;
+}
+
+function toPosixPath(path: string): string {
+	return path.split(sep).join("/");
 }
 
 function getRepoRoot(): string {

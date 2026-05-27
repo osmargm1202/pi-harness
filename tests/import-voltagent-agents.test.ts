@@ -3,6 +3,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
+	assertNoExistingAgentNameCollisions,
 	buildManifest,
 	convertAgentMarkdown,
 	ensureManagedCategoryDir,
@@ -141,6 +142,43 @@ assert.equal(existsSync(managedCategoryDir), false, "managed category dir should
 
 const emptyRoot = mkdtempSync(join(tmpdir(), "voltagent-import-"));
 ensureManagedCategoryDir(join(emptyRoot, "agents"), "01-core-development");
+
+const collisionRoot = mkdtempSync(join(tmpdir(), "voltagent-import-"));
+const collisionAgentsDir = join(collisionRoot, "agents");
+mkdirSync(join(collisionAgentsDir, "custom"), { recursive: true });
+writeFileSync(
+	join(collisionAgentsDir, "custom", "existing.md"),
+	`---
+name: backend-developer
+description: Existing custom agent.
+---
+Existing custom prompt.
+`,
+);
+writeFileSync(
+	join(collisionAgentsDir, "voltagent-manifest.json"),
+	`${JSON.stringify(buildManifest(new Map([["01-core-development", ["managed-agent"]]])), null, 2)}\n`,
+);
+assert.throws(
+	() => assertNoExistingAgentNameCollisions(collisionRoot, [
+		{
+			categorySlug: "01-core-development",
+			categoryTitle: "Core Development",
+			agents: [
+				{
+					fileName: "backend-developer.md",
+					agentName: "backend-developer",
+					content: converted,
+				},
+			],
+		},
+	]),
+	(error) => {
+		assert.match(String(error), /Existing agent name collision for backend-developer/);
+		assert.match(String(error), /agents\/custom\/existing\.md/);
+		return true;
+	},
+);
 
 assert.equal(
 	resolveRootDirArg(["bun", "scripts/import-voltagent-agents.ts", "."], "/tmp/worktree"),
