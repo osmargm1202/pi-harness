@@ -137,6 +137,36 @@ assert.equal(manifest.categories[0].category, "01-core-development");
 assert.equal(manifest.categories[0].count, 2);
 assert.deepEqual(manifest.categories[0].agents, ["backend-developer", "frontend-developer"]);
 
+const previousManifest = {
+	sourceRepo: manifest.sourceRepo,
+	sourceRef: manifest.sourceRef,
+	generatedAt: "2026-05-27T00:00:00.000Z",
+	categories: manifest.categories,
+};
+const idempotentManifest = buildManifest(
+	new Map([
+		["01-core-development", ["backend-developer", "frontend-developer"]],
+	]),
+	previousManifest,
+);
+assert.equal(
+	idempotentManifest.generatedAt,
+	"2026-05-27T00:00:00.000Z",
+	"matching manifest should keep generatedAt stable",
+);
+
+const changedManifest = buildManifest(
+	new Map([
+		["01-core-development", ["backend-developer", "frontend-developer", "graphql-architect"]],
+	]),
+	previousManifest,
+);
+assert.notEqual(
+	changedManifest.generatedAt,
+	"2026-05-27T00:00:00.000Z",
+	"changed categories should mint new generatedAt",
+);
+
 const agentsRoot = mkdtempSync(join(tmpdir(), "voltagent-import-"));
 const agentsDir = join(agentsRoot, "agents");
 mkdirSync(join(agentsDir, "01-core-development"), { recursive: true });

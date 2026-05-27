@@ -238,16 +238,24 @@ export function filterAgentEntries(entries: GitHubContentEntry[]): GitHubContent
 	});
 }
 
-export function buildManifest(teams: Map<string, string[]>): VoltAgentManifest {
+export function buildManifest(
+	teams: Map<string, string[]>,
+	existingManifest?: VoltAgentManifest | null,
+): VoltAgentManifest {
+	const categories = Array.from(teams.entries()).map(([category, agents]) => ({
+		category,
+		count: agents.length,
+		agents: [...agents],
+	}));
+	const generatedAt = shouldPreserveGeneratedAt(existingManifest, categories)
+		? existingManifest.generatedAt
+		: new Date().toISOString();
+
 	return {
 		sourceRepo: SOURCE_REPO,
 		sourceRef: SOURCE_REF,
-		generatedAt: new Date().toISOString(),
-		categories: Array.from(teams.entries()).map(([category, agents]) => ({
-			category,
-			count: agents.length,
-			agents: [...agents],
-		})),
+		generatedAt,
+		categories,
 	};
 }
 
@@ -357,6 +365,7 @@ export async function importVoltAgentAgents(rootDir = getRepoRoot()): Promise<Vo
 	}
 
 	const agentsDir = join(rootDir, "agents");
+	const existingManifest = readVoltAgentManifest(join(agentsDir, "voltagent-manifest.json"));
 
 	for (const category of importedCategories) {
 		ensureManagedCategoryDir(agentsDir, category.categorySlug);
@@ -379,7 +388,7 @@ export async function importVoltAgentAgents(rootDir = getRepoRoot()): Promise<Vo
 	const existingTeamsYaml = existsSync(teamsPath) ? readFileSync(teamsPath, "utf8") : "";
 	writeFileSync(teamsPath, mergeTeamsYaml(existingTeamsYaml, teams));
 
-	const manifest = buildManifest(teams);
+	const manifest = buildManifest(teams, existingManifest);
 	writeFileSync(join(agentsDir, "voltagent-manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
 	return manifest;
 }
@@ -429,6 +438,17 @@ function readVoltAgentManifest(manifestPath: string): VoltAgentManifest | null {
 	} catch {
 		return null;
 	}
+}
+
+function shouldPreserveGeneratedAt(
+	existingManifest: VoltAgentManifest | null | undefined,
+	categories: VoltAgentManifest["categories"],
+): existingManifest is VoltAgentManifest {
+	return existingManifest?.sourceRepo === SOURCE_REPO
+		&& existingManifest.sourceRef === SOURCE_REF
+		&& JSON.stringify(existingManifest.categories) === JSON.stringify(categories)
+		&& typeof existingManifest.generatedAt === "string"
+		&& existingManifest.generatedAt.length > 0;
 }
 
 function buildContentsApiUrl(path: string): string {
