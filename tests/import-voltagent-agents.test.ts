@@ -34,7 +34,7 @@ const converted = convertAgentMarkdown(upstreamAgent, "backend-developer.md");
 assert.match(converted, /name: backend-developer/);
 assert.match(converted, /description: "Use this agent when building server-side APIs\."/);
 assert.match(converted, /tools: read, write, edit, bash, find, grep/);
-assert.match(converted, /model: sonnet/);
+assert.doesNotMatch(converted, /model: sonnet/);
 assert.match(converted, /You are a senior backend developer\./);
 assert.doesNotMatch(converted, /Glob/);
 assert.doesNotMatch(converted, /Grep/);

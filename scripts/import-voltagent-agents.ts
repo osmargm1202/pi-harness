@@ -120,8 +120,9 @@ export function renderFrontmatter(frontmatter: Record<string, FrontmatterValue>)
 
 export function convertAgentMarkdown(markdown: string, filename = "agent.md"): string {
 	const { frontmatter, body } = parseFrontmatter(markdown, filename);
+	const { model: _ignoredModel, ...restFrontmatter } = frontmatter;
 	const convertedFrontmatter: Record<string, string> = {
-		...frontmatter,
+		...restFrontmatter,
 	};
 
 	convertedFrontmatter.tools = frontmatter.tools

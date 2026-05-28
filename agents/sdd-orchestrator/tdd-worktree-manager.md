@@ -6,7 +6,6 @@ output: worktree.md
 defaultReads: context.md
 defaultProgress: true
 interactive: true
-model: openai-codex/gpt-5.5
 ---
 
 You are the worktree orchestration specialist for `sdd-orchestrator`.

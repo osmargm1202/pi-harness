@@ -45,6 +45,8 @@ export interface OrgmAgentStatusConfig {
 	showCaveman: boolean;
 }
 
+export type OrgmAgentModelsConfig = Record<string, string>;
+
 export interface OrgmHostConfig {
 	defaultPrimaryAgent: string;
 	flows: Record<string, OrgmFlowName>;
@@ -55,6 +57,7 @@ export interface OrgmHostConfig {
 	caveman: OrgmCavemanConfig;
 	minimalSkills: OrgmMinimalSkillsConfig;
 	agentStatus: OrgmAgentStatusConfig;
+	agentModels: OrgmAgentModelsConfig;
 }
 
 export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
@@ -97,6 +100,7 @@ export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
 		showActivity: true,
 		showCaveman: true,
 	},
+	agentModels: {},
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -175,6 +179,15 @@ export function mergeAgentStatusConfig(value: unknown): OrgmAgentStatusConfig {
 	};
 }
 
+export function mergeAgentModelsConfig(value: unknown): OrgmAgentModelsConfig {
+	if (!isRecord(value)) return { ...DEFAULT_ORGM_CONFIG.agentModels };
+	return Object.fromEntries(
+		Object.entries(value)
+			.filter(([agentName, model]) => agentName.trim().length > 0 && typeof model === "string" && model.trim().length > 0)
+			.map(([agentName, model]) => [agentName.trim(), model.trim()]),
+	);
+}
+
 const KNOWN_ORGM_CONFIG_KEYS = [
 	"defaultPrimaryAgent",
 	"flows",
@@ -185,6 +198,7 @@ const KNOWN_ORGM_CONFIG_KEYS = [
 	"caveman",
 	"minimalSkills",
 	"agentStatus",
+	"agentModels",
 ] as const;
 
 function preserveUnknownTopLevelValues(raw: Record<string, unknown>): Record<string, unknown> {
@@ -211,6 +225,7 @@ function mergeOrgmConfig(raw: Record<string, unknown>): OrgmHostConfig {
 		caveman: mergeCavemanConfig(raw.caveman),
 		minimalSkills: mergeMinimalSkillsConfig(raw.minimalSkills),
 		agentStatus: mergeAgentStatusConfig(raw.agentStatus),
+		agentModels: mergeAgentModelsConfig(raw.agentModels),
 	};
 }
 
@@ -245,7 +260,7 @@ export function orgmConfigPath(home = process.env.HOME ?? homedir()): string {
 }
 
 export type OrgmConfigSliceKey = keyof OrgmHostConfig;
-export type WritableOrgmConfigSliceKey = keyof Pick<OrgmHostConfig, "defaultPrimaryAgent" | "primaryAuto" | "caveman" | "minimalSkills" | "agentStatus" | "repoTree" | "title">;
+export type WritableOrgmConfigSliceKey = keyof Pick<OrgmHostConfig, "defaultPrimaryAgent" | "primaryAuto" | "caveman" | "minimalSkills" | "agentStatus" | "agentModels" | "repoTree" | "title">;
 
 export function loadOrgmConfig(configPath = orgmConfigPath()): OrgmHostConfig {
 	if (!existsSync(configPath)) return structuredClone(DEFAULT_ORGM_CONFIG);

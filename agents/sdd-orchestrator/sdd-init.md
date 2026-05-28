@@ -1,7 +1,6 @@
 ---
 name: sdd-init
 description: Initialize project SDD context, testing capabilities, and project standards.
-model: openai-codex/gpt-5.4
 tools: read, grep, glob, write, bash
 inheritProjectContext: true
 ---

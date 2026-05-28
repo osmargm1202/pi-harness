@@ -18,7 +18,7 @@ const projectAgentsDir = join(projectRoot, ".pi", "agents");
 mkdirSync(projectAgentsDir, { recursive: true });
 writeFileSync(
 	join(projectAgentsDir, "skill-expert.md"),
-	`---\nname: skill-expert\ndescription: project override\ntools: read\n---\nProject override body\n`,
+	`---\nname: skill-expert\ndescription: project override\ntools: read\nmodel: openai-codex/gpt-5.5\n---\nProject override body\n`,
 );
 
 const mergedAgents = discoverDeployableAgents(projectRoot, "both");
@@ -26,4 +26,5 @@ const overridden = mergedAgents.find((agent) => agent.name === "skill-expert");
 assert(overridden, "merged discovery should include the project override");
 assert.equal(overridden.source, "project");
 assert.equal(overridden.description, "project override");
+assert.equal(overridden.model, undefined, "agent frontmatter model should be ignored so default/main model is used unless orgm.json overrides it");
 assert.equal(overridden.systemPrompt, "Project override body");

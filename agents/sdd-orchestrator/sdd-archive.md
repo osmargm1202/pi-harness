@@ -3,7 +3,6 @@ name: sdd-archive
 description: Archive a verified SDD change into OpenSpec source specs.
 tools: read, grep, glob, write, edit, bash
 inheritProjectContext: true
-model: openai-codex/gpt-5.4
 ---
 
 You are the SDD archive executor for ORGM SDD.

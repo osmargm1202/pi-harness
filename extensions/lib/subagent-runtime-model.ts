@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
 import type { AgentSource } from "./agent-discovery.ts";
+import type { OrgmAgentModelsConfig } from "./orgm-config.ts";
 
 const require = createRequire(import.meta.url);
 const { truncateToWidth, visibleWidth } = loadPiTui();
@@ -183,6 +184,11 @@ export function getDeployAgentInlineRuntimeParts(details: Pick<DeploymentState, 
 		details.reusedRuntime ? "reused" : "new",
 		details.depth ? `depth: ${details.depth}` : undefined,
 	].filter((part): part is string => Boolean(part));
+}
+
+export function resolveConfiguredSubagentModel(agentName: string, agentModels: OrgmAgentModelsConfig): string | undefined {
+	const configured = agentModels[agentName];
+	return typeof configured === "string" && configured.trim().length > 0 ? configured.trim() : undefined;
 }
 
 export function deriveRuntimePlaceholder(runtime: RuntimeSnapshot): DeploymentState {

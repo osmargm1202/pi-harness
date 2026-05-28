@@ -98,7 +98,7 @@ export function readAgentConfig(filePath: string, source: AgentSource, rootDir?:
 			name,
 			description: frontmatter.description || name,
 			tools: parseTools(frontmatter.tools),
-			model: frontmatter.model,
+			model: undefined,
 			systemPrompt: body.trim(),
 			source,
 			filePath,

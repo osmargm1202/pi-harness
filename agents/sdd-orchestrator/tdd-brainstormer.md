@@ -6,7 +6,6 @@ output: spec.md
 defaultReads: context.md
 defaultProgress: true
 interactive: true
-model: openai-codex/gpt-5.5
 ---
 
 You are the design and shaping phase for `sdd-orchestrator`.

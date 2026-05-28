@@ -2,56 +2,39 @@
  * agent-selector.ts
  *
  * Extension for selecting a specific agent and assigning one of the
- * configured models from the agents/ tree.
+ * configured models from orgm.json.
  */
 
-import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, basename } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { DynamicBorder } from "@earendil-works/pi-coding-agent";
 import { Container, Key, matchesKey, SelectList, Text, type SelectItem } from "@earendil-works/pi-tui";
 import { discoverDeployableAgents, type AgentConfig } from "./lib/agent-discovery.ts";
+import { loadOrgmConfigSlice, orgmConfigPath, saveOrgmConfigSlice } from "./lib/orgm-config.ts";
+import { resolveConfiguredSubagentModel } from "./lib/subagent-runtime-model.ts";
 import { createSelectListTheme } from "./lib/tui-select-panel.ts";
 
 const DEPRECATED_AGENT_MODELS = new Set(["openai-codex/gpt-5.3-codex-spark"]);
 
-export function collectConfiguredAgentModels(ctx: ExtensionContext, preferredModel?: string): string[] {
+export function collectConfiguredAgentModels(ctx: ExtensionContext, preferredModel?: string, configPath = orgmConfigPath()): string[] {
 	const models = new Set<string>();
 
 	for (const model of ctx.modelRegistry.getAvailable()) {
 		models.add(`${model.provider}/${model.id}`);
 	}
 
-	for (const agent of discoverDeployableAgents(ctx.cwd, "both")) {
-		const model = agent.model?.trim();
-		if (model && !DEPRECATED_AGENT_MODELS.has(model)) models.add(model);
+	for (const model of Object.values(loadOrgmConfigSlice("agentModels", configPath))) {
+		const normalized = model.trim();
+		if (normalized && !DEPRECATED_AGENT_MODELS.has(normalized)) models.add(normalized);
 	}
 
 	if (preferredModel?.trim() && !DEPRECATED_AGENT_MODELS.has(preferredModel.trim())) models.add(preferredModel.trim());
 	return Array.from(models).sort((a, b) => a.localeCompare(b));
 }
 
-function upsertAgentModelFrontmatter(markdown: string, model: string): string {
-	const normalizedModel = model.trim();
-	const match = markdown.match(/^(---\n)([\s\S]*?)(\n---\n?)([\s\S]*)$/);
-	if (!match) {
-		return `---\nmodel: ${normalizedModel}\n---\n\n${markdown.trimStart()}`;
-	}
-
-	const [, opening, frontmatterBlock, closing, body] = match;
-	const lines = frontmatterBlock.split("\n");
-	const modelLineIndex = lines.findIndex((line) => /^model\s*:/i.test(line.trim()));
-
-	if (modelLineIndex >= 0) lines[modelLineIndex] = `model: ${normalizedModel}`;
-	else lines.push(`model: ${normalizedModel}`);
-
-	return `${opening}${lines.join("\n")}${closing}${body}`;
-}
-
-function saveAgentModel(agent: AgentConfig, model: string): AgentConfig {
-	const raw = readFileSync(agent.filePath, "utf8");
-	const next = upsertAgentModelFrontmatter(raw, model);
-	if (next !== raw) writeFileSync(agent.filePath, next, "utf8");
+function saveAgentModel(agent: AgentConfig, model: string, configPath = orgmConfigPath()): AgentConfig {
+	const current = loadOrgmConfigSlice("agentModels", configPath);
+	saveOrgmConfigSlice("agentModels", { ...current, [agent.name]: model.trim() }, configPath);
 	return { ...agent, model: model.trim() };
 }
 
@@ -118,7 +101,12 @@ function buildAgentHeader(width: number): string {
 }
 
 async function openAgentModelPalette(ctx: ExtensionContext): Promise<void> {
-	const agents = discoverDeployableAgents(ctx.cwd, "both");
+	const configPath = orgmConfigPath();
+	const agentModels = loadOrgmConfigSlice("agentModels", configPath);
+	const agents = discoverDeployableAgents(ctx.cwd, "both").map((agent) => ({
+		...agent,
+		model: resolveConfiguredSubagentModel(agent.name, agentModels),
+	}));
 	if (agents.length === 0) {
 		ctx.ui.notify("No deployable subagents found in agents/", "warning");
 		return;
@@ -146,7 +134,7 @@ async function openAgentModelPalette(ctx: ExtensionContext): Promise<void> {
 	const findAgentIndex = (name: string) => state.agents.findIndex((agent) => agent.name === name);
 
 	const ensureModelItems = (agent: AgentConfig) => {
-		const models = collectConfiguredAgentModels(ctx, agent.model);
+		const models = collectConfiguredAgentModels(ctx, agent.model, configPath);
 		state.modelItems = models.map((model) => ({
 			value: model,
 			label: model === agent.model ? `${model}  ✓ current` : model,
@@ -275,7 +263,7 @@ async function openAgentModelPalette(ctx: ExtensionContext): Promise<void> {
 					const modelValue = state.modelItems[idx]?.value;
 					if (!modelValue) return;
 
-					saveAgentModel(agent, modelValue);
+					saveAgentModel(agent, modelValue, configPath);
 					agent.model = modelValue;
 					ctx.ui.notify(`Saved ${agent.displayName} → ${modelValue}`, "success");
 					ensureModelItems(agent);

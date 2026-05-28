@@ -16,6 +16,7 @@ try {
 		caveman: { defaultLevel: "lite" },
 		minimalSkills: { enabled: false },
 		agentStatus: { showWidget: false },
+		agentModels: { "coding-expert": "openai-codex/gpt-5.5", "empty-agent": "   " },
 	}, null, 2), "utf8");
 
 	const orgmConfig = loadOrgmConfig(configPath);
@@ -26,6 +27,11 @@ try {
 	assert.equal(loadOrgmConfigSlice("title", configPath).autoGenerate, false, "loadOrgmConfigSlice should load title slice");
 	assert.equal(loadOrgmConfigSlice("agentStatus", configPath).showWidget, false, "loadOrgmConfigSlice should load agentStatus slice");
 	assert.equal(loadOrgmConfigSlice("primaryAuto", configPath).enabled, true, "primaryAuto.enabled should default to true when missing");
+	assert.deepEqual(
+		loadOrgmConfigSlice("agentModels", configPath),
+		{ "coding-expert": "openai-codex/gpt-5.5" },
+		"agentModels slice should load trimmed per-agent model overrides from central orgm.json only",
+	);
 
 	assert.equal(loadOrgmConfigSlice("caveman", configPath).defaultLevel, "lite", "caveman slice should load from central orgm.json");
 	assert.equal(loadOrgmConfigSlice("minimalSkills", configPath).enabled, false, "minimalSkills slice should load from central orgm.json");
@@ -34,10 +40,12 @@ try {
 	saveOrgmConfigSlice("defaultPrimaryAgent", "pi", configPath);
 	saveOrgmConfigSlice("title", { autoGenerate: true }, configPath);
 	saveOrgmConfigSlice("primaryAuto", { enabled: false }, configPath);
+	saveOrgmConfigSlice("agentModels", { "skill-expert": "test-provider/base-model" }, configPath);
 	const savedConfig = loadOrgmConfig(configPath);
 	assert.equal(savedConfig.defaultPrimaryAgent, "pi", "defaultPrimaryAgent should persist through saveOrgmConfigSlice");
 	assert.equal(savedConfig.title.autoGenerate, true, "title config should persist through saveOrgmConfigSlice");
 	assert.equal(savedConfig.primaryAuto.enabled, false, "primaryAuto config should persist through saveOrgmConfigSlice");
+	assert.deepEqual(savedConfig.agentModels, { "skill-expert": "test-provider/base-model" }, "agentModels config should persist through saveOrgmConfigSlice");
 
 	writeFileSync(configPath, JSON.stringify({
 		unknownFutureKey: { keep: true },
@@ -70,6 +78,7 @@ try {
 		{ enabled: true },
 		"initializeOrgmConfig should write primaryAuto enabled into generated orgm.json",
 	);
+	assert.deepEqual(initializedRaw.agentModels, {}, "initializeOrgmConfig should write empty agentModels overrides into generated orgm.json");
 } finally {
 	rmSync(tempDir, { recursive: true, force: true });
 }

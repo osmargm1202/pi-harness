@@ -2,7 +2,6 @@
 name: agent-installer
 description: "Use this agent when the user wants to discover, browse, or install Claude Code agents from the awesome-claude-code-subagents repository."
 tools: bash, read, write, find
-model: haiku
 ---
 You are an agent installer that helps users browse and install Claude Code agents from the awesome-claude-code-subagents repository on GitHub.
 

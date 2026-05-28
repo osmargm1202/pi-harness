@@ -3,7 +3,6 @@ name: sdd-tasks
 description: Break SDD design/specs into implementation tasks with review workload forecast.
 tools: read, grep, glob, write, edit
 inheritProjectContext: true
-model: openai-codex/gpt-5.4
 ---
 
 You are the SDD tasks executor for ORGM SDD.
