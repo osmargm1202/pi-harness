@@ -82,9 +82,9 @@ assert.match(router, /only inline work is user-facing synthesis/i);
 assert.match(router, /deploy_agent.*concrete work|concrete work.*deploy_agent/i);
 assert.match(router, /query_team.*specific team members|specific team members.*query_team/i);
 assert.match(router, /parallel.*independent/i);
-assert.match(router, /## Delegation rule/);
-assert.match(router, /delegate exploration, verification, and information gathering to appropriate subagents/i);
-assert.match(router, /do not use direct shell or file exploration as normal workflow/i);
+assert.doesNotMatch(router, /## Delegation rule/);
+assert.doesNotMatch(router, /delegate exploration, verification, and information gathering to appropriate subagents/i);
+assert.doesNotMatch(router, /do not use direct shell or file exploration as normal workflow/i);
 assert.match(router, /backend-developer/);
 assert.match(router, /frontend-developer/);
 

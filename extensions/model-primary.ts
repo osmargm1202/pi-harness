@@ -29,6 +29,8 @@ interface SelectorItem extends SelectItem {
 	description: string;
 }
 
+const PRIMARY_AUTO_NONE_LABEL = "Pi solo (sin agente primario)";
+
 interface ModelPrimaryOptions {
 	configPath?: string;
 	routePrimary?: (args: {
@@ -97,7 +99,7 @@ function buildPrimaryAutoSelectorItems(
 		if (orderedNames.length >= 4) break;
 	}
 
-	return orderedNames.slice(0, 4).map((name, index) => {
+	const items = orderedNames.slice(0, 4).map((name, index) => {
 		const candidate = byName.get(name)!;
 		const top = index === 0;
 		return {
@@ -106,6 +108,14 @@ function buildPrimaryAutoSelectorItems(
 			description: reasons.get(name) || candidate.description || "",
 		};
 	});
+
+	items.push({
+		value: SYSTEM_AGENT,
+		label: `  ${PRIMARY_AUTO_NONE_LABEL}`,
+		description: "Sin overlay de agente primario; usar Pi por defecto",
+	});
+
+	return items;
 }
 
 function hasExistingConversation(entries: readonly any[]): boolean {
@@ -180,7 +190,11 @@ export default function modelPrimaryExtension(pi: ExtensionAPI, options: ModelPr
 			restorePrimaryState(entries, ctx.cwd, "both"),
 			config,
 		);
-		if (savedAutoState?.selectedName) currentPrimary = resolveConfiguredPrimary(ctx.cwd, savedAutoState.selectedName, config);
+		if (savedAutoState?.selectedName) {
+			currentPrimary = savedAutoState.selectedName === SYSTEM_AGENT
+				? SYSTEM_AGENT
+				: resolveConfiguredPrimary(ctx.cwd, savedAutoState.selectedName, config);
+		}
 		pi.events.emit(PRIMARY_STATE_EVENT, { selectedName: currentPrimary });
 	});
 

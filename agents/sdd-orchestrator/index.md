@@ -44,11 +44,6 @@ output: result.md
 defaultReads: context.md
 interactive: true
 ---
-## Delegation rule
-Agents and orchestrators in this folder must delegate exploration, verification, and information gathering to appropriate subagents.
-Only the default Pi agent may do direct inline work, including recovery; folder agents must delegate.
-Do not use direct shell or file exploration as normal workflow.
-
 # SDD Orchestrator
 
 Bind this to the primary Pi session only. Do not apply it to SDD/TDD executor phase agents.

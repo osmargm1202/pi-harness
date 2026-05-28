@@ -37,6 +37,11 @@ import {
 } from "./lib/agent-discovery.ts";
 import { loadOrgmConfig } from "./lib/orgm-config.ts";
 import {
+	SUBAGENT_INTERACTION_BRIDGE_ENV,
+	processPendingSubagentInteractionRequests,
+	type SubagentInteractionRequest,
+} from "./lib/subagent-interaction-bridge.ts";
+import {
 	SUBAGENTS_EVENT,
 	SUBAGENT_ENV_FLAG,
 	SUBAGENT_STATUS_KEY as STATUS_KEY,
@@ -1318,6 +1323,18 @@ function isLikelyRetryableModelFailure(params: {
 	);
 }
 
+function subagentRequestToAwaitingPayload(request: SubagentInteractionRequest): AwaitingUserInputPayload {
+	const payload = request.payload;
+	if (payload && typeof payload === "object" && (payload as { status?: unknown }).status === "awaiting_user_input") {
+		return payload as AwaitingUserInputPayload;
+	}
+	return {
+		status: "awaiting_user_input",
+		question: request.kind === "permission" ? "Subagent requests permission" : "Subagent needs your input",
+		context: stringifyUnknown(payload) || "The delegated agent needs input before continuing.",
+	};
+}
+
 function buildManualResumeRequiredText(details: ProviderStopDetails): string {
 	return [
 		"Manual resume required.",
@@ -1763,6 +1780,8 @@ export default function (pi: ExtensionAPI) {
 		let userResponse: RelayUserResponse | undefined;
 		let tmpPromptDir: string | null = null;
 		let tmpPromptPath: string | null = null;
+		let interactionBridgeDir: string | null = null;
+		const processedInteractionRequests = new Set<string>();
 
 		const emitProgress = () => {
 			const details: AgentRunDetails = {
@@ -1821,6 +1840,33 @@ export default function (pi: ExtensionAPI) {
 			}
 		};
 
+		const relayPendingInteractionRequests = async () => {
+			if (!interactionBridgeDir || !params.relayUserInput || !params.ctx.hasUI) return;
+			await processPendingSubagentInteractionRequests(interactionBridgeDir, async (request) => {
+				const payload = subagentRequestToAwaitingPayload(request);
+				deployment.status = "awaiting_user_input";
+				deployment.summary = truncate(payload.executive_summary || payload.question || "awaiting user input");
+				deployment.currentActivity = "awaiting user input";
+				appendTranscript(params.ctx, deployment.deploymentId, {
+					kind: "status",
+					title: `Interaction bridge · ${request.kind}`,
+					text: payload.question || payload.context,
+					ts: Date.now(),
+				});
+				refreshUI(params.ctx);
+				emitProgress();
+				const response = await relayAwaitingUserInput(payload, params.ctx);
+				deployment.status = "running";
+				deployment.currentActivity = "resuming after user input";
+				refreshUI(params.ctx);
+				emitProgress();
+				return {
+					...response,
+					allowed: request.kind === "permission" && !response.cancelled && (response.selection === "Allow" || (typeof response.selection === "string" && response.selection.startsWith("Allow —"))),
+				};
+			}, processedInteractionRequests);
+		};
+
 		const runAttempt = async (modelRef: string | undefined) => {
 			let attemptFinalText = "";
 			let attemptStopReason: string | undefined;
@@ -1862,6 +1908,7 @@ export default function (pi: ExtensionAPI) {
 				PI_SUBAGENT_RUNTIME_DEPTH: String(deployment.depth),
 				PI_SUBAGENT_PARENT_RUNTIME_ID: deployment.parentRuntimeId || "",
 				PI_SUBAGENT_OWNER_SESSION_FILE: deployment.ownerSessionFile || "",
+				...(interactionBridgeDir && params.relayUserInput && params.ctx.hasUI ? { [SUBAGENT_INTERACTION_BRIDGE_ENV]: interactionBridgeDir } : {}),
 			};
 			let stdoutBuffer = "";
 			let settled = false;
@@ -1872,6 +1919,7 @@ export default function (pi: ExtensionAPI) {
 			let completionWatchdog: NodeJS.Timeout | undefined;
 			let forceKillWatchdog: NodeJS.Timeout | undefined;
 			let pollInterval: NodeJS.Timeout | undefined;
+			let interactionPollInterval: NodeJS.Timeout | undefined;
 			let forceCompleteAttempt: (() => void) | undefined;
 			let stdoutOffset = 0;
 			let stderrOffset = 0;
@@ -1880,6 +1928,7 @@ export default function (pi: ExtensionAPI) {
 				if (completionWatchdog) clearTimeout(completionWatchdog);
 				if (forceKillWatchdog) clearTimeout(forceKillWatchdog);
 				if (pollInterval) clearInterval(pollInterval);
+				if (interactionPollInterval) clearInterval(interactionPollInterval);
 			};
 			const resolveExitCode = (code: number | null | undefined): number => {
 				if (
@@ -2205,6 +2254,19 @@ export default function (pi: ExtensionAPI) {
 					stdio: ["ignore", "pipe", "pipe"],
 					shell: false,
 				});
+				if (interactionBridgeDir && params.relayUserInput && params.ctx.hasUI) {
+					interactionPollInterval = setInterval(() => {
+						void relayPendingInteractionRequests().catch((error) => {
+							appendTranscript(params.ctx, deployment.deploymentId, {
+								kind: "error",
+								title: "Interaction bridge error",
+								text: getErrorMessage(error),
+								ts: Date.now(),
+							});
+						});
+					}, 100);
+					interactionPollInterval.unref?.();
+				}
 				let childClosed = false;
 				let terminationRequested = false;
 				const terminateChild = (reason: "abort" | "completion") => {
@@ -2288,6 +2350,9 @@ export default function (pi: ExtensionAPI) {
 
 		try {
 			try {
+				if (params.relayUserInput && params.ctx.hasUI) {
+					interactionBridgeDir = ensureDir(join(tmpdir(), "pi-subagent-interactions", sanitizeFileLabel(params.deploymentId)));
+				}
 				if (params.agent.systemPrompt) {
 					const tmp = writePromptToTempFile(
 						params.agent.name,
@@ -2330,6 +2395,8 @@ export default function (pi: ExtensionAPI) {
 				if (tmpPromptPath) rmSync(tmpPromptPath, { force: true });
 				if (tmpPromptDir)
 					rmSync(tmpPromptDir, { recursive: true, force: true });
+				if (interactionBridgeDir)
+					rmSync(interactionBridgeDir, { recursive: true, force: true });
 			}
 
 			questionPayload = parseAwaitingUserInputPayload(finalText);

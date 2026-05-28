@@ -228,6 +228,72 @@ function makeHarness(options?: {
 }
 
 {
+	const tempDir = mkdtempSync(join(tmpdir(), "primary-auto-pi-solo-"));
+	const configPath = join(tempDir, "orgm.json");
+	writeFileSync(configPath, JSON.stringify({ defaultPrimaryAgent: "pi-orchestrator" }, null, 2));
+	const previousEnv = setSubagentEnv({
+		PI_PDD_SUBAGENT: undefined,
+		PI_SUBAGENT_RUNTIME_ID: undefined,
+		PI_SUBAGENT_RUNTIME_DEPTH: undefined,
+	});
+
+	const harness = makeHarness({
+		configPath,
+		selectResult: "pi",
+		routePrimary: async () => ({ selectedName: "pi-orchestrator", reason: "top recommendation" }),
+	});
+
+	try {
+		await harness.handlers.get("session_start")?.({ reason: "startup" }, harness.ctx);
+		const firstResult = await harness.handlers.get("before_agent_start")?.({
+			systemPrompt: "base system prompt",
+			prompt: "Use Pi solo",
+		}, harness.ctx);
+		assert.equal(harness.customPanels.length, 1, "primary-auto should show a chooser TUI once");
+		assert.equal(
+			harness.customPanels[0]!.lines.some((line) => line.includes("Pi solo")),
+			true,
+			"chooser should include explicit Pi solo option",
+		);
+		assert.equal(firstResult, undefined, "Pi solo selection should not apply a primary-agent overlay");
+		assert.equal(
+			JSON.parse(readFileSync(configPath, "utf8")).defaultPrimaryAgent,
+			"pi-orchestrator",
+			"auto Pi solo should not rewrite durable defaultPrimaryAgent config",
+		);
+		assert.equal(
+			harness.appendEntries.some((entry) => entry.customType === PRIMARY_STATE_ENTRY && (entry.data as { selectedName?: string }).selectedName === "pi"),
+			true,
+			"Pi solo selection should persist explicit session primary none sentinel",
+		);
+		assert.equal(
+			harness.appendEntries.some((entry) => entry.customType === PRIMARY_AUTO_STATE_ENTRY && (entry.data as { selectedName?: string }).selectedName === "pi"),
+			true,
+			"Pi solo selection should persist explicit auto none sentinel",
+		);
+
+		const restoredEntries = harness.appendEntries.map((entry) => ({
+			type: "custom",
+			customType: entry.customType,
+			data: entry.data,
+		}));
+		const restoredHarness = makeHarness({
+			configPath,
+			entries: restoredEntries,
+		});
+		await restoredHarness.handlers.get("session_start")?.({ reason: "startup" }, restoredHarness.ctx);
+		const restoredResult = await restoredHarness.handlers.get("before_agent_start")?.({
+			systemPrompt: "base system prompt",
+			prompt: "Restored Pi solo should stay Pi solo",
+		}, restoredHarness.ctx);
+		assert.equal(restoredResult, undefined, "restored Pi solo sentinel should not reapply stale default primary");
+	} finally {
+		setSubagentEnv(previousEnv);
+		rmSync(tempDir, { recursive: true, force: true });
+	}
+}
+
+{
 	const tempDir = mkdtempSync(join(tmpdir(), "primary-auto-cancel-"));
 	const configPath = join(tempDir, "orgm.json");
 	writeFileSync(configPath, JSON.stringify({ defaultPrimaryAgent: "pi" }, null, 2));

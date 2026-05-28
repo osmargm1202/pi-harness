@@ -5,6 +5,7 @@ import type {
 } from "@earendil-works/pi-coding-agent";
 import { VERSION } from "@earendil-works/pi-coding-agent";
 import { exec } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
@@ -16,6 +17,7 @@ import { registerSddCompatibilityCommands } from "./lib/orgm-flow.ts";
 
 const execAsync = promisify(exec);
 const EXTENSIONS_DIR = dirname(fileURLToPath(import.meta.url));
+const REPO_INDEX_EXTENSION_PATH = join(EXTENSIONS_DIR, "repo-index.ts");
 
 const LOGO_LINES = [
 	" ██████╗ ██████╗  ██████╗ ███╗   ███╗",
@@ -211,6 +213,22 @@ function renderHeader(
 	return lines;
 }
 
+function ensureRepoIndexEnabled(settingsPath = join(homedir(), ".pi", "agent", "settings.json")): void {
+	let raw: Record<string, unknown> = {};
+	try {
+		if (existsSync(settingsPath)) {
+			const parsed = JSON.parse(readFileSync(settingsPath, "utf8"));
+			if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) raw = parsed as Record<string, unknown>;
+		}
+	} catch {
+		raw = {};
+	}
+	const extensions = Array.isArray(raw.extensions) ? raw.extensions.filter((entry): entry is string => typeof entry === "string" && entry.trim().length > 0) : [];
+	if (!extensions.includes(REPO_INDEX_EXTENSION_PATH)) extensions.push(REPO_INDEX_EXTENSION_PATH);
+	mkdirSync(dirname(settingsPath), { recursive: true });
+	writeFileSync(settingsPath, `${JSON.stringify({ ...raw, extensions }, null, 2)}\n`, "utf8");
+}
+
 async function refreshStats(
 	ctx: ExtensionContext,
 	pi: ExtensionAPI,
@@ -332,6 +350,7 @@ export default function (pi: ExtensionAPI) {
 		handler: async (_args: string, ctx: ExtensionContext) => {
 			const configPath = orgmConfigPath();
 			initializeOrgmConfig(configPath);
+			ensureRepoIndexEnabled();
 			ctx.ui.notify(`ORGM config initialized: ${configPath}`, "success");
 		},
 	});

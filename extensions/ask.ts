@@ -4,6 +4,7 @@ import { join } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Editor, type EditorTheme, Key, matchesKey, Text, truncateToWidth, wrapTextWithAnsi } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
+import { requestSubagentInteraction, formatSubagentInteractionUnavailable } from "./lib/subagent-interaction-bridge.ts";
 import { createSelectListTheme } from "./lib/tui-select-panel.ts";
 
 const MAX_QUESTIONS = 4;
@@ -112,6 +113,60 @@ function answerText(answer: Answer): string {
 	if (answer.kind === "chat") return `${answer.question}: user asked to chat about this`;
 	if (answer.kind === "custom") return `${answer.question}: user wrote: ${answer.answer ?? ""}`;
 	return `${answer.question}: user selected: ${answer.answer ?? ""}`;
+}
+
+function bridgeQuestionPayload(params: QuestionParams) {
+	return {
+		status: "awaiting_user_input",
+		question: params.questions.length === 1 ? params.questions[0]!.question : "Subagent needs answers to multiple questions",
+		context: params.questions.map((question, index) => {
+			const options = question.options.map((option) => option.label).join(" | ");
+			return `${index + 1}. ${question.question}${options ? `\nOptions: ${options}` : ""}`;
+		}).join("\n\n"),
+		options: params.questions.length === 1 ? params.questions[0]!.options.map((option) => ({ title: option.label, description: option.description })) : undefined,
+		allowMultiple: params.questions[0]?.multiSelect === true,
+		allowFreeform: true,
+		allowComment: params.questions.length > 1,
+	};
+}
+
+function questionnaireResultFromBridge(params: QuestionParams, response: { cancelled: boolean; selection?: string | string[]; comment?: string; raw?: unknown }): QuestionnaireResult {
+	if (response.cancelled) return { answers: [], cancelled: true, error: "cancelled" };
+	const firstQuestion = params.questions[0]!;
+	const selection = response.selection;
+	const asArray = Array.isArray(selection) ? selection : typeof selection === "string" ? [selection] : [];
+	const answerValue = asArray.join(", ") || (typeof response.raw === "string" ? response.raw : response.comment) || "answered";
+	const matchesOption = firstQuestion.options.some((option) => answerValue === option.label || answerValue.startsWith(`${option.label} —`));
+	const kind: Answer["kind"] = firstQuestion.multiSelect ? "multi" : matchesOption ? "option" : "custom";
+	return {
+		answers: [{
+			questionIndex: 0,
+			question: firstQuestion.question,
+			kind,
+			answer: kind === "multi" ? null : answerValue,
+			selected: kind === "multi" ? asArray : undefined,
+		}],
+		cancelled: false,
+	};
+}
+
+async function runQuestionnaireThroughBridge(params: QuestionParams) {
+	const validationError = validateParams(params);
+	if (validationError) {
+		return {
+			content: [{ type: "text", text: `Error: ${validationError}` }],
+			details: { answers: [], cancelled: true, error: validationError } satisfies QuestionnaireResult,
+		};
+	}
+	const bridged = await requestSubagentInteraction("ask_user_question", bridgeQuestionPayload(params));
+	if (!bridged.ok) {
+		return { content: [{ type: "text", text: `Error: ${bridged.error}` }], details: { answers: [], cancelled: true, error: bridged.error } satisfies QuestionnaireResult };
+	}
+	const result = questionnaireResultFromBridge(params, bridged.response);
+	return {
+		content: [{ type: "text", text: result.cancelled ? "User cancelled the questionnaire" : result.answers.map(answerText).join("\n") }],
+		details: result,
+	};
 }
 
 export function renderWrappedQuestion(question: string, width: number, style: (text: string) => string): string[] {
@@ -408,7 +463,18 @@ export default function (pi: ExtensionAPI) {
 		const command = String((event.input as { command?: unknown }).command ?? "");
 		const rule = matchingRule(command, loadAskConfig());
 		if (!rule) return;
-		if (!ctx.hasUI) return { block: true, reason: `Command matched ask rule: ${rule.name}` };
+		if (!ctx.hasUI) {
+			const bridged = await requestSubagentInteraction("permission", {
+				status: "awaiting_user_input",
+				question: `Confirm command: ${rule.name}`,
+				context: `${rule.message ?? "Allow command?"}\n\n${command}`,
+				options: [{ title: "Allow", description: "Run the command" }, { title: "Deny", description: "Block the command" }],
+			});
+			if (!bridged.ok) return { block: true, reason: bridged.error || formatSubagentInteractionUnavailable() };
+			const allowed = bridged.response.allowed === true || bridged.response.selection === "Allow" || (typeof bridged.response.selection === "string" && bridged.response.selection.startsWith("Allow —"));
+			if (!allowed) return { block: true, reason: "Blocked by relayed user permission" };
+			return;
+		}
 		const ok = await ctx.ui.confirm(`Confirm command: ${rule.name}`, `${rule.message ?? "Allow command?"}\n\n${command}`);
 		if (!ok) return { block: true, reason: "Blocked by ask.ts" };
 	});
@@ -426,9 +492,7 @@ export default function (pi: ExtensionAPI) {
 		],
 		parameters: QuestionParamsSchema,
 		async execute(_id, params, _signal, _onUpdate, ctx) {
-			if (!ctx.hasUI) {
-				return { content: [{ type: "text", text: "Error: UI not available" }], details: { answers: [], cancelled: true, error: "no_ui" } };
-			}
+			if (!ctx.hasUI) return runQuestionnaireThroughBridge(params as QuestionParams);
 			return runQuestionnaire(ctx, params as QuestionParams);
 		},
 		renderCall(args, theme) {

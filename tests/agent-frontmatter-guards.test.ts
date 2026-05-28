@@ -20,6 +20,8 @@ const ENGRAM_TOOLS = [
 ];
 
 const DELEGATION_HEADING = "## Delegation rule";
+const STRICT_DELEGATION_PHRASE =
+	"Agents and orchestrators in this folder must delegate exploration, verification, and information gathering to appropriate subagents.";
 
 function listMarkdownFiles(dir: string): string[] {
 	const files: string[] = [];
@@ -45,16 +47,7 @@ function getToolsLine(content: string): string | null {
 for (const filePath of listMarkdownFiles(agentsRoot)) {
 	const relativePath = relative(repoRoot, filePath);
 	const content = readFileSync(filePath, "utf8");
-	const isIndex = filePath.endsWith("/index.md");
 	const toolsLine = getToolsLine(content);
-
-	if (isIndex) {
-		assert.match(
-			content,
-			/^## Delegation rule$/m,
-			`${relativePath} must include ${DELEGATION_HEADING}`,
-		);
-	}
 
 	if (toolsLine) {
 		for (const tool of ENGRAM_TOOLS) {
@@ -66,11 +59,14 @@ for (const filePath of listMarkdownFiles(agentsRoot)) {
 		}
 	}
 
-	if (!isIndex) {
-		assert.doesNotMatch(
-			content,
-			/^## Delegation rule$/m,
-			`${relativePath} must not define folder delegation prose`,
-		);
-	}
+	assert.doesNotMatch(
+		content,
+		/^## Delegation rule$/m,
+		`${relativePath} must not define ${DELEGATION_HEADING}`,
+	);
+	assert.doesNotMatch(
+		content,
+		new RegExp(STRICT_DELEGATION_PHRASE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"),
+		`${relativePath} must not require strict folder subagent delegation`,
+	);
 }

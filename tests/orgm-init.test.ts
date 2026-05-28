@@ -50,6 +50,8 @@ try {
 	assert.deepEqual(saved.primaryAuto, { enabled: true }, "/orgm-init should materialize primaryAuto defaults");
 	assert.equal(saved.title.autoGenerate, false, "/orgm-init should keep existing known values through merge");
 	assert.equal(typeof saved.agentStatus?.showWidget, "boolean", "/orgm-init should write full defaults");
+	const settings = JSON.parse(readFileSync(join(configDir, "settings.json"), "utf8"));
+	assert(settings.extensions.some((entry: string) => entry.endsWith("extensions/repo-index.ts")), "/orgm-init should enable repo-index/repo-tree extension when missing");
 	assert.equal(notifications.at(-1)?.kind, "success", "/orgm-init should notify success");
 	assert.match(notifications.at(-1)?.message ?? "", /orgm\.json/i, "/orgm-init success notification should mention orgm.json path");
 } finally {

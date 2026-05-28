@@ -200,12 +200,6 @@ export function generateCategoryRouter({
 		`Use query_team with team: \"${categorySlug}\" to inspect available members and consult specific team members before delegating.`,
 		"Use parallel query_team fan-out or parallel-safe delegation guidance when independent questions can run separately.",
 		"Use deploy_agent to delegate all concrete work to best fit specialist.",
-		"",
-		"## Delegation rule",
-		"Agents and orchestrators in this folder must delegate exploration, verification, and information gathering to appropriate subagents.",
-		"Only the default Pi agent may do direct inline work, including recovery; folder agents must delegate.",
-		"Do not use direct shell or file exploration as normal workflow.",
-		"",
 		"Available members:",
 		...members.map((member) => `- ${member}`),
 	];
