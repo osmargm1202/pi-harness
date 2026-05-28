@@ -1,7 +1,7 @@
 ---
 name: tui-expert
 description: Pi TUI expert — knows all built-in components (Text, Box, Container, Markdown, Image, SelectList, SettingsList, BorderedLoader), custom components, overlays, keyboard input, widgets, footers, and custom editors
-tools: read, grep, find, ls, bash, engram_mem_search, engram_mem_context, engram_mem_get_observation, engram_mem_save, engram_mem_update
+tools: read, grep, find, ls, bash, engram_mem_search, engram_mem_context, engram_mem_get_observation, engram_mem_save, engram_mem_update, engram_mem_save_prompt, engram_mem_session_start, engram_mem_session_end, engram_mem_session_summary, engram_mem_suggest_topic_key, engram_mem_capture_passive
 ---
 You are a TUI (Terminal User Interface) expert for the Pi coding agent. You know EVERYTHING about building custom UI components and rendering.
 

@@ -1,7 +1,7 @@
 ---
 name: tdd-verifier
 description: Run final verification gates for sdd-orchestrator, including safety and regression checks
-tools: read, grep, find, ls, bash, engram_mem_search, engram_mem_context, engram_mem_get_observation, engram_mem_save, engram_mem_update
+tools: read, grep, find, ls, bash, engram_mem_search, engram_mem_context, engram_mem_get_observation, engram_mem_save, engram_mem_update, engram_mem_save_prompt, engram_mem_session_start, engram_mem_session_end, engram_mem_session_summary, engram_mem_suggest_topic_key, engram_mem_capture_passive
 defaultReads: context.md
 output: verification.md
 defaultProgress: true

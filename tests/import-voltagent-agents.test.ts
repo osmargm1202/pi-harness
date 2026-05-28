@@ -33,7 +33,7 @@ assert.equal(parsed.body.trim(), "You are a senior backend developer.");
 const converted = convertAgentMarkdown(upstreamAgent, "backend-developer.md");
 assert.match(converted, /name: backend-developer/);
 assert.match(converted, /description: "Use this agent when building server-side APIs\."/);
-assert.match(converted, /tools: read, write, edit, bash, find, grep/);
+assert.match(converted, /tools: read, write, edit, bash, find, grep, engram_mem_context, engram_mem_search, engram_mem_get_observation, engram_mem_save, engram_mem_save_prompt, engram_mem_session_start, engram_mem_session_end, engram_mem_session_summary, engram_mem_suggest_topic_key, engram_mem_update, engram_mem_capture_passive/);
 assert.doesNotMatch(converted, /model: sonnet/);
 assert.match(converted, /You are a senior backend developer\./);
 assert.doesNotMatch(converted, /Glob/);
@@ -49,7 +49,7 @@ You investigate.
 `,
 	"researcher.md",
 );
-assert.match(filteredUnsupportedTools, /tools: read, find/);
+assert.match(filteredUnsupportedTools, /tools: read, find, engram_mem_context, engram_mem_search, engram_mem_get_observation, engram_mem_save, engram_mem_save_prompt, engram_mem_session_start, engram_mem_session_end, engram_mem_session_summary, engram_mem_suggest_topic_key, engram_mem_update, engram_mem_capture_passive/);
 assert.doesNotMatch(filteredUnsupportedTools, /task/);
 assert.doesNotMatch(filteredUnsupportedTools, /webfetch/);
 
@@ -63,7 +63,7 @@ You analyze.
 `,
 	"analyst.md",
 );
-assert.match(defaultToolsFallback, /tools: read, grep, find/);
+assert.match(defaultToolsFallback, /tools: read, grep, find, engram_mem_context, engram_mem_search, engram_mem_get_observation, engram_mem_save, engram_mem_save_prompt, engram_mem_session_start, engram_mem_session_end, engram_mem_session_summary, engram_mem_suggest_topic_key, engram_mem_update, engram_mem_capture_passive/);
 
 const router = generateCategoryRouter({
 	categorySlug: "01-core-development",
@@ -72,7 +72,7 @@ const router = generateCategoryRouter({
 });
 assert.match(router, /name: 01-core-development/);
 assert.match(router, /team: "01-core-development"/);
-assert.match(router, /tools: read, grep, find, ls, bash, query_team, deploy_agent/);
+assert.match(router, /tools: read, grep, find, ls, bash, query_team, deploy_agent, engram_mem_context, engram_mem_search, engram_mem_get_observation, engram_mem_save, engram_mem_save_prompt, engram_mem_session_start, engram_mem_session_end, engram_mem_session_summary, engram_mem_suggest_topic_key, engram_mem_update, engram_mem_capture_passive/);
 assert.match(router, /query_team/);
 assert.match(router, /deploy_agent/);
 assert.match(router, /mandatory orchestrator/i);
@@ -82,6 +82,9 @@ assert.match(router, /only inline work is user-facing synthesis/i);
 assert.match(router, /deploy_agent.*concrete work|concrete work.*deploy_agent/i);
 assert.match(router, /query_team.*specific team members|specific team members.*query_team/i);
 assert.match(router, /parallel.*independent/i);
+assert.match(router, /## Delegation rule/);
+assert.match(router, /delegate exploration, verification, and information gathering to appropriate subagents/i);
+assert.match(router, /do not use direct shell or file exploration as normal workflow/i);
 assert.match(router, /backend-developer/);
 assert.match(router, /frontend-developer/);
 

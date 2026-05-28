@@ -57,8 +57,31 @@ const TOOL_ALIASES = new Map<string, string>([
 	["glob", "find"],
 ]);
 
-const ALLOWED_PI_TOOLS = new Set(["read", "write", "edit", "bash", "grep", "find", "ls"]);
-const DEFAULT_AGENT_TOOLS = ["read", "grep", "find"];
+const ENGRAM_TOOLS = [
+	"engram_mem_context",
+	"engram_mem_search",
+	"engram_mem_get_observation",
+	"engram_mem_save",
+	"engram_mem_save_prompt",
+	"engram_mem_session_start",
+	"engram_mem_session_end",
+	"engram_mem_session_summary",
+	"engram_mem_suggest_topic_key",
+	"engram_mem_update",
+	"engram_mem_capture_passive",
+] as const;
+
+const ALLOWED_PI_TOOLS = new Set([
+	"read",
+	"write",
+	"edit",
+	"bash",
+	"grep",
+	"find",
+	"ls",
+	...ENGRAM_TOOLS,
+]);
+const DEFAULT_AGENT_TOOLS = ["read", "grep", "find", ...ENGRAM_TOOLS];
 const SOURCE_REPO = "VoltAgent/awesome-claude-code-subagents";
 const SOURCE_REF = "main";
 const CATEGORY_ROOT = "categories";
@@ -103,6 +126,11 @@ export function normalizeTools(tools: string | string[]): string[] {
 			continue;
 		}
 		normalized.push(canonical);
+	}
+	for (const tool of ENGRAM_TOOLS) {
+		if (!normalized.includes(tool)) {
+			normalized.push(tool);
+		}
 	}
 	return normalized;
 }
@@ -172,6 +200,12 @@ export function generateCategoryRouter({
 		`Use query_team with team: \"${categorySlug}\" to inspect available members and consult specific team members before delegating.`,
 		"Use parallel query_team fan-out or parallel-safe delegation guidance when independent questions can run separately.",
 		"Use deploy_agent to delegate all concrete work to best fit specialist.",
+		"",
+		"## Delegation rule",
+		"Agents and orchestrators in this folder must delegate exploration, verification, and information gathering to appropriate subagents.",
+		"Only the default Pi agent may do direct inline work, including recovery; folder agents must delegate.",
+		"Do not use direct shell or file exploration as normal workflow.",
+		"",
 		"Available members:",
 		...members.map((member) => `- ${member}`),
 	];
@@ -179,7 +213,7 @@ export function generateCategoryRouter({
 	return `${renderFrontmatter({
 		name: categorySlug,
 		description: `${title} router agent`,
-		tools: "read, grep, find, ls, bash, query_team, deploy_agent",
+		tools: ["read", "grep", "find", "ls", "bash", "query_team", "deploy_agent", ...ENGRAM_TOOLS].join(", "),
 		team: categorySlug,
 	})}${promptLines.join("\n")}\n`;
 }
