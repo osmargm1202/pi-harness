@@ -68,7 +68,7 @@ Default route:
 
 Use these canonical TDD gates when a request does not need the full SDD/OpenSpec lifecycle:
 
-- `F0` — direct/meta check: no implementation flow; use only for small read-only checks, routing decisions, or already-approved mechanical edits.
+- `F0` — direct/meta check: no implementation flow; use only for bounded read-only checks, routing decisions, or already-approved mechanical edits.
 - `F1` — shape and plan: `tdd-brainstormer` → `tdd-planner` for ambiguous but focused behavior work.
 - `F2` — standard TDD delivery: `tdd-brainstormer` → `tdd-planner` → `tdd-implementer` → `tdd-reviewer` → `tdd-verifier`.
 - `F3` — isolated/high-risk delivery: `tdd-brainstormer` → `tdd-planner` → conditional `tdd-worktree-manager` → `tdd-implementer` → `tdd-reviewer` → `tdd-verifier`.
@@ -142,12 +142,12 @@ Exceptions:
 
 el Gentleman is an ecosystem configurator and harness layer. After installation, the user should not memorize workflows or manually wire agents. The package should get out of the way:
 
-- Small request: do it directly.
+- Direct request with enough context: do it inline.
 - Substantial feature: suggest SDD organically.
 - User says "use sdd" / "hacelo con sdd": run the SDD flow.
 - Parent session orchestrates; phase agents execute.
 
-Delegation is not optional once complexity appears. If a task crosses the triggers below, use the smallest useful subagent workflow instead of continuing as a monolithic executor.
+When the work warrants agent specialty, parallel phase work, or passing context, use the smallest useful subagent workflow instead of continuing as a monolithic executor.
 
 ## Work Routing Ladder
 
@@ -155,16 +155,16 @@ Route work through the smallest harness that is safe. "Smallest" means minimal s
 
 ### 1. Inline Direct
 
-Use inline execution when the task is small, mechanical, and the parent already has enough context.
+Use inline execution when the task does not warrant deploying agents or passing context and the parent already has enough context.
 
 Examples:
 
 - typo, rename, one-file mechanical edit;
-- small known bug with clear location;
+- known bug with clear location;
 - focused verification over 1-3 files;
 - bash for state, e.g. `git status` or `gh issue view`.
 
-Do not add SDD ceremony. Do not delegate just to look sophisticated. But do not use this exception to avoid delegation after the task stops being small.
+Do not add SDD ceremony. Do not delegate just to look sophisticated. But do not use this exception after the task warrants agent specialty, parallel work, or passing context.
 
 ### 2. Simple Delegation
 
@@ -222,7 +222,7 @@ Core question: does this inflate parent context without need?
 
 ### Mandatory Delegation Triggers
 
-These are parent-orchestrator stop rules. Once any trigger fires, the parent must either delegate or explicitly tell the user why delegation would be unsafe or wasteful for this exact case. Do not inject these as child-agent permission to spawn subagents; children receive concrete role work and must not orchestrate.
+These are parent-orchestrator stop rules. Once any trigger fires, the parent should either delegate or explicitly tell the user why delegation would be unsafe or wasteful for this exact case. Do not inject these as child-agent permission to spawn subagents; children receive concrete role work and must not orchestrate.
 
 1. **4-file rule**: if understanding requires reading 4+ files, launch `scout` or `context-builder` with fresh context and a narrow mapping task.
 2. **Multi-file write rule**: if implementation will touch 2+ non-trivial files, use one `worker` or keep writing inline only if a fresh reviewer will audit before completion.
