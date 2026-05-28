@@ -129,9 +129,10 @@ async function main(): Promise<void> {
 		.filter((line) => line.startsWith("notify-send -a Pi"));
 	assert.equal(mainNotificationLines.length, 3, "questions, permissions, and main agent completion should notify");
 	assert.match(mainLog, /notify-send/, "notifications should call notify-send through distrobox-host-exec");
-	assert.match(mainLog, /-u critical/, "notifications should be critical so swaync shows a popup");
+	assert.match(mainLog, /-u normal/, "notifications should use normal urgency so daemons respect auto-dismiss");
+	assert.doesNotMatch(mainLog, /-u critical/, "notifications must not be critical because critical notifications can stay pinned");
 	assert.match(mainLog, /-e/, "notifications should be transient instead of persistent history entries");
-	assert.match(mainLog, /-t [1-9]\d*/, "notifications should set a non-zero timeout so they auto-dismiss");
+	assert.match(mainLog, /-t 8000(\s|$)/, "notifications should auto-dismiss after exactly 8 seconds");
 	assert.doesNotMatch(mainLog, /-t 0(\s|$)/, "notifications should not be sticky forever");
 	assert.match(mainLog, /Pi\\ question/, "ask_user_question should send a question notification");
 	assert.match(mainLog, /Pi\\ permission/, "permission prompts should send a permission notification");

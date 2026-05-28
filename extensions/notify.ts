@@ -174,7 +174,7 @@ function notify(
 			"-a",
 			"Pi",
 			"-u",
-			"critical",
+			"normal",
 			"-e",
 			"-t",
 			String(AUTO_DISMISS_TIMEOUT_MS),
