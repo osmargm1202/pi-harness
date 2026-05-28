@@ -35,6 +35,8 @@ function setSubagentEnv(env: SubagentEnvSnapshot): SubagentEnvSnapshot {
 function makeHarness(options?: {
 	entries?: unknown[];
 	configPath?: string;
+	hasUI?: boolean;
+	selectResult?: string | null;
 	routePrimary?: (args: { prompt: string; candidates: PrimaryAutoCandidate[]; fallback: string; ctx: any }) => Promise<{ selectedName: string; reason?: string }>;
 }) {
 	const handlers = new Map<string, Handler>();
@@ -44,6 +46,7 @@ function makeHarness(options?: {
 	const notifications: Array<{ message: string; kind: string }> = [];
 	const workingMessages: Array<string | undefined> = [];
 	const statuses: Array<{ id: string; message?: string }> = [];
+	const customPanels: Array<{ lines: string[] }> = [];
 
 	const pi = {
 		on(event: string, handler: Handler) {
@@ -65,8 +68,21 @@ function makeHarness(options?: {
 
 	const ctx = {
 		cwd: process.cwd(),
-		hasUI: true,
+		hasUI: options?.hasUI ?? true,
 		ui: {
+			async custom(factory: Function) {
+				const component = factory(
+					{ requestRender() {} },
+					{
+						fg: (_name: string, text: string) => text,
+						bold: (text: string) => text,
+					},
+					{},
+					(value: string | null) => value,
+				);
+				customPanels.push({ lines: component.render?.(120) ?? [] });
+				return options?.selectResult ?? null;
+			},
 			notify(message: string, kind: string) {
 				notifications.push({ message, kind });
 			},
@@ -87,7 +103,7 @@ function makeHarness(options?: {
 		routePrimary: options?.routePrimary,
 	} as never);
 
-	return { handlers, commands, appendEntries, emitted, notifications, workingMessages, statuses, ctx };
+	return { handlers, commands, appendEntries, emitted, notifications, workingMessages, statuses, customPanels, ctx };
 }
 
 {
@@ -111,6 +127,7 @@ function makeHarness(options?: {
 	let routeCalls = 0;
 	const harness = makeHarness({
 		configPath,
+		selectResult: "03-infrastructure",
 		routePrimary: async ({ prompt, candidates, fallback }) => {
 			routeCalls += 1;
 			assert.equal(prompt, "Implement approved feature primary-auto", "router should receive first user prompt only");
@@ -138,10 +155,21 @@ function makeHarness(options?: {
 			"primary-auto should set and clear footer status around routing",
 		);
 		assert.equal(JSON.parse(readFileSync(configPath, "utf8")).defaultPrimaryAgent, "pi", "auto routing should not rewrite defaultPrimaryAgent config");
+		assert.equal(harness.customPanels.length, 1, "primary-auto should show a chooser TUI once");
 		assert.equal(
-			firstResult?.systemPrompt.includes("loaded from `pi-orchestrator`"),
+			harness.customPanels[0]!.lines.some((line) => line.includes("* pi-orchestrator")),
 			true,
-			"routed primary should be applied through existing primary overlay",
+			"chooser should mark strongest recommendation with an asterisk",
+		);
+		assert.equal(
+			harness.customPanels[0]!.lines.filter((line) => line.includes("-development") || line.includes("-specialists") || line.includes("-infrastructure") || line.includes("pi-orchestrator")).length,
+			4,
+			"chooser should show four recommended primary agents",
+		);
+		assert.equal(
+			firstResult?.systemPrompt.includes("loaded from `03-infrastructure`"),
+			true,
+			"user-selected primary should be applied instead of forcing top recommendation",
 		);
 		assert.equal(
 			harness.appendEntries.some((entry) => entry.customType === PRIMARY_AUTO_STATE_ENTRY),
@@ -160,9 +188,54 @@ function makeHarness(options?: {
 		}, harness.ctx);
 		assert.equal(routeCalls, 1, "later prompts in same session should not route again");
 		assert.equal(
-			secondResult?.systemPrompt.includes("loaded from `pi-orchestrator`"),
+			secondResult?.systemPrompt.includes("loaded from `03-infrastructure`"),
 			true,
-			"selected primary should stay active for later prompts in same session",
+			"chosen primary should stay active for later prompts in same session",
+		);
+	} finally {
+		setSubagentEnv(previousEnv);
+		rmSync(tempDir, { recursive: true, force: true });
+	}
+}
+
+{
+	const tempDir = mkdtempSync(join(tmpdir(), "primary-auto-cancel-"));
+	const configPath = join(tempDir, "orgm.json");
+	writeFileSync(configPath, JSON.stringify({ defaultPrimaryAgent: "pi" }, null, 2));
+	const previousEnv = setSubagentEnv({
+		PI_PDD_SUBAGENT: undefined,
+		PI_SUBAGENT_RUNTIME_ID: undefined,
+		PI_SUBAGENT_RUNTIME_DEPTH: undefined,
+	});
+
+	let routeCalls = 0;
+	const harness = makeHarness({
+		configPath,
+		selectResult: null,
+		routePrimary: async () => {
+			routeCalls += 1;
+			return { selectedName: "pi-orchestrator", reason: "top recommendation" };
+		},
+	});
+
+	try {
+		await harness.handlers.get("session_start")?.({ reason: "startup" }, harness.ctx);
+		const result = await harness.handlers.get("before_agent_start")?.({
+			systemPrompt: "base system prompt",
+			prompt: "Cancel chooser",
+		}, harness.ctx);
+		assert.equal(routeCalls, 1, "cancel path should still compute recommendations once");
+		assert.equal(harness.customPanels.length, 1, "cancel path should show chooser before cancelling");
+		assert.equal(result, undefined, "cancel should leave system primary unchanged");
+		assert.equal(
+			harness.appendEntries.some((entry) => entry.customType === PRIMARY_STATE_ENTRY),
+			false,
+			"cancel should not persist a forced primary-agent selection",
+		);
+		assert.equal(
+			harness.appendEntries.some((entry) => entry.customType === PRIMARY_AUTO_STATE_ENTRY),
+			true,
+			"cancel should persist attempted state so prompt is not forced repeatedly",
 		);
 	} finally {
 		setSubagentEnv(previousEnv);

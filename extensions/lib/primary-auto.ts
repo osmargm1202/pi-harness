@@ -12,9 +12,15 @@ export interface PrimaryAutoCandidate {
 	members?: string[];
 }
 
+export interface PrimaryAutoRecommendation {
+	name: string;
+	reason?: string;
+}
+
 export interface PrimaryAutoDecision {
 	selectedName: string;
 	reason?: string;
+	recommendations?: PrimaryAutoRecommendation[];
 	raw?: string;
 	source: "router" | "fallback";
 }
@@ -33,10 +39,11 @@ export const PRIMARY_AUTO_STATE_ENTRY = "pdd-primary-auto";
 const PRIMARY_AUTO_SYSTEM_PROMPT = `You route the user's first request to one primary agent.
 
 Return strict JSON only with this shape:
-{"selectedName":"exact-primary-name","reason":"short reason"}
+{"selectedName":"exact-primary-name","reason":"short reason","recommendations":[{"name":"exact-primary-name","reason":"short reason"}]}
 
 Rules:
-- selectedName must exactly match one candidate name.
+- selectedName must exactly match the strongest recommended candidate name.
+- recommendations must include up to 4 candidate names, strongest first.
 - Choose only from provided primary candidates.
 - Use only user request and candidate metadata.
 - No markdown, no code fences, no extra text.`;
@@ -83,12 +90,24 @@ export function buildPrimaryAutoRouterPrompt(prompt: string, candidates: Primary
 export function resolvePrimaryAutoSelection(raw: string, candidates: PrimaryAutoCandidate[], fallback: string): PrimaryAutoDecision {
 	const names = new Set(candidates.map((candidate) => candidate.name));
 	try {
-		const parsed = JSON.parse(normalizeJsonText(raw)) as { selectedName?: unknown; reason?: unknown };
+		const parsed = JSON.parse(normalizeJsonText(raw)) as { selectedName?: unknown; reason?: unknown; recommendations?: unknown };
 		const selectedName = typeof parsed.selectedName === "string" ? parsed.selectedName.trim() : "";
 		if (selectedName && names.has(selectedName)) {
+			const recommendations = Array.isArray(parsed.recommendations)
+				? parsed.recommendations
+					.map((item): PrimaryAutoRecommendation | undefined => {
+						if (!item || typeof item !== "object") return undefined;
+						const name = typeof (item as { name?: unknown }).name === "string" ? (item as { name: string }).name.trim() : "";
+						if (!name || !names.has(name)) return undefined;
+						const reason = typeof (item as { reason?: unknown }).reason === "string" ? (item as { reason: string }).reason.trim() : undefined;
+						return { name, reason };
+					})
+					.filter((item): item is PrimaryAutoRecommendation => Boolean(item))
+				: undefined;
 			return {
 				selectedName,
 				reason: typeof parsed.reason === "string" ? parsed.reason.trim() : undefined,
+				recommendations,
 				raw,
 				source: "router",
 			};
@@ -101,7 +120,7 @@ export function resolvePrimaryAutoSelection(raw: string, candidates: PrimaryAuto
 }
 
 export function normalizePrimaryAutoDecision(
-	decision: Pick<PrimaryAutoDecision, "selectedName" | "reason"> | undefined,
+	decision: Pick<PrimaryAutoDecision, "selectedName" | "reason" | "recommendations"> | undefined,
 	candidates: PrimaryAutoCandidate[],
 	fallback: string,
 ): PrimaryAutoDecision {

@@ -36,7 +36,7 @@ interface ModelPrimaryOptions {
 		prompt: string;
 		candidates: PrimaryAutoCandidate[];
 		fallback: string;
-	}) => Promise<Pick<PrimaryAutoDecision, "selectedName" | "reason"> | PrimaryAutoDecision | undefined>;
+	}) => Promise<Pick<PrimaryAutoDecision, "selectedName" | "reason" | "recommendations"> | PrimaryAutoDecision | undefined>;
 }
 
 function setPrimaryAgent(
@@ -72,6 +72,39 @@ function buildPrimaryAutoCandidates(cwd: string): PrimaryAutoCandidate[] {
 		description: agent.description,
 		source: agent.source,
 	}));
+}
+
+function buildPrimaryAutoSelectorItems(
+	candidates: PrimaryAutoCandidate[],
+	decision: PrimaryAutoDecision,
+): SelectorItem[] {
+	const byName = new Map(candidates.map((candidate) => [candidate.name, candidate]));
+	const reasons = new Map<string, string>();
+	const orderedNames: string[] = [];
+	const pushName = (name: string, reason?: string) => {
+		if (!byName.has(name) || orderedNames.includes(name)) return;
+		orderedNames.push(name);
+		if (reason) reasons.set(name, reason);
+	};
+
+	pushName(decision.selectedName, decision.reason);
+	for (const recommendation of decision.recommendations ?? []) {
+		pushName(recommendation.name, recommendation.reason);
+	}
+	for (const candidate of candidates) {
+		pushName(candidate.name);
+		if (orderedNames.length >= 4) break;
+	}
+
+	return orderedNames.slice(0, 4).map((name, index) => {
+		const candidate = byName.get(name)!;
+		const top = index === 0;
+		return {
+			value: name,
+			label: `${top ? "* " : "  "}${name}`,
+			description: reasons.get(name) || candidate.description || "",
+		};
+	});
 }
 
 function hasExistingConversation(entries: readonly any[]): boolean {
@@ -179,9 +212,24 @@ export default function modelPrimaryExtension(pi: ExtensionAPI, options: ModelPr
 			}
 
 			primaryAutoAttempted = true;
-			currentPrimary = decision.selectedName;
-			setPrimaryAgent(pi, currentPrimary, { persistConfig: false, configPath: options.configPath });
-			persistPrimaryAutoState(decision);
+			if (!ctx.hasUI) {
+				ctx.ui.notify?.("Primary auto chooser requires interactive mode; keeping current primary", "warning");
+				persistPrimaryAutoState({ ...decision, selectedName: currentPrimary, source: "fallback" });
+			} else {
+				const selectedName = await openSelectPalette(
+					ctx,
+					"Choose Primary Agent",
+					"Top recommendation is marked with *",
+					buildPrimaryAutoSelectorItems(candidates, decision),
+				);
+				if (selectedName) {
+					currentPrimary = selectedName;
+					setPrimaryAgent(pi, currentPrimary, { persistConfig: false, configPath: options.configPath });
+					persistPrimaryAutoState({ ...decision, selectedName: currentPrimary });
+				} else {
+					persistPrimaryAutoState({ ...decision, selectedName: currentPrimary, source: "fallback" });
+				}
+			}
 		}
 
 		if (currentPrimary === SYSTEM_AGENT) return;
