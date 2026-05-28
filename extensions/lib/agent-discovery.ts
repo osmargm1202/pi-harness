@@ -27,6 +27,14 @@ export interface AgentConfig {
 	displayName: string;
 }
 
+export interface PrimaryAgentRouting {
+	strict_use_for?: string[];
+	best_for?: string[];
+	avoid_when?: string[];
+	keywords?: string[];
+	subagents?: string[];
+}
+
 export interface PrimaryAgent {
 	name: string;
 	description: string;
@@ -34,6 +42,7 @@ export interface PrimaryAgent {
 	filePath: string;
 	dirPath: string;
 	source: AgentSource;
+	routing?: PrimaryAgentRouting;
 }
 
 export function parseTools(value: unknown): string[] {
@@ -154,6 +163,54 @@ function loadAgentsRecursiveFromDir(
 	return agents;
 }
 
+function coerceStringArray(value: unknown): string[] | undefined {
+	if (Array.isArray(value)) {
+		const items = value.filter((item): item is string => typeof item === "string").map((item) => item.trim()).filter(Boolean);
+		return items.length > 0 ? items : undefined;
+	}
+	if (typeof value === "string") {
+		const items = value.split(",").map((item) => item.trim()).filter(Boolean);
+		return items.length > 0 ? items : undefined;
+	}
+	return undefined;
+}
+
+function discoverSubagentNames(dirPath: string): string[] | undefined {
+	try {
+		const names = readdirSync(dirPath)
+			.filter((entry) => entry.endsWith(".md") && entry !== "index.md")
+			.map((entry) => {
+				const filePath = join(dirPath, entry);
+				try {
+					const raw = readFileSync(filePath, "utf8");
+					const { frontmatter } = parseFrontmatter<Record<string, unknown>>(raw);
+					return typeof frontmatter.name === "string" && frontmatter.name.trim() ? frontmatter.name.trim() : parse(entry).name;
+				} catch {
+					return parse(entry).name;
+				}
+			})
+			.sort((a, b) => a.localeCompare(b));
+		return names.length > 0 ? names : undefined;
+	} catch {
+		return undefined;
+	}
+}
+
+function readPrimaryRouting(frontmatter: Record<string, unknown>, dirPath: string): PrimaryAgentRouting | undefined {
+	const routing = frontmatter.routing && typeof frontmatter.routing === "object" && !Array.isArray(frontmatter.routing)
+		? frontmatter.routing as Record<string, unknown>
+		: {};
+	const profile: PrimaryAgentRouting = {
+		strict_use_for: coerceStringArray(routing.strict_use_for),
+		best_for: coerceStringArray(routing.best_for),
+		avoid_when: coerceStringArray(routing.avoid_when),
+		keywords: coerceStringArray(routing.keywords),
+		subagents: coerceStringArray(routing.subagents) ?? discoverSubagentNames(dirPath),
+	};
+	const compact = Object.fromEntries(Object.entries(profile).filter(([, value]) => value !== undefined)) as PrimaryAgentRouting;
+	return Object.keys(compact).length > 0 ? compact : undefined;
+}
+
 function listPrimaryAgentsFromRoot(rootDir: string, source: AgentSource): PrimaryAgent[] {
 	if (!existsSync(rootDir)) return [];
 	try {
@@ -170,16 +227,19 @@ function listPrimaryAgentsFromRoot(rootDir: string, source: AgentSource): Primar
 			.filter(({ filePath }) => isReadableAgentFile(filePath))
 			.map(({ entry, dirPath, filePath }) => {
 				const raw = readFileSync(filePath, "utf8");
-				const { frontmatter, body } = parseFrontmatter<Record<string, string>>(raw);
+				const { frontmatter, body } = parseFrontmatter<Record<string, unknown>>(raw);
 				const folderName = normalizePrimaryName(entry);
-				const name = normalizePrimaryName(frontmatter.name || folderName);
+				const rawName = typeof frontmatter.name === "string" ? frontmatter.name : folderName;
+				const name = normalizePrimaryName(rawName || folderName);
+				const description = typeof frontmatter.description === "string" ? frontmatter.description : name;
 				return {
 					name,
-					description: frontmatter.description || name,
+					description,
 					systemPrompt: body.trim(),
 					filePath,
 					dirPath,
 					source,
+					routing: readPrimaryRouting(frontmatter, dirPath),
 				} satisfies PrimaryAgent;
 			})
 			.sort((a, b) => a.name.localeCompare(b.name));

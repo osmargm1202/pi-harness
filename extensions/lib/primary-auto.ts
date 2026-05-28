@@ -5,11 +5,20 @@ export interface PrimaryAutoConfig {
 	enabled: boolean;
 }
 
+export interface PrimaryAutoRoutingProfile {
+	strict_use_for?: string[];
+	best_for?: string[];
+	avoid_when?: string[];
+	keywords?: string[];
+	subagents?: string[];
+}
+
 export interface PrimaryAutoCandidate {
 	name: string;
 	description: string;
 	source?: string;
 	members?: string[];
+	routing?: PrimaryAutoRoutingProfile;
 }
 
 export interface PrimaryAutoRecommendation {
@@ -36,7 +45,7 @@ export interface PrimaryAutoState {
 
 export const PRIMARY_AUTO_STATE_ENTRY = "pdd-primary-auto";
 
-const PRIMARY_AUTO_SYSTEM_PROMPT = `You route the user's first request to one primary agent.
+export const PRIMARY_AUTO_SYSTEM_PROMPT = `You route the user's first request to one primary agent.
 
 Return strict JSON only with this shape:
 {"selectedName":"exact-primary-name","reason":"short reason","recommendations":[{"name":"exact-primary-name","reason":"short reason"}]}
@@ -46,6 +55,10 @@ Rules:
 - recommendations must include up to 4 candidate names, strongest first.
 - Choose only from provided primary candidates.
 - Use only user request and candidate metadata.
+- Prioritize routing.strict_use_for and routing.avoid_when over general description.
+- Treat routing.strict_use_for as strong positive fit signals.
+- Treat routing.avoid_when as strict negative fit signals unless user request clearly overrides them.
+- Use routing.best_for, routing.keywords, and routing.subagents to break close ties.
 - No markdown, no code fences, no extra text.`;
 
 function normalizeJsonText(raw: string): string {
@@ -72,6 +85,7 @@ export function buildPrimaryAutoRouterPrompt(prompt: string, candidates: Primary
 			description: candidate.description,
 			source: candidate.source,
 			members: candidate.members,
+			routing: candidate.routing,
 		})),
 		null,
 		2,

@@ -2,6 +2,38 @@
 name: pi-orchestrator
 description: Primary meta-agent that coordinates Pi experts and delegates implementation to coding-expert
 tools: read, write, edit, bash, grep, find, ls, query_team, deploy_agent, engram_mem_search, engram_mem_context, engram_mem_get_observation, engram_mem_save, engram_mem_update, engram_mem_save_prompt, engram_mem_session_start, engram_mem_session_end, engram_mem_session_summary, engram_mem_suggest_topic_key, engram_mem_capture_passive
+routing:
+  strict_use_for:
+    - Pi harness/runtime modifications
+    - Pi extensions, primary agents, subagents, skills, prompts, themes, keybindings, TUI, package docs, and Pi config
+  best_for:
+    - Building or changing Pi coding-agent extensions and runtime integrations
+    - Creating or maintaining Pi agent definitions, teams, skills, prompt templates, and themes
+    - Updating Pi package documentation or configuration
+  avoid_when:
+    - Generic application backend, frontend, mobile, data, infrastructure, security, or product work that is not about Pi itself
+  keywords:
+    - pi
+    - pi-harness
+    - extension
+    - primary agent
+    - subagent
+    - skill
+    - prompt
+    - theme
+    - keybinding
+    - tui
+  subagents:
+    - agent-expert
+    - cli-expert
+    - coding-expert
+    - config-expert
+    - ext-expert
+    - keybinding-expert
+    - prompt-expert
+    - skill-expert
+    - theme-expert
+    - tui-expert
 ---
 ## Delegation rule
 Agents and orchestrators in this folder must delegate exploration, verification, and information gathering to appropriate subagents.

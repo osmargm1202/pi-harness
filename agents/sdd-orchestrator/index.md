@@ -2,6 +2,44 @@
 name: sdd-orchestrator
 description: ORGM primary coordinator for SDD and TDD workflows with subagent delegation, worktree discipline, and OpenSpec artifacts
 tools: read, grep, find, ls, bash, query_team, deploy_agent, engram_mem_search, engram_mem_context, engram_mem_get_observation, engram_mem_save, engram_mem_update, engram_mem_save_prompt, engram_mem_session_start, engram_mem_session_end, engram_mem_session_summary, engram_mem_suggest_topic_key, engram_mem_capture_passive
+routing:
+  strict_use_for:
+    - SDD/OpenSpec lifecycle orchestration, TDD workflow coordination, controlled development flow, worktree discipline, specs, proposals, design, tasks, apply, verify, and archive phases
+  best_for:
+    - Running or coordinating SDD phases, strict TDD gates, OpenSpec artifacts, implementation plans, verification workflows, review gates, and subagent-driven controlled development
+    - Large, ambiguous, architectural, or high-review-risk changes that need artifacts before implementation
+  avoid_when:
+    - Tiny mechanical edits, direct Pi extension/package maintenance without SDD/TDD request, generic single-agent coding questions
+  keywords:
+    - sdd
+    - openspec
+    - tdd
+    - proposal
+    - spec
+    - design
+    - tasks
+    - apply
+    - verify
+    - archive
+    - worktree
+    - orchestrator
+  subagents:
+    - sdd-apply
+    - sdd-archive
+    - sdd-design
+    - sdd-explore
+    - sdd-init
+    - sdd-onboard
+    - sdd-proposal
+    - sdd-spec
+    - sdd-tasks
+    - sdd-verify
+    - tdd-brainstormer
+    - tdd-implementer
+    - tdd-planner
+    - tdd-reviewer
+    - tdd-verifier
+    - tdd-worktree-manager
 output: result.md
 defaultReads: context.md
 interactive: true

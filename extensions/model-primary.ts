@@ -71,6 +71,7 @@ function buildPrimaryAutoCandidates(cwd: string): PrimaryAutoCandidate[] {
 		name: agent.name,
 		description: agent.description,
 		source: agent.source,
+		routing: agent.routing,
 	}));
 }
 

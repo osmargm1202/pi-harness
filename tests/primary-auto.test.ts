@@ -5,11 +5,40 @@ import { join } from "node:path";
 import modelPrimaryExtension from "../extensions/model-primary.ts";
 import {
 	PRIMARY_AUTO_STATE_ENTRY,
+	PRIMARY_AUTO_SYSTEM_PROMPT,
+	buildPrimaryAutoRouterPrompt,
 	resolvePrimaryAutoSelection,
 	type PrimaryAutoCandidate,
 } from "../extensions/lib/primary-auto.ts";
 
 const PRIMARY_STATE_ENTRY = "pdd-primary-agent";
+
+{
+	const prompt = buildPrimaryAutoRouterPrompt("Change a Pi extension", [{
+		name: "pi-orchestrator",
+		description: "Primary meta-agent",
+		source: "user",
+		routing: {
+			strict_use_for: ["Pi harness/runtime modifications"],
+			best_for: ["Extensions, agents, skills, prompts, themes, docs/config"],
+			avoid_when: ["Generic application backend/frontend work"],
+			keywords: ["pi", "extension"],
+			subagents: ["coding-expert", "ext-expert"],
+		},
+	}], "pi");
+	const candidatesJson = prompt.slice(prompt.indexOf("["), prompt.indexOf("\n\nFirst user request:"));
+	assert.deepEqual(JSON.parse(candidatesJson)[0].routing, {
+		strict_use_for: ["Pi harness/runtime modifications"],
+		best_for: ["Extensions, agents, skills, prompts, themes, docs/config"],
+		avoid_when: ["Generic application backend/frontend work"],
+		keywords: ["pi", "extension"],
+		subagents: ["coding-expert", "ext-expert"],
+	}, "router prompt should serialize compact routing profile metadata");
+	assert(
+		PRIMARY_AUTO_SYSTEM_PROMPT.includes("strict_use_for") && PRIMARY_AUTO_SYSTEM_PROMPT.includes("avoid_when"),
+		"router system prompt should prioritize strict routing metadata over description",
+	);
+}
 
 type Handler = (event: any, ctx: any) => unknown | Promise<unknown>;
 
