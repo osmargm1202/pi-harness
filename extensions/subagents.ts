@@ -35,6 +35,7 @@ import {
 	discoverDeployableAgents,
 	getPackageAgentDirs,
 } from "./lib/agent-discovery.ts";
+import { loadOrgmConfig } from "./lib/orgm-config.ts";
 import {
 	SUBAGENTS_EVENT,
 	SUBAGENT_ENV_FLAG,
@@ -47,6 +48,7 @@ import {
 	shortenMiddle,
 	truncateStatusText as truncate,
 	zeroUsage,
+	resolveConfiguredSubagentModel,
 	type AgentDeployMode,
 	type AgentLaunchBackend,
 	type DeploymentState,
@@ -462,6 +464,21 @@ function formatCollapsedTranscriptEntry(entry: DeploymentTranscriptEntry): strin
 	return summary ? `${label} · ${summary}` : label;
 }
 
+function getCollapsedTranscriptPriority(entry: DeploymentTranscriptEntry): number {
+	const preferredToolNames = new Set(["edit", "write", "bash", "grep", "rg", "read"]);
+	if (entry.kind === "error") return 0;
+	if (
+		(entry.kind === "tool_call" || entry.kind === "tool_result") &&
+		entry.toolName &&
+		preferredToolNames.has(entry.toolName)
+	) return 1;
+	if (entry.kind === "tool_call" || entry.kind === "tool_result") return 2;
+	if (entry.kind === "assistant") return 3;
+	if (entry.kind === "task") return 4;
+	if (entry.kind === "status") return 5;
+	return 6;
+}
+
 function formatExpandedTranscriptEntry(
 	entry: DeploymentTranscriptEntry,
 	theme: any,
@@ -488,7 +505,30 @@ function pickCollapsedTranscriptEntries(
 		(entry) => !["thinking", "stderr"].includes(entry.kind),
 	);
 	const source = important.length > 0 ? important : entries;
-	return source.slice(-SUBAGENT_INLINE_TRANSCRIPT_COLLAPSED_ENTRIES);
+	const selected: Array<{ entry: DeploymentTranscriptEntry; index: number }> = [];
+	const seen = new Set<string>();
+	const byPriority = source
+		.map((entry, index) => ({ entry, index }))
+		.sort((a, b) => {
+			const priorityDiff =
+				getCollapsedTranscriptPriority(a.entry) -
+				getCollapsedTranscriptPriority(b.entry);
+			if (priorityDiff !== 0) return priorityDiff;
+			return b.index - a.index;
+		});
+
+	for (const item of byPriority) {
+		const preview = formatCollapsedTranscriptEntry(item.entry);
+		const dedupeKey = preview.toLowerCase();
+		if (seen.has(dedupeKey)) continue;
+		seen.add(dedupeKey);
+		selected.push(item);
+		if (selected.length >= SUBAGENT_INLINE_TRANSCRIPT_COLLAPSED_ENTRIES) break;
+	}
+
+	return selected
+		.sort((a, b) => a.index - b.index)
+		.map((item) => item.entry);
 }
 
 export function buildInlineTranscriptLines(
@@ -946,18 +986,26 @@ function mergeByName<T extends { name: string }>(
 	);
 }
 
+function applyConfiguredAgentModels(agents: AgentConfig[]): AgentConfig[] {
+	const agentModels = loadOrgmConfig().agentModels;
+	return agents.map((agent) => ({
+		...agent,
+		model: resolveConfiguredSubagentModel(agent.name, agentModels),
+	}));
+}
+
 function discoverAgents(
 	cwd: string,
 	scope: "user" | "project" | "both" = "both",
 ): AgentConfig[] {
-	return discoverDeployableAgents(cwd, scope);
+	return applyConfiguredAgentModels(discoverDeployableAgents(cwd, scope));
 }
 
 function discoverTeamAgents(
 	cwd: string,
 	scope: "user" | "project" | "both" = "both",
 ): AgentConfig[] {
-	return discoverDeployableAgents(cwd, scope);
+	return applyConfiguredAgentModels(discoverDeployableAgents(cwd, scope));
 }
 
 function findAgent(

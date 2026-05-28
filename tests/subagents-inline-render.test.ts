@@ -53,6 +53,24 @@ assert.equal(collapsedLines.some((line) => line.includes("thinking")), false, "c
 assert.equal(collapsedLines.some((line) => line.includes("tool read")), true, "collapsed transcript should include recent tool activity");
 assert.equal(collapsedLines.some((line) => line.includes("assistant")), true, "collapsed transcript should include assistant outcome");
 
+const noisyStatusTranscript: DeploymentTranscriptEntry[] = [
+	{ kind: "status", title: "Scanning repository", ts: 1 },
+	{ kind: "status", title: "Scanning repository", ts: 2 },
+	{ kind: "status", title: "Scanning repository", ts: 3 },
+	{ kind: "tool_call", title: "Tool · grep", text: '{"pattern":"render"}', toolName: "grep", ts: 4 },
+	{ kind: "tool_call", title: "Tool · edit", text: '{"path":"extensions/subagents.ts"}', toolName: "edit", ts: 5 },
+	{ kind: "tool_result", title: "Result · edit", text: "Updated inline renderer", toolName: "edit", ts: 6 },
+	{ kind: "tool_call", title: "Tool · bash", text: '{"command":"node --test tests/subagents-inline-render.test.ts"}', toolName: "bash", ts: 7 },
+	{ kind: "status", title: "Scanning repository", ts: 8 },
+];
+const toolPreferredLines = buildInlineTranscriptLines([
+	{ heading: "deploy tdd-implementer#7", transcript: noisyStatusTranscript },
+] satisfies InlineTranscriptGroup[], theme, false);
+assert.equal(toolPreferredLines.filter((line) => line.includes("Scanning repository")).length <= 1, true, "collapsed transcript should dedupe repeated generic status text");
+assert.equal(toolPreferredLines.some((line) => line.includes("tool edit")), true, "collapsed transcript should surface edit activity over generic status");
+assert.equal(toolPreferredLines.some((line) => line.includes("tool bash")), true, "collapsed transcript should surface bash activity over generic status");
+assert.equal(toolPreferredLines.filter((line) => line.startsWith("tool ")).length, 3, "collapsed transcript should fill preview with preferred tool activity when enough useful tool entries exist");
+
 const expandedLines = buildInlineTranscriptLines([
 	{ heading: "deploy tdd-implementer#6", transcript },
 	{ heading: "member reviewer", transcript: transcript.slice(-2) },
