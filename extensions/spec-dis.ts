@@ -16,8 +16,6 @@ type SpecDoc = {
 	modified: Date;
 };
 
-type Snapshot = Map<string, number>;
-
 export function isSpecApprovalKey(_data: string): boolean {
 	return false;
 }
@@ -159,14 +157,6 @@ async function listSpecDocs(cwd: string): Promise<SpecDoc[]> {
 		}
 	}
 	return docs.sort((a, b) => b.mtimeMs - a.mtimeMs || a.relativePath.localeCompare(b.relativePath));
-}
-
-function createSnapshot(docs: SpecDoc[]): Snapshot {
-	return new Map(docs.map((doc) => [doc.path, doc.mtimeMs]));
-}
-
-function changedSince(docs: SpecDoc[], baseline: Snapshot): SpecDoc[] {
-	return docs.filter((doc) => (baseline.get(doc.path) ?? 0) < doc.mtimeMs);
 }
 
 function docToSelectItem(doc: SpecDoc): SelectItem {
@@ -357,64 +347,7 @@ async function openSpecDis(ctx: ExtensionContext, docs?: SpecDoc[], title = "Ope
 	await openDocViewer(ctx, selected);
 }
 
-function isSubagentToolResult(toolName: unknown): toolName is "deploy_agent" | "query_team" {
-	return toolName === "deploy_agent" || toolName === "query_team";
-}
-
-async function renderChangedDocs(
-	pi: ExtensionAPI,
-	ctx: ExtensionContext,
-	baseline: Snapshot,
-	setBaseline: (snapshot: Snapshot) => void,
-	reason: string,
-): Promise<void> {
-	if (!ctx.hasUI) return;
-
-	const docs = await listSpecDocs(ctx.cwd);
-	const changed = changedSince(docs, baseline);
-	setBaseline(createSnapshot(docs));
-
-	if (changed.length === 0) return;
-
-	if (changed.length === 1) {
-		const doc = changed[0];
-		if (!doc) return;
-		ctx.ui.notify(`1 spec artifact changed (${reason}): ${doc.name}`, "info");
-		await openDocViewer(ctx, doc);
-		return;
-	}
-
-	ctx.ui.notify(`${changed.length} spec artifacts changed (${reason})`, "info");
-	await openSpecDis(ctx, changed, "Changed Spec / Design / Task Documents");
-}
-
 export default function (pi: ExtensionAPI) {
-	let baseline: Snapshot = new Map();
-
-	const setBaseline = (snapshot: Snapshot): void => {
-		baseline = snapshot;
-	};
-	const refreshBaseline = async (ctx: ExtensionContext): Promise<void> => {
-		setBaseline(createSnapshot(await listSpecDocs(ctx.cwd)));
-	};
-
-	pi.on("session_start", async (_event, ctx) => {
-		await refreshBaseline(ctx);
-	});
-
-	pi.on("agent_start", async (_event, ctx) => {
-		await refreshBaseline(ctx);
-	});
-
-	pi.on("agent_end", async (_event, ctx) => {
-		await renderChangedDocs(pi, ctx, baseline, setBaseline, "completed spec artifact");
-	});
-
-	pi.on("tool_result", async (event, ctx) => {
-		if (!isSubagentToolResult(event.toolName)) return;
-		await renderChangedDocs(pi, ctx, baseline, setBaseline, "subagent spec artifact");
-	});
-
 	pi.registerCommand("orgm-spec-dis", {
 		description: "List local spec/design/task/doc files and open a reader",
 		handler: async (_args, ctx) => {
