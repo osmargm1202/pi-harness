@@ -71,9 +71,17 @@ function renderSkillsRows(theme: Theme, width: number, loadedSkills: Map<string,
 	return renderSkillChipRows(loadedSkills, width, (kind: ChipStyleKind, text: string) => {
 		if (kind === "skillLoading") return theme.fg("warning", text);
 		if (kind === "skillError") return theme.fg("error", text);
-		if (kind === "skillBorder") return theme.fg("borderAccent", text);
-		if (kind === "skillGap") return theme.fg("dim", text);
+		if (kind === "skillBorder" || kind === "skillGap") return theme.fg("borderAccent", text);
 		return theme.fg("text", text);
+	});
+}
+
+function renderTitleStatusLine(theme: Theme, status: TitleStatus, width: number): string {
+	return renderTitleLine(status, width, (kind, text) => {
+		if (kind === "error") return theme.fg("error", text);
+		if (kind === "warning") return theme.fg("warning", text);
+		if (kind === "dim") return theme.fg("text", text);
+		return theme.fg("accent", text);
 	});
 }
 
@@ -229,22 +237,23 @@ export default function (pi: ExtensionAPI) {
 					const agentStatus = timerLabel ? `${primaryLabel} · ${timerLabel}` : primaryLabel;
 					const cavemanStatus = formatCavemanStatus(currentCaveman);
 					const cavemanStyled = currentCaveman === "off"
-						? theme.fg("dim", cavemanStatus)
+						? theme.fg("text", cavemanStatus)
 						: theme.fg("accent", cavemanStatus);
 
+					const footerSeparator = theme.fg("borderAccent", " · ");
 					const leftParts = [
 						theme.fg("accent", contextText),
 						theme.fg("text", modelName),
-						theme.fg("muted", `${thinking} · ${agentStatus}`),
+						theme.fg("borderAccent", `${thinking} · ${agentStatus}`),
 					];
-					const left = leftParts.join(theme.fg("muted", " · "));
+					const left = leftParts.join(footerSeparator);
 					const centerRaw = folderLabel;
 					const rightParts = [
 						showCavemanStatus ? cavemanStyled : "",
-						theme.fg("muted", tokenSummary),
+						theme.fg("borderAccent", tokenSummary),
 						theme.fg("warning", formatCurrency(totalCost)),
 					].filter(Boolean);
-					const right = rightParts.join(theme.fg("muted", " · "));
+					const right = rightParts.join(footerSeparator);
 
 					const minSpaces = 2;
 					const leftWidth = visibleWidth(left);
@@ -268,17 +277,17 @@ export default function (pi: ExtensionAPI) {
 						const styledCompact = showCavemanStatus
 							? theme.fg("accent", `${contextText} `) +
 								theme.fg("text", modelName) +
-								theme.fg("muted", ` · ${thinking} · ${agentStatus} · `) +
+								theme.fg("borderAccent", ` · ${thinking} · ${agentStatus} · `) +
 								theme.fg("text", folderLabel) +
-								theme.fg("muted", " · ") +
+								footerSeparator +
 								cavemanStyled +
-								theme.fg("muted", ` · ${tokenSummary} `) +
+								theme.fg("borderAccent", ` · ${tokenSummary} `) +
 								theme.fg("warning", formatCurrency(totalCost))
 							: theme.fg("accent", `${contextText} `) +
 								theme.fg("text", modelName) +
-								theme.fg("muted", ` · ${thinking} · ${agentStatus} · `) +
+								theme.fg("borderAccent", ` · ${thinking} · ${agentStatus} · `) +
 								theme.fg("text", folderLabel) +
-								theme.fg("muted", ` · ${tokenSummary} `) +
+								theme.fg("borderAccent", ` · ${tokenSummary} `) +
 								theme.fg("warning", formatCurrency(totalCost));
 
 						if (visibleWidth(compact) <= width) {
@@ -287,12 +296,12 @@ export default function (pi: ExtensionAPI) {
 							const compactBar = theme.fg("accent", `${contextText} `);
 							const compactTail = showCavemanStatus
 								? theme.fg("text", modelName) +
-									theme.fg("muted", ` · ${thinking} · ${agentStatus} · `) +
+									theme.fg("borderAccent", ` · ${thinking} · ${agentStatus} · `) +
 									theme.fg("text", folderLabel) +
-									theme.fg("muted", " · ") +
+									footerSeparator +
 									cavemanStyled
 								: theme.fg("text", modelName) +
-									theme.fg("muted", ` · ${thinking} · ${agentStatus} · `) +
+									theme.fg("borderAccent", ` · ${thinking} · ${agentStatus} · `) +
 									theme.fg("text", folderLabel);
 
 							const availableTailWidth = Math.max(0, width - visibleWidth(compactBar));
@@ -302,7 +311,7 @@ export default function (pi: ExtensionAPI) {
 
 					const lines = [firstLine];
 					if (titleStatus.state !== "idle" || titleStatus.title) {
-						lines.push(renderTitleLine(titleStatus, width, (kind, text) => theme.fg(kind, text)));
+						lines.push(renderTitleStatusLine(theme, titleStatus, width));
 					}
 					if (showSkillsStatus && loadedSkills.size > 0) {
 						lines.push(...renderSkillsRows(theme, width, loadedSkills));

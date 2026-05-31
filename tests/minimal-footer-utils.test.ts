@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { renderSkillChipRows } from "../extensions/lib/minimal-skill.ts";
 import { visibleWidth } from "../extensions/lib/minimal-title.ts";
 import { formatMinimalPrimaryLabel } from "../extensions/minimal.ts";
@@ -26,6 +27,10 @@ assert(narrowRows.join(" ").includes("test-driven-development"), "wrapped rows s
 const tinyRows = renderSkillChipRows(new Map([["very-long-skill-name-that-cannot-fit", "loaded" as const]]), 12, style);
 assert.equal(tinyRows.length, 1, "single oversized skill should still render one row");
 assert(visibleWidth(tinyRows[0] ?? "") <= 12, "oversized skill chip should truncate to width");
+
+const minimalSource = readFileSync(new URL("../extensions/minimal.ts", import.meta.url), "utf8");
+assert(!minimalSource.includes('theme.fg("muted"'), "minimal footer should avoid muted theme token because light themes can render it too pale");
+assert(!minimalSource.includes('theme.fg("dim"'), "minimal footer should avoid dim theme token because light themes can render it too pale");
 
 assert.equal(formatMinimalPrimaryLabel("pi"), "pi", "system primary label should stay unchanged");
 assert.equal(
