@@ -36,6 +36,10 @@ assert.match(converted, /description: "Use this agent when building server-side 
 assert.match(converted, /tools: read, write, edit, bash, find, grep, engram_mem_context, engram_mem_search, engram_mem_get_observation, engram_mem_save, engram_mem_save_prompt, engram_mem_session_start, engram_mem_session_end, engram_mem_session_summary, engram_mem_suggest_topic_key, engram_mem_update, engram_mem_capture_passive/);
 assert.doesNotMatch(converted, /model: sonnet/);
 assert.match(converted, /You are a senior backend developer\./);
+assert.match(converted, /^## Engram Memory Workflow$/m);
+assert.match(converted, /engram_mem_search/);
+assert.match(converted, /engram_mem_get_observation/);
+assert.match(converted, /parent-provided memory context/i);
 assert.doesNotMatch(converted, /Glob/);
 assert.doesNotMatch(converted, /Grep/);
 
@@ -50,8 +54,8 @@ You investigate.
 	"researcher.md",
 );
 assert.match(filteredUnsupportedTools, /tools: read, find, engram_mem_context, engram_mem_search, engram_mem_get_observation, engram_mem_save, engram_mem_save_prompt, engram_mem_session_start, engram_mem_session_end, engram_mem_session_summary, engram_mem_suggest_topic_key, engram_mem_update, engram_mem_capture_passive/);
-assert.doesNotMatch(filteredUnsupportedTools, /task/);
-assert.doesNotMatch(filteredUnsupportedTools, /webfetch/);
+assert.doesNotMatch(filteredUnsupportedTools, /^tools:.*task/im);
+assert.doesNotMatch(filteredUnsupportedTools, /^tools:.*webfetch/im);
 
 const defaultToolsFallback = convertAgentMarkdown(
 	`---
@@ -77,6 +81,10 @@ assert.match(router, /query_team/);
 assert.match(router, /deploy_agent/);
 assert.match(router, /selective router/i);
 assert.match(router, /handle work inline when the task does not warrant deploying agents or passing context/i);
+assert.match(router, /^## Engram Memory Workflow$/m);
+assert.match(router, /engram_mem_search/);
+assert.match(router, /engram_mem_get_observation/);
+assert.match(router, /parent-provided memory context/i);
 assert.match(router, /Use query_team.*specialist guidance is warranted.*parallel.*team coordination/i);
 assert.match(router, /Use deploy_agent when concrete specialist execution, review, or verification warrants a dedicated agent/i);
 assert.doesNotMatch(router, /small or simple work inline/i);

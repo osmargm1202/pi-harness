@@ -82,6 +82,16 @@ const ALLOWED_PI_TOOLS = new Set([
 	...ENGRAM_TOOLS,
 ]);
 const DEFAULT_AGENT_TOOLS = ["read", "grep", "find", ...ENGRAM_TOOLS];
+const ENGRAM_MEMORY_WORKFLOW = `## Engram Memory Workflow
+
+At the start of each new user request or delegated task, use Engram before conclusions when prior work, project history, user preferences, decisions, prompts, or earlier sessions may affect the answer.
+
+- Save the current request with \`engram_mem_save_prompt\` when available and not already saved by the parent.
+- Retrieve memory in this order: focused \`engram_mem_search\` queries, \`engram_mem_context\` for recent project context, then \`engram_mem_get_observation\` for any relevant truncated result.
+- Treat memory as context, not authority: verify against current files, commands, and user instructions.
+- If running as a child agent, read and use parent-provided memory context first. If it is missing or insufficient and Engram tools are available, perform a focused search and say so.
+- Before returning, save significant discoveries, decisions, bug fixes, and durable outcome notes with \`engram_mem_save\` or \`engram_mem_session_summary\` when available.
+`;
 const SOURCE_REPO = "VoltAgent/awesome-claude-code-subagents";
 const SOURCE_REF = "main";
 const CATEGORY_ROOT = "categories";
@@ -146,6 +156,13 @@ export function renderFrontmatter(frontmatter: Record<string, FrontmatterValue>)
 	return `${lines.join("\n")}\n`;
 }
 
+function appendEngramMemoryWorkflow(body: string): string {
+	const trimmedBody = body.trim();
+	if (!trimmedBody) return ENGRAM_MEMORY_WORKFLOW;
+	if (/^## Engram Memory Workflow$/m.test(trimmedBody)) return trimmedBody;
+	return `${trimmedBody}\n\n${ENGRAM_MEMORY_WORKFLOW}`;
+}
+
 export function convertAgentMarkdown(markdown: string, filename = "agent.md"): string {
 	const { frontmatter, body } = parseFrontmatter(markdown, filename);
 	const { model: _ignoredModel, ...restFrontmatter } = frontmatter;
@@ -158,8 +175,8 @@ export function convertAgentMarkdown(markdown: string, filename = "agent.md"): s
 		: DEFAULT_AGENT_TOOLS.join(", ");
 
 	const rendered = renderFrontmatter(convertedFrontmatter);
-	const trimmedBody = body.trim();
-	return trimmedBody ? `${rendered}${trimmedBody}\n` : rendered;
+	const bodyWithMemoryWorkflow = appendEngramMemoryWorkflow(body);
+	return `${rendered}${bodyWithMemoryWorkflow}\n`;
 }
 
 export function buildImportedAgent(markdown: string, fileName: string): ImportedAgent {
@@ -199,6 +216,9 @@ export function generateCategoryRouter({
 		`Use query_team with team: \"${categorySlug}\" when specialist guidance is warranted, independent questions can run in parallel, or team coordination is useful.`,
 		"Use deploy_agent when concrete specialist execution, review, or verification warrants a dedicated agent.",
 		"Choose the smallest safe workflow; do not fan out or deploy by default.",
+		"",
+		ENGRAM_MEMORY_WORKFLOW.trimEnd(),
+		"",
 		"Available members:",
 		...members.map((member) => `- ${member}`),
 	];

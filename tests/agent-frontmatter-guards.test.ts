@@ -42,6 +42,16 @@ const INLINE_SMALL_SIMPLE_ONLY_PATTERNS = [
 	/use inline execution when the task is small/i,
 ];
 
+const ENGRAM_MEMORY_HEADING = "## Engram Memory Workflow";
+const ENGRAM_MEMORY_REQUIRED_PATTERNS = [
+	/engram_mem_search/i,
+	/engram_mem_context/i,
+	/engram_mem_get_observation/i,
+	/engram_mem_save_prompt/i,
+	/save significant discoveries|save durable discoveries|save durable outcome/i,
+	/parent-provided memory context|parent provided memory context|parent.*memory context/i,
+];
+
 function listMarkdownFiles(dir: string): string[] {
 	const files: string[] = [];
 	for (const entry of readdirSync(dir)) {
@@ -88,6 +98,21 @@ for (const filePath of listMarkdownFiles(agentsRoot)) {
 		new RegExp(STRICT_DELEGATION_PHRASE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"),
 		`${relativePath} must not require strict folder subagent delegation`,
 	);
+
+	if (toolsLine && /engram_mem_/.test(toolsLine)) {
+		assert.match(
+			content,
+			new RegExp(`^${ENGRAM_MEMORY_HEADING}$`, "m"),
+			`${relativePath} must define ${ENGRAM_MEMORY_HEADING}`,
+		);
+		for (const pattern of ENGRAM_MEMORY_REQUIRED_PATTERNS) {
+			assert.match(
+				content,
+				pattern,
+				`${relativePath} Engram workflow must include ${pattern}`,
+			);
+		}
+	}
 
 	if (relativePath.match(/^agents\/.*\/index\.md$/)) {
 		for (const pattern of INDEX_STRICT_DELEGATION_PATTERNS) {
