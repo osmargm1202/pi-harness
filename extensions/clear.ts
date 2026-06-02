@@ -1,6 +1,9 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 
 export default function (pi: ExtensionAPI) {
+	if (!isOrgmExtensionEnabled("clear")) return;
+
 	pi.registerCommand("orgm-clear", {
 		description: "Start a fresh recoverable session in the current working directory",
 		handler: async (_args, ctx) => {

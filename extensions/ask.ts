@@ -4,6 +4,7 @@ import { join } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Editor, type EditorTheme, Key, matchesKey, Text, truncateToWidth, wrapTextWithAnsi } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
+import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 import { requestSubagentInteraction, formatSubagentInteractionUnavailable } from "./lib/subagent-interaction-bridge.ts";
 import { createSelectListTheme } from "./lib/tui-select-panel.ts";
 
@@ -453,13 +454,15 @@ async function runQuestionnaire(ctx: ExtensionContext, params: QuestionParams) {
 }
 
 export default function (pi: ExtensionAPI) {
+	if (!isOrgmExtensionEnabled("ask")) return;
+
 	pi.on("before_agent_start", async (event, ctx) => {
-		if (!ctx.hasUI) return;
+		if (!ctx.hasUI || !isOrgmExtensionEnabled("ask", undefined, "questions")) return;
 		return { systemPrompt: `${event.systemPrompt}\n\n${ASK_USAGE_GUIDANCE}` };
 	});
 
 	pi.on("tool_call", async (event, ctx) => {
-		if (event.toolName !== "bash") return;
+		if (!isOrgmExtensionEnabled("ask", undefined, "permissions") || event.toolName !== "bash") return;
 		const command = String((event.input as { command?: unknown }).command ?? "");
 		const rule = matchingRule(command, loadAskConfig());
 		if (!rule) return;
@@ -478,6 +481,8 @@ export default function (pi: ExtensionAPI) {
 		const ok = await ctx.ui.confirm(`Confirm command: ${rule.name}`, `${rule.message ?? "Allow command?"}\n\n${command}`);
 		if (!ok) return { block: true, reason: "Blocked by ask.ts" };
 	});
+
+	if (!isOrgmExtensionEnabled("ask", undefined, "questions")) return;
 
 	pi.registerTool({
 		name: "ask_user_question",

@@ -3,6 +3,7 @@ import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-c
 import { SessionManager, type SessionInfo } from "@earendil-works/pi-coding-agent";
 import { type SelectItem } from "@earendil-works/pi-tui";
 import { createSelectPanel } from "./lib/tui-select-panel.ts";
+import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 
 const MAX_SELECTOR_HEIGHT = 12;
 
@@ -86,6 +87,8 @@ async function openSessionSelector(ctx: ExtensionCommandContext): Promise<string
 }
 
 export default function (pi: ExtensionAPI) {
+	if (!isOrgmExtensionEnabled("sessions")) return;
+
 	pi.registerCommand("orgm-sessions", {
 		description: "List saved sessions for the current project and recover one",
 		handler: async (_args, ctx) => {

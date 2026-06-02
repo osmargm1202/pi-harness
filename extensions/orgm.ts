@@ -11,7 +11,13 @@ import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { initializeOrgmConfig, orgmConfigPath } from "./lib/orgm-config.ts";
+import { initializeOrgmConfig, loadOrgmConfig, orgmConfigPath } from "./lib/orgm-config.ts";
+import {
+	buildOrgmExtensionCommandCompletions,
+	describeOrgmExtensionStatus,
+	parseOrgmExtensionCommand,
+	setOrgmExtensionFeature,
+} from "./lib/orgm-extension-config.ts";
 import { countActiveExtensions } from "./lib/orgm-extensions.ts";
 import { registerSddCompatibilityCommands } from "./lib/orgm-flow.ts";
 
@@ -213,7 +219,7 @@ function renderHeader(
 	return lines;
 }
 
-function ensureRepoIndexEnabled(settingsPath = join(homedir(), ".pi", "agent", "settings.json")): void {
+function ensureRepoIndexEnabled(settingsPath = join(process.env.HOME ?? homedir(), ".pi", "agent", "settings.json")): void {
 	let raw: Record<string, unknown> = {};
 	try {
 		if (existsSync(settingsPath)) {
@@ -355,8 +361,36 @@ export default function (pi: ExtensionAPI) {
 		},
 	});
 
+	pi.registerCommand("orgm-extension", {
+		description: "Toggle ORGM extensions: /orgm-extension <extension> [feature] <on|off|toggle|status>",
+		getArgumentCompletions: buildOrgmExtensionCommandCompletions,
+		handler: async (args: string, ctx: ExtensionContext) => {
+			const command = parseOrgmExtensionCommand(args);
+			if (!command?.extension) {
+				ctx.ui.notify("Usage: /orgm-extension <extension> [feature] <on|off|toggle|status>", "info");
+				return;
+			}
+			if (command.error) {
+				ctx.ui.notify(command.error, "error");
+				return;
+			}
+			if (command.action === "status") {
+				ctx.ui.notify(describeOrgmExtensionStatus(command.extension), "info");
+				return;
+			}
+			const current = loadOrgmConfig();
+			const currentEnabled = command.feature
+				? current.extensions[command.extension]?.features?.[command.feature]?.enabled ?? true
+				: current.extensions[command.extension]?.enabled ?? command.extension !== "todo";
+			const enabled = command.action === "toggle" ? !currentEnabled : command.action === "on";
+			setOrgmExtensionFeature(command.extension, command.feature, enabled);
+			ctx.ui.notify(`${command.extension}${command.feature ? ` ${command.feature}` : ""}: ${enabled ? "on" : "off"}. Restart session to apply extension registration changes.`, "success");
+		},
+	});
+
 	pi.registerCommand("orgm-header", {
 		description: "Reapply ORGM ASCII header: /orgm-header [no-shadow|shadow]",
+		getArgumentCompletions: (prefix: string) => ["no-shadow", "shadow"].filter((value) => value.startsWith(prefix.trim().toLowerCase())).map((value) => ({ value, label: value })),
 		handler: async (args: string, ctx: ExtensionContext) => {
 			if (!ctx.hasUI) return;
 			const mode = args.trim().toLowerCase();

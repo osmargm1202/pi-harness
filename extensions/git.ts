@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { isBlockedGitRoot, loadOrgmConfig } from "./lib/orgm-config";
+import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 
 const execFileAsync = promisify(execFile);
 
@@ -42,6 +43,8 @@ async function maybeInitGit(ctx: ExtensionContext): Promise<void> {
 }
 
 export default function (pi: ExtensionAPI) {
+	if (!isOrgmExtensionEnabled("git")) return;
+
 	pi.on("session_start", async (_event: unknown, ctx: ExtensionContext) => {
 		await maybeInitGit(ctx);
 	});

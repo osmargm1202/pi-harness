@@ -29,6 +29,7 @@ import {
 	type RuntimeSnapshot,
 } from "./lib/subagent-runtime-model.ts";
 import { createSelectListTheme } from "./lib/tui-select-panel.ts";
+import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 
 
 const DEPLOYMENT_GRID_MAX_COLUMNS = 6;
@@ -516,6 +517,8 @@ async function openTranscriptViewer(
 }
 
 export default function (pi: ExtensionAPI) {
+	if (!isOrgmExtensionEnabled("agent-status")) return;
+
 	let currentCaveman: CavemanLevel = "off";
 	let currentCtx: ExtensionContext | null = null;
 	let deployments: DeploymentState[] = [];

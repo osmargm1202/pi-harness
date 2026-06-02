@@ -1,5 +1,6 @@
 import { spawn, spawnSync } from "node:child_process";
 import { basename } from "node:path";
+import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 import type {
 	ExtensionAPI,
 	ExtensionContext,
@@ -238,6 +239,8 @@ function getQuestionText(event: ToolCallEvent): string {
 }
 
 export default function (pi: ExtensionAPI) {
+	if (!isOrgmExtensionEnabled("notify")) return;
+
 	pi.on("tool_call", (event, ctx) => {
 		if (QUESTION_TOOL_NAMES.has(event.toolName)) {
 			notify("question", ctx, getQuestionText(event));

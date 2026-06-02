@@ -23,6 +23,7 @@ import {
 	loadCavemanConfig,
 	resolveInitialCavemanState,
 } from "./lib/caveman-state.ts";
+import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 import {
 	normalizePrimaryName,
 	PRIMARY_STATE_EVENT,
@@ -142,6 +143,8 @@ function buildMinimalSkillsUsage(): string {
 }
 
 export default function (pi: ExtensionAPI) {
+	if (!isOrgmExtensionEnabled("minimal")) return;
+
 	let currentPrimary: string = SYSTEM_AGENT;
 	let currentCaveman: CavemanLevel = "off";
 	let showCavemanStatus = loadCavemanConfig().showStatus;

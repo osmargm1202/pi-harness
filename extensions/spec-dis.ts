@@ -4,6 +4,7 @@ import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-a
 import { DynamicBorder, getMarkdownTheme } from "@earendil-works/pi-coding-agent";
 import { Container, Markdown, type SelectItem, Text, matchesKey, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import { createSelectPanel } from "./lib/tui-select-panel.ts";
+import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 
 type DocKind = "spec" | "design" | "task" | "doc";
 
@@ -348,6 +349,8 @@ async function openSpecDis(ctx: ExtensionContext, docs?: SpecDoc[], title = "Ope
 }
 
 export default function (pi: ExtensionAPI) {
+	if (!isOrgmExtensionEnabled("spec-dis")) return;
+
 	pi.registerCommand("orgm-spec-dis", {
 		description: "List local spec/design/task/doc files and open a reader",
 		handler: async (_args, ctx) => {

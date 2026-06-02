@@ -13,6 +13,7 @@ import { discoverDeployableAgents, type AgentConfig } from "./lib/agent-discover
 import { loadOrgmConfigSlice, orgmConfigPath, saveOrgmConfigSlice } from "./lib/orgm-config.ts";
 import { resolveConfiguredSubagentModel } from "./lib/subagent-runtime-model.ts";
 import { createSelectListTheme } from "./lib/tui-select-panel.ts";
+import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 
 const DEPRECATED_AGENT_MODELS = new Set(["openai-codex/gpt-5.3-codex-spark"]);
 
@@ -293,6 +294,8 @@ async function openAgentModelPalette(ctx: ExtensionContext): Promise<void> {
 
 // ─── Extension Registration ─────────────────────────────────────────────────
 export default function (pi: ExtensionAPI) {
+	if (!isOrgmExtensionEnabled("agent-selector")) return;
+
 	// Use non-/model prefix. Avoid Enter/autocomplete conflict with built-in /model menu.
 	pi.registerCommand("orgm-agents-model", {
 		description: "Select a subagent from agents/ and choose its model",

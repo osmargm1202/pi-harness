@@ -41,6 +41,7 @@ import {
 	processPendingSubagentInteractionRequests,
 	type SubagentInteractionRequest,
 } from "./lib/subagent-interaction-bridge.ts";
+import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 import {
 	SUBAGENTS_EVENT,
 	SUBAGENT_ENV_FLAG,
@@ -1555,6 +1556,8 @@ function renderWidget(
 
 // ─── Main extension export ──────────────────────────────────────────────────
 export default function (pi: ExtensionAPI) {
+	if (!isOrgmExtensionEnabled("subagents")) return;
+
 	let promptDeployments: DeploymentState[] = [];
 	let deploymentCountsByAgent = new Map<string, number>();
 	let deploymentTranscripts = new Map<string, DeploymentTranscriptEntry[]>();

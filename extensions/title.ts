@@ -2,6 +2,7 @@ import type { AgentMessage } from "@earendil-works/pi-agent-core";
 import { complete, type Message } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionContext, SessionEntry } from "@earendil-works/pi-coding-agent";
 import { convertToLlm, serializeConversation } from "@earendil-works/pi-coding-agent";
+import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 import { loadOrgmConfigSlice, saveOrgmConfigSlice } from "./lib/orgm-config.ts";
 import {
 	parseTitleCommand,
@@ -92,6 +93,8 @@ async function generateTitle(ctx: ExtensionContext, promptText: string, signal: 
 }
 
 export default function titleExtension(pi: ExtensionAPI) {
+	if (!isOrgmExtensionEnabled("title")) return;
+
 	let status: TitleStatus = { state: "idle" };
 	let spinnerTimer: ReturnType<typeof setInterval> | undefined;
 	let spinnerIndex = 0;

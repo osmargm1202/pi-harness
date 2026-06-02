@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import type { ExtensionAPI, ExtensionContext, SessionStartEvent } from "@earendil-works/pi-coding-agent";
 import { Text } from "@earendil-works/pi-tui";
+import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 
 const execFileAsync = promisify(execFile);
 const CUSTOM_TYPE = "awareness";
@@ -221,6 +222,8 @@ function shouldInjectAwareness(reason: SessionStartEvent["reason"], ctx: Extensi
 }
 
 export default function (pi: ExtensionAPI) {
+	if (!isOrgmExtensionEnabled("awareness")) return;
+
 	pi.registerMessageRenderer(CUSTOM_TYPE, (message, options, theme) => {
 		return new Text(theme.fg("muted", renderAwarenessContent(String(message.content ?? ""), options.expanded)), 0, 0);
 	});

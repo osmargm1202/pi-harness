@@ -1,5 +1,6 @@
 import type { AutocompleteItem } from "@earendil-works/pi-tui";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 import {
 	CAVEMAN_STATE_ENTRY,
 	CAVEMAN_STATE_EVENT,
@@ -60,6 +61,8 @@ function getLevelCompletions(prefix: string): AutocompleteItem[] | null {
 }
 
 export default function (pi: ExtensionAPI) {
+	if (!isOrgmExtensionEnabled("caveman")) return;
+
 	let state: CavemanState = resolveInitialCavemanState([]);
 	let missingSkillNotice: string | null = null;
 

@@ -2,6 +2,7 @@ import type { ExtensionAPI, ExtensionContext, SessionStartEvent } from "@earendi
 import { Text } from "@earendil-works/pi-tui";
 import { loadOrgmConfig, saveOrgmConfigSlice } from "./lib/orgm-config.ts";
 import { buildProjectTreeText } from "./lib/repo-tree.ts";
+import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 
 const CUSTOM_TYPE = "repo-tree";
 
@@ -61,6 +62,7 @@ export function renderRepoTreeContent(content: string, expanded: boolean): strin
 }
 
 export default function repoIndexExtension(pi: ExtensionAPI, options: RepoTreeExtensionOptions = {}) {
+	if (!isOrgmExtensionEnabled("repo-index")) return;
 	let injectedThisLifecycle = false;
 
 	pi.registerMessageRenderer(CUSTOM_TYPE, (message, rendererOptions, theme) => {

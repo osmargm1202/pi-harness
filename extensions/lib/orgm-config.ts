@@ -45,6 +45,12 @@ export interface OrgmAgentStatusConfig {
 	showCaveman: boolean;
 }
 
+export type OrgmExtensionFeatureConfig = { enabled: boolean };
+export type OrgmExtensionConfig = {
+	enabled: boolean;
+	features: Record<string, OrgmExtensionFeatureConfig>;
+};
+export type OrgmExtensionsConfig = Record<string, OrgmExtensionConfig>;
 export type OrgmAgentModelsConfig = Record<string, string>;
 
 export interface OrgmHostConfig {
@@ -57,6 +63,7 @@ export interface OrgmHostConfig {
 	caveman: OrgmCavemanConfig;
 	minimalSkills: OrgmMinimalSkillsConfig;
 	agentStatus: OrgmAgentStatusConfig;
+	extensions: OrgmExtensionsConfig;
 	agentModels: OrgmAgentModelsConfig;
 }
 
@@ -99,6 +106,16 @@ export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
 		showSummary: true,
 		showActivity: true,
 		showCaveman: true,
+	},
+	extensions: {
+		ask: {
+			enabled: true,
+			features: {
+				questions: { enabled: true },
+				permissions: { enabled: false },
+			},
+		},
+		todo: { enabled: false, features: {} },
 	},
 	agentModels: {},
 };
@@ -179,6 +196,44 @@ export function mergeAgentStatusConfig(value: unknown): OrgmAgentStatusConfig {
 	};
 }
 
+function mergeExtensionFeatureConfig(value: unknown, fallback: OrgmExtensionFeatureConfig = { enabled: true }): OrgmExtensionFeatureConfig {
+	const raw = isRecord(value) ? value : {};
+	return {
+		enabled: typeof raw.enabled === "boolean" ? raw.enabled : fallback.enabled,
+	};
+}
+
+function mergeExtensionConfig(value: unknown, fallback: OrgmExtensionConfig = { enabled: true, features: {} }): OrgmExtensionConfig {
+	const raw = isRecord(value) ? value : {};
+	const rawFeatures = isRecord(raw.features) ? raw.features : {};
+	const featureNames = new Set([
+		...Object.keys(fallback.features),
+		...Object.keys(rawFeatures),
+		...Object.entries(raw)
+			.filter(([key, nested]) => key !== "enabled" && key !== "features" && isRecord(nested))
+			.map(([key]) => key),
+	]);
+	const features: Record<string, OrgmExtensionFeatureConfig> = {};
+	for (const featureName of featureNames) {
+		const rawValue = rawFeatures[featureName] ?? raw[featureName];
+		features[featureName] = mergeExtensionFeatureConfig(rawValue, fallback.features[featureName]);
+	}
+	return {
+		enabled: typeof raw.enabled === "boolean" ? raw.enabled : fallback.enabled,
+		features,
+	};
+}
+
+export function mergeExtensionsConfig(value: unknown): OrgmExtensionsConfig {
+	const raw = isRecord(value) ? value : {};
+	const extensionNames = new Set([...Object.keys(DEFAULT_ORGM_CONFIG.extensions), ...Object.keys(raw)]);
+	const extensions: OrgmExtensionsConfig = {};
+	for (const extensionName of extensionNames) {
+		extensions[extensionName] = mergeExtensionConfig(raw[extensionName], DEFAULT_ORGM_CONFIG.extensions[extensionName]);
+	}
+	return extensions;
+}
+
 export function mergeAgentModelsConfig(value: unknown): OrgmAgentModelsConfig {
 	if (!isRecord(value)) return { ...DEFAULT_ORGM_CONFIG.agentModels };
 	return Object.fromEntries(
@@ -198,6 +253,7 @@ const KNOWN_ORGM_CONFIG_KEYS = [
 	"caveman",
 	"minimalSkills",
 	"agentStatus",
+	"extensions",
 	"agentModels",
 ] as const;
 
@@ -225,6 +281,7 @@ function mergeOrgmConfig(raw: Record<string, unknown>): OrgmHostConfig {
 		caveman: mergeCavemanConfig(raw.caveman),
 		minimalSkills: mergeMinimalSkillsConfig(raw.minimalSkills),
 		agentStatus: mergeAgentStatusConfig(raw.agentStatus),
+		extensions: mergeExtensionsConfig(raw.extensions),
 		agentModels: mergeAgentModelsConfig(raw.agentModels),
 	};
 }
@@ -260,7 +317,7 @@ export function orgmConfigPath(home = process.env.HOME ?? homedir()): string {
 }
 
 export type OrgmConfigSliceKey = keyof OrgmHostConfig;
-export type WritableOrgmConfigSliceKey = keyof Pick<OrgmHostConfig, "defaultPrimaryAgent" | "primaryAuto" | "caveman" | "minimalSkills" | "agentStatus" | "agentModels" | "repoTree" | "title">;
+export type WritableOrgmConfigSliceKey = keyof Pick<OrgmHostConfig, "defaultPrimaryAgent" | "primaryAuto" | "caveman" | "minimalSkills" | "agentStatus" | "extensions" | "agentModels" | "repoTree" | "title">;
 
 export function loadOrgmConfig(configPath = orgmConfigPath()): OrgmHostConfig {
 	if (!existsSync(configPath)) return structuredClone(DEFAULT_ORGM_CONFIG);

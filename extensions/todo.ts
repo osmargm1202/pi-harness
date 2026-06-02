@@ -2,6 +2,7 @@ import { StringEnum } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionContext, SessionEntry, Theme } from "@earendil-works/pi-coding-agent";
 import { Text, truncateToWidth } from "@earendil-works/pi-tui";
 import { Type, type Static } from "typebox";
+import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 
 export type TaskStatus = "pending" | "in_progress" | "completed" | "deleted";
 export type TaskAction = "create" | "update" | "list" | "get" | "delete" | "clear";
@@ -432,6 +433,8 @@ function refreshOverlay(ctx = overlayCtx): void {
 }
 
 export default function (pi: ExtensionAPI) {
+	if (!isOrgmExtensionEnabled("todo")) return;
+
 	pi.on("input", async (event, ctx) => {
 		if (event.source === "extension") return { action: "continue" };
 		if (!isTodoResetInput(event.text)) return { action: "continue" };

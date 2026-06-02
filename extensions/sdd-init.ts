@@ -8,6 +8,7 @@ import {
 import { basename, dirname, join, relative } from "node:path";
 import { applySavedModelConfig } from "./lib/orgm-flow";
 import { ensureSddPreflight, installSddAssets } from "../lib/sdd-preflight.ts";
+import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 type ExtensionAPI = any;
 
 const CONFIG_REL_PATH = "openspec/config.yaml";
@@ -771,6 +772,8 @@ function ensureOpenSpecDirs(cwd: string): void {
 }
 
 export default function (pi: ExtensionAPI) {
+	if (!isOrgmExtensionEnabled("sdd-init")) return;
+
 	pi.registerCommand("orgm-sdd-preflight", {
 		description: "Run ORGM SDD preflight and install current SDD orchestrator assets.",
 		handler: async (_args: unknown, ctx: any) => {

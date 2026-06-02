@@ -16,6 +16,7 @@ try {
 		caveman: { defaultLevel: "lite" },
 		minimalSkills: { enabled: false },
 		agentStatus: { showWidget: false },
+		extensions: { ask: { permissions: { enabled: true } }, todo: { enabled: true } },
 		agentModels: { "coding-expert": "openai-codex/gpt-5.5", "empty-agent": "   " },
 	}, null, 2), "utf8");
 
@@ -26,6 +27,8 @@ try {
 	assert.equal(orgmConfig.title.autoGenerate, false, "title.autoGenerate should load from central orgm.json");
 	assert.equal(loadOrgmConfigSlice("title", configPath).autoGenerate, false, "loadOrgmConfigSlice should load title slice");
 	assert.equal(loadOrgmConfigSlice("agentStatus", configPath).showWidget, false, "loadOrgmConfigSlice should load agentStatus slice");
+	assert.equal(loadOrgmConfigSlice("extensions", configPath).ask.features.permissions.enabled, true, "extensions slice should load direct feature aliases");
+	assert.equal(loadOrgmConfigSlice("extensions", configPath).todo.enabled, true, "extensions slice should load todo enabled override");
 	assert.equal(loadOrgmConfigSlice("primaryAuto", configPath).enabled, true, "primaryAuto.enabled should default to true when missing");
 	assert.deepEqual(
 		loadOrgmConfigSlice("agentModels", configPath),
@@ -37,6 +40,10 @@ try {
 	assert.equal(loadOrgmConfigSlice("minimalSkills", configPath).enabled, false, "minimalSkills slice should load from central orgm.json");
 	assert.equal(loadOrgmConfigSlice("agentStatus", configPath).showWidget, false, "agentStatus slice should load from central orgm.json");
 	assert.equal(loadAgentStatusConfig(configPath).showWidget, false, "agentStatus wrapper should load through central slice helper");
+	const defaultConfig = loadOrgmConfig(join(tempDir, "missing-orgm.json"));
+	assert.equal(defaultConfig.extensions.ask.features.questions.enabled, true, "ask questions should default enabled");
+	assert.equal(defaultConfig.extensions.ask.features.permissions.enabled, false, "ask permissions should default disabled");
+	assert.equal(defaultConfig.extensions.todo.enabled, false, "todo should default disabled");
 	saveOrgmConfigSlice("defaultPrimaryAgent", "pi", configPath);
 	saveOrgmConfigSlice("title", { autoGenerate: true }, configPath);
 	saveOrgmConfigSlice("primaryAuto", { enabled: false }, configPath);
@@ -78,6 +85,9 @@ try {
 		{ enabled: true },
 		"initializeOrgmConfig should write primaryAuto enabled into generated orgm.json",
 	);
+	assert.equal(initializedRaw.extensions.ask.features.questions.enabled, true, "initializeOrgmConfig should write ask questions enabled default");
+	assert.equal(initializedRaw.extensions.ask.features.permissions.enabled, false, "initializeOrgmConfig should write ask permissions disabled default");
+	assert.equal(initializedRaw.extensions.todo.enabled, false, "initializeOrgmConfig should write todo disabled default");
 	assert.deepEqual(initializedRaw.agentModels, {}, "initializeOrgmConfig should write empty agentModels overrides into generated orgm.json");
 } finally {
 	rmSync(tempDir, { recursive: true, force: true });

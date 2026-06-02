@@ -54,6 +54,15 @@ try {
 	assert(settings.extensions.some((entry: string) => entry.endsWith("extensions/repo-index.ts")), "/orgm-init should enable repo-index/repo-tree extension when missing");
 	assert.equal(notifications.at(-1)?.kind, "success", "/orgm-init should notify success");
 	assert.match(notifications.at(-1)?.message ?? "", /orgm\.json/i, "/orgm-init success notification should mention orgm.json path");
+
+	const extensionCommand = commands.get("orgm-extension");
+	assert(extensionCommand, "/orgm-extension command should register");
+	await extensionCommand?.handler("todo on", ctx);
+	let updated = JSON.parse(readFileSync(configPath, "utf8"));
+	assert.equal(updated.extensions.todo.enabled, true, "/orgm-extension todo on should persist enabled flag");
+	await extensionCommand?.handler("ask permissions off", ctx);
+	updated = JSON.parse(readFileSync(configPath, "utf8"));
+	assert.equal(updated.extensions.ask.features.permissions.enabled, false, "/orgm-extension ask permissions off should persist feature flag");
 } finally {
 	if (previousHome === undefined) delete process.env.HOME;
 	else process.env.HOME = previousHome;
