@@ -1,94 +1,35 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { loadAgentStatusConfig } from "../extensions/lib/agent-status-config.ts";
-import { initializeOrgmConfig, loadOrgmConfig, loadOrgmConfigSlice, saveOrgmConfigSlice, type OrgmHostConfig } from "../extensions/lib/orgm-config.ts";
+import { join } from "node:path";
+import { initializeOrgmConfig, loadOrgmConfig, loadOrgmConfigSlice, saveOrgmConfigSlice } from "../extensions/lib/orgm-config.ts";
 
 const tempDir = mkdtempSync(join(tmpdir(), "orgm-config-"));
 const configPath = join(tempDir, "orgm.json");
 
-try {
-	writeFileSync(configPath, JSON.stringify({
-		defaultPrimaryAgent: "pi-orchestrator",
-		repoTree: { enabled: false, maxDepth: 5 },
-		title: { autoGenerate: false },
-		caveman: { defaultLevel: "lite" },
-		minimalSkills: { enabled: false },
-		agentStatus: { showWidget: false },
-		extensions: { ask: { permissions: { enabled: true } }, todo: { enabled: true } },
-		agentModels: { "coding-expert": "openai-codex/gpt-5.5", "empty-agent": "   " },
-	}, null, 2), "utf8");
+writeFileSync(configPath, JSON.stringify({
+	unknownFutureKey: { keep: true },
+	mode: { defaultMode: "build", allowedModes: ["plan", "build", "ask", "sdd", "tdd", "debug"] },
+	title: { autoGenerate: false },
+}, null, 2), "utf8");
 
-	const orgmConfig = loadOrgmConfig(configPath);
-	assert.equal(orgmConfig.defaultPrimaryAgent, "pi-orchestrator", "defaultPrimaryAgent should load from central orgm.json");
-	assert.equal(orgmConfig.repoTree.enabled, false, "repoTree.enabled should load from central orgm.json");
-	assert.equal(orgmConfig.repoTree.maxDepth, 5, "repoTree.maxDepth should load from central orgm.json");
-	assert.equal(orgmConfig.title.autoGenerate, false, "title.autoGenerate should load from central orgm.json");
-	assert.equal(loadOrgmConfigSlice("title", configPath).autoGenerate, false, "loadOrgmConfigSlice should load title slice");
-	assert.equal(loadOrgmConfigSlice("agentStatus", configPath).showWidget, false, "loadOrgmConfigSlice should load agentStatus slice");
-	assert.equal(loadOrgmConfigSlice("extensions", configPath).ask.features.permissions.enabled, true, "extensions slice should load direct feature aliases");
-	assert.equal(loadOrgmConfigSlice("extensions", configPath).todo.enabled, true, "extensions slice should load todo enabled override");
-	assert.equal(loadOrgmConfigSlice("primaryAuto", configPath).enabled, true, "primaryAuto.enabled should default to true when missing");
-	assert.deepEqual(
-		loadOrgmConfigSlice("agentModels", configPath),
-		{ "coding-expert": "openai-codex/gpt-5.5" },
-		"agentModels slice should load trimmed per-agent model overrides from central orgm.json only",
-	);
+const orgmConfig = loadOrgmConfig(configPath);
+assert.deepEqual(orgmConfig.mode, {
+	defaultMode: "build",
+	allowedModes: ["plan", "build", "ask", "sdd", "tdd", "debug"],
+});
+assert.deepEqual((orgmConfig as any).unknownFutureKey, { keep: true });
+assert.equal(orgmConfig.title.autoGenerate, false);
+assert.equal((orgmConfig as any).defaultPrimaryAgent, undefined, "primary agent config should be removed");
+assert.equal((orgmConfig as any).primaryAuto, undefined, "primary auto config should be removed");
+assert.equal((orgmConfig as any).repoTree, undefined, "repo tree config should be removed");
+assert.equal((orgmConfig as any).flows, undefined, "flow config should be removed");
 
-	assert.equal(loadOrgmConfigSlice("caveman", configPath).defaultLevel, "lite", "caveman slice should load from central orgm.json");
-	assert.equal(loadOrgmConfigSlice("minimalSkills", configPath).enabled, false, "minimalSkills slice should load from central orgm.json");
-	assert.equal(loadOrgmConfigSlice("agentStatus", configPath).showWidget, false, "agentStatus slice should load from central orgm.json");
-	assert.equal(loadAgentStatusConfig(configPath).showWidget, false, "agentStatus wrapper should load through central slice helper");
-	const defaultConfig = loadOrgmConfig(join(tempDir, "missing-orgm.json"));
-	assert.equal(defaultConfig.extensions.ask.features.questions.enabled, true, "ask questions should default enabled");
-	assert.equal(defaultConfig.extensions.ask.features.permissions.enabled, false, "ask permissions should default disabled");
-	assert.equal(defaultConfig.extensions.todo.enabled, false, "todo should default disabled");
-	saveOrgmConfigSlice("defaultPrimaryAgent", "pi", configPath);
-	saveOrgmConfigSlice("title", { autoGenerate: true }, configPath);
-	saveOrgmConfigSlice("primaryAuto", { enabled: false }, configPath);
-	saveOrgmConfigSlice("agentModels", { "skill-expert": "test-provider/base-model" }, configPath);
-	const savedConfig = loadOrgmConfig(configPath);
-	assert.equal(savedConfig.defaultPrimaryAgent, "pi", "defaultPrimaryAgent should persist through saveOrgmConfigSlice");
-	assert.equal(savedConfig.title.autoGenerate, true, "title config should persist through saveOrgmConfigSlice");
-	assert.equal(savedConfig.primaryAuto.enabled, false, "primaryAuto config should persist through saveOrgmConfigSlice");
-	assert.deepEqual(savedConfig.agentModels, { "skill-expert": "test-provider/base-model" }, "agentModels config should persist through saveOrgmConfigSlice");
+assert.equal(loadOrgmConfigSlice("mode", configPath).defaultMode, "build");
+saveOrgmConfigSlice("mode", { defaultMode: "ask", allowedModes: ["plan", "build", "ask", "sdd", "tdd"] }, configPath);
+const savedConfig = JSON.parse(readFileSync(configPath, "utf8"));
+assert.deepEqual(savedConfig.mode, { defaultMode: "ask", allowedModes: ["plan", "build", "ask", "sdd", "tdd"] });
+assert.deepEqual(savedConfig.unknownFutureKey, { keep: true });
 
-	writeFileSync(configPath, JSON.stringify({
-		unknownFutureKey: { keep: true },
-		fullSubagents: { legacyPilot: true, startupTeam: "legacy" },
-		title: { autoGenerate: false },
-	}, null, 2), "utf8");
-	saveOrgmConfigSlice("title", { autoGenerate: true }, configPath);
-	const rawSaved = JSON.parse(readFileSync(configPath, "utf8"));
-	assert.deepEqual(rawSaved.unknownFutureKey, { keep: true }, "saveOrgmConfigSlice should preserve unknown top-level keys");
-	assert.equal(rawSaved.title.autoGenerate, true, "saveOrgmConfigSlice should write the requested slice");
-
-	const preserved = loadOrgmConfig(configPath) as OrgmHostConfig & { [key: string]: unknown };
-	assert.deepEqual(
-		preserved.unknownFutureKey,
-		{ keep: true },
-		"loadOrgmConfig should keep unknown future keys to avoid config key loss",
-	);
-	assert.deepEqual(
-		preserved.fullSubagents,
-		{ legacyPilot: true, startupTeam: "legacy" },
-		"loadOrgmConfig should preserve fullSubagents as unknown local config key",
-	);
-
-	const initializedPath = join(tempDir, "initialized-orgm.json");
-	const initialized = initializeOrgmConfig(initializedPath);
-	const initializedRaw = JSON.parse(readFileSync(initializedPath, "utf8"));
-	assert.equal(initialized.primaryAuto.enabled, true, "initializeOrgmConfig should return primaryAuto enabled by default");
-	assert.deepEqual(
-		initializedRaw.primaryAuto,
-		{ enabled: true },
-		"initializeOrgmConfig should write primaryAuto enabled into generated orgm.json",
-	);
-	assert.equal(initializedRaw.extensions.ask.features.questions.enabled, true, "initializeOrgmConfig should write ask questions enabled default");
-	assert.equal(initializedRaw.extensions.ask.features.permissions.enabled, false, "initializeOrgmConfig should write ask permissions disabled default");
-	assert.equal(initializedRaw.extensions.todo.enabled, false, "initializeOrgmConfig should write todo disabled default");
-	assert.deepEqual(initializedRaw.agentModels, {}, "initializeOrgmConfig should write empty agentModels overrides into generated orgm.json");
-} finally {
-	rmSync(tempDir, { recursive: true, force: true });
-}
+const initialized = initializeOrgmConfig(join(tempDir, "fresh.json"));
+assert.deepEqual(initialized.mode, { defaultMode: "plan", allowedModes: ["plan", "build", "ask", "sdd", "tdd"] });

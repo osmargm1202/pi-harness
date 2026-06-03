@@ -15,10 +15,11 @@ const tempDir = mkdtempSync(join(tmpdir(), "orgm-extension-config-"));
 const configPath = join(tempDir, "orgm.json");
 
 try {
-	assert.equal(isOrgmExtensionEnabled("ask", undefined, "questions"), true, "ask questions should default on");
-	assert.equal(isOrgmExtensionEnabled("ask", undefined, "permissions"), false, "ask permissions should default off");
-	assert.equal(isOrgmExtensionEnabled("todo"), false, "todo extension should default off");
-	assert.equal(isOrgmExtensionEnabled("title"), true, "unknown extension should default on");
+	const defaultConfig = loadOrgmConfig(configPath);
+	assert.equal(isOrgmExtensionEnabled("ask", defaultConfig, "questions"), true, "ask questions should default on");
+	assert.equal(isOrgmExtensionEnabled("ask", defaultConfig, "permissions"), false, "ask permissions should default off");
+	assert.equal(isOrgmExtensionEnabled("todo", defaultConfig), false, "todo extension should default off");
+	assert.equal(isOrgmExtensionEnabled("title", defaultConfig), true, "unknown extension should default on");
 
 	writeFileSync(configPath, JSON.stringify({
 		extensions: {

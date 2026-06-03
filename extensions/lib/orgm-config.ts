@@ -2,7 +2,12 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
 
-export type OrgmFlowName = "normal" | "pi-orchestrator" | "sdd-tdd" | string;
+export type OrgmModeName = "plan" | "build" | "ask" | "sdd" | "tdd" | string;
+
+export interface OrgmModeConfig {
+	defaultMode: OrgmModeName;
+	allowedModes: OrgmModeName[];
+}
 
 export interface OrgmGitConfig {
 	autoInit: boolean;
@@ -11,17 +16,8 @@ export interface OrgmGitConfig {
 	ignoreRoots: string[];
 }
 
-export interface OrgmRepoTreeConfig {
-	enabled: boolean;
-	maxDepth: number;
-}
-
 export interface OrgmTitleConfig {
 	autoGenerate: boolean;
-}
-
-export interface OrgmPrimaryAutoConfig {
-	enabled: boolean;
 }
 
 export interface OrgmCavemanConfig {
@@ -54,12 +50,9 @@ export type OrgmExtensionsConfig = Record<string, OrgmExtensionConfig>;
 export type OrgmAgentModelsConfig = Record<string, string>;
 
 export interface OrgmHostConfig {
-	defaultPrimaryAgent: string;
-	flows: Record<string, OrgmFlowName>;
+	mode: OrgmModeConfig;
 	git: OrgmGitConfig;
-	repoTree: OrgmRepoTreeConfig;
 	title: OrgmTitleConfig;
-	primaryAuto: OrgmPrimaryAutoConfig;
 	caveman: OrgmCavemanConfig;
 	minimalSkills: OrgmMinimalSkillsConfig;
 	agentStatus: OrgmAgentStatusConfig;
@@ -67,12 +60,12 @@ export interface OrgmHostConfig {
 	agentModels: OrgmAgentModelsConfig;
 }
 
+export const DEFAULT_MODE_ORDER = ["plan", "build", "ask", "sdd", "tdd"] as const;
+
 export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
-	defaultPrimaryAgent: "pi",
-	flows: {
-		pi: "normal",
-		"pi-orchestrator": "pi-orchestrator",
-		"sdd-orchestrator": "sdd-tdd",
+	mode: {
+		defaultMode: "plan",
+		allowedModes: [...DEFAULT_MODE_ORDER],
 	},
 	git: {
 		autoInit: false,
@@ -80,15 +73,8 @@ export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
 		preferWorktreesForLongWork: true,
 		ignoreRoots: ["~", "~/Nextcloud", "~/Nextcloud/**"],
 	},
-	repoTree: {
-		enabled: true,
-		maxDepth: 3,
-	},
 	title: {
 		autoGenerate: true,
-	},
-	primaryAuto: {
-		enabled: true,
 	},
 	caveman: {
 		defaultLevel: "off",
@@ -108,6 +94,7 @@ export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
 		showCaveman: true,
 	},
 	extensions: {
+		mode: { enabled: true, features: {} },
 		ask: {
 			enabled: true,
 			features: {
@@ -122,6 +109,27 @@ export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function uniqueStrings(value: unknown, fallback: string[]): string[] {
+	if (!Array.isArray(value)) return [...fallback];
+	const out: string[] = [];
+	for (const item of value) {
+		if (typeof item !== "string") continue;
+		const clean = item.trim();
+		if (clean && !out.includes(clean)) out.push(clean);
+	}
+	return out.length > 0 ? out : [...fallback];
+}
+
+function mergeModeConfig(value: unknown): OrgmModeConfig {
+	const raw = isRecord(value) ? value : {};
+	const allowedModes = uniqueStrings(raw.allowedModes, DEFAULT_ORGM_CONFIG.mode.allowedModes);
+	const requestedDefault = typeof raw.defaultMode === "string" && raw.defaultMode.trim() ? raw.defaultMode.trim() : DEFAULT_ORGM_CONFIG.mode.defaultMode;
+	return {
+		defaultMode: allowedModes.includes(requestedDefault) ? requestedDefault : DEFAULT_ORGM_CONFIG.mode.defaultMode,
+		allowedModes,
+	};
 }
 
 function mergeGitConfig(value: unknown): OrgmGitConfig {
@@ -140,27 +148,10 @@ function mergeGitConfig(value: unknown): OrgmGitConfig {
 	};
 }
 
-function mergeRepoTreeConfig(value: unknown): OrgmRepoTreeConfig {
-	const raw = isRecord(value) ? value : {};
-	return {
-		enabled: typeof raw.enabled === "boolean" ? raw.enabled : DEFAULT_ORGM_CONFIG.repoTree.enabled,
-		maxDepth: typeof raw.maxDepth === "number" && Number.isInteger(raw.maxDepth) && raw.maxDepth >= 0
-			? raw.maxDepth
-			: DEFAULT_ORGM_CONFIG.repoTree.maxDepth,
-	};
-}
-
 function mergeTitleConfig(value: unknown): OrgmTitleConfig {
 	const raw = isRecord(value) ? value : {};
 	return {
 		autoGenerate: typeof raw.autoGenerate === "boolean" ? raw.autoGenerate : DEFAULT_ORGM_CONFIG.title.autoGenerate,
-	};
-}
-
-function mergePrimaryAutoConfig(value: unknown): OrgmPrimaryAutoConfig {
-	const raw = isRecord(value) ? value : {};
-	return {
-		enabled: typeof raw.enabled === "boolean" ? raw.enabled : DEFAULT_ORGM_CONFIG.primaryAuto.enabled,
 	};
 }
 
@@ -244,12 +235,9 @@ export function mergeAgentModelsConfig(value: unknown): OrgmAgentModelsConfig {
 }
 
 const KNOWN_ORGM_CONFIG_KEYS = [
-	"defaultPrimaryAgent",
-	"flows",
+	"mode",
 	"git",
-	"repoTree",
 	"title",
-	"primaryAuto",
 	"caveman",
 	"minimalSkills",
 	"agentStatus",
@@ -257,27 +245,22 @@ const KNOWN_ORGM_CONFIG_KEYS = [
 	"agentModels",
 ] as const;
 
+const REMOVED_ORGM_CONFIG_KEYS = new Set(["defaultPrimaryAgent", "flows", "primaryAuto", "repoTree"]);
+
 function preserveUnknownTopLevelValues(raw: Record<string, unknown>): Record<string, unknown> {
 	const next: Record<string, unknown> = { ...raw };
 	for (const key of KNOWN_ORGM_CONFIG_KEYS) delete next[key];
+	for (const key of REMOVED_ORGM_CONFIG_KEYS) delete next[key];
 	return next;
 }
 
 function mergeOrgmConfig(raw: Record<string, unknown>): OrgmHostConfig {
-	const flows = isRecord(raw.flows)
-		? Object.fromEntries(Object.entries(raw.flows).filter(([, value]) => typeof value === "string") as Record<string, string>)
-		: DEFAULT_ORGM_CONFIG.flows;
 	const unknownTopLevel = preserveUnknownTopLevelValues(raw);
 	return {
 		...(unknownTopLevel as OrgmHostConfig),
-		defaultPrimaryAgent: typeof raw.defaultPrimaryAgent === "string" && raw.defaultPrimaryAgent.trim()
-			? raw.defaultPrimaryAgent.trim()
-			: DEFAULT_ORGM_CONFIG.defaultPrimaryAgent,
-		flows: { ...DEFAULT_ORGM_CONFIG.flows, ...flows },
+		mode: mergeModeConfig(raw.mode),
 		git: mergeGitConfig(raw.git),
-		repoTree: mergeRepoTreeConfig(raw.repoTree),
 		title: mergeTitleConfig(raw.title),
-		primaryAuto: mergePrimaryAutoConfig(raw.primaryAuto),
 		caveman: mergeCavemanConfig(raw.caveman),
 		minimalSkills: mergeMinimalSkillsConfig(raw.minimalSkills),
 		agentStatus: mergeAgentStatusConfig(raw.agentStatus),
@@ -317,7 +300,7 @@ export function orgmConfigPath(home = process.env.HOME ?? homedir()): string {
 }
 
 export type OrgmConfigSliceKey = keyof OrgmHostConfig;
-export type WritableOrgmConfigSliceKey = keyof Pick<OrgmHostConfig, "defaultPrimaryAgent" | "primaryAuto" | "caveman" | "minimalSkills" | "agentStatus" | "extensions" | "agentModels" | "repoTree" | "title">;
+export type WritableOrgmConfigSliceKey = keyof Pick<OrgmHostConfig, "mode" | "caveman" | "minimalSkills" | "agentStatus" | "extensions" | "agentModels" | "title">;
 
 export function loadOrgmConfig(configPath = orgmConfigPath()): OrgmHostConfig {
 	if (!existsSync(configPath)) return structuredClone(DEFAULT_ORGM_CONFIG);
@@ -354,5 +337,6 @@ export function saveOrgmConfigSlice<K extends WritableOrgmConfigSliceKey>(
 		raw = {};
 	}
 	mkdirSync(dirname(configPath), { recursive: true });
+	for (const key of REMOVED_ORGM_CONFIG_KEYS) delete raw[key];
 	writeFileSync(configPath, `${JSON.stringify({ ...raw, [slice]: value }, null, 2)}\n`, "utf8");
 }

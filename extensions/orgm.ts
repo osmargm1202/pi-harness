@@ -19,11 +19,9 @@ import {
 	setOrgmExtensionFeature,
 } from "./lib/orgm-extension-config.ts";
 import { countActiveExtensions } from "./lib/orgm-extensions.ts";
-import { registerSddCompatibilityCommands } from "./lib/orgm-flow.ts";
 
 const execAsync = promisify(exec);
 const EXTENSIONS_DIR = dirname(fileURLToPath(import.meta.url));
-const REPO_INDEX_EXTENSION_PATH = join(EXTENSIONS_DIR, "repo-index.ts");
 
 const LOGO_LINES = [
 	" ██████╗ ██████╗  ██████╗ ███╗   ███╗",
@@ -219,22 +217,6 @@ function renderHeader(
 	return lines;
 }
 
-function ensureRepoIndexEnabled(settingsPath = join(process.env.HOME ?? homedir(), ".pi", "agent", "settings.json")): void {
-	let raw: Record<string, unknown> = {};
-	try {
-		if (existsSync(settingsPath)) {
-			const parsed = JSON.parse(readFileSync(settingsPath, "utf8"));
-			if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) raw = parsed as Record<string, unknown>;
-		}
-	} catch {
-		raw = {};
-	}
-	const extensions = Array.isArray(raw.extensions) ? raw.extensions.filter((entry): entry is string => typeof entry === "string" && entry.trim().length > 0) : [];
-	if (!extensions.includes(REPO_INDEX_EXTENSION_PATH)) extensions.push(REPO_INDEX_EXTENSION_PATH);
-	mkdirSync(dirname(settingsPath), { recursive: true });
-	writeFileSync(settingsPath, `${JSON.stringify({ ...raw, extensions }, null, 2)}\n`, "utf8");
-}
-
 async function refreshStats(
 	ctx: ExtensionContext,
 	pi: ExtensionAPI,
@@ -289,7 +271,6 @@ async function refreshStats(
 }
 
 export default function (pi: ExtensionAPI) {
-	registerSddCompatibilityCommands(pi);
 	let headerHandle: HeaderHandle | null = null;
 	let animationTimer: ReturnType<typeof setInterval> | undefined;
 	let startedAt = Date.now();
@@ -356,7 +337,6 @@ export default function (pi: ExtensionAPI) {
 		handler: async (_args: string, ctx: ExtensionContext) => {
 			const configPath = orgmConfigPath();
 			initializeOrgmConfig(configPath);
-			ensureRepoIndexEnabled();
 			ctx.ui.notify(`ORGM config initialized: ${configPath}`, "success");
 		},
 	});
