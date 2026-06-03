@@ -32,6 +32,7 @@ let activeTools: string[] = [];
 let status = "";
 let statusColor = "";
 let notification = "";
+const supportedThemeColors = new Set(["warning", "accent", "error", "success", "cyan", "purple", "text", "borderAccent"]);
 const pi = {
 	registerCommand(name: string, command: any) { commands.set(name, command); },
 	registerShortcut(key: string, shortcut: any) { shortcuts.set(key, shortcut); },
@@ -47,9 +48,16 @@ const ctx = {
 	hasUI: true,
 	sessionManager: { getEntries: () => [] },
 	ui: {
-		theme: { fg: (name: string, text: string) => { statusColor = name; return text; } },
+		theme: { fg: (name: string, text: string) => {
+			if (!supportedThemeColors.has(name)) throw new Error(`Unknown theme color: ${name}`);
+			statusColor = name;
+			return text;
+		} },
 		setStatus: (_key: string, value: string) => { status = value; },
-		notify: (message: string) => { notification = message; },
+		notify: (message: string, kind?: string) => {
+			if (kind && !supportedThemeColors.has(kind)) throw new Error(`Unknown theme color: ${kind}`);
+			notification = message;
+		},
 	},
 };
 
@@ -67,6 +75,7 @@ assert.match(notification, /Mode: build/);
 
 await shortcuts.get("alt+1").handler(ctx);
 assert.equal(status, "ASK");
+assert.equal(statusColor, "cyan");
 
 const beforeHandlers = handlers.get("before_agent_start") ?? [];
 const result = await beforeHandlers[0]({ systemPrompt: "base" }, ctx);
@@ -84,3 +93,12 @@ assert.equal(statusColor, "error");
 await shortcuts.get("alt+1").handler(ctx);
 assert.equal(status, "TDD");
 assert.equal(statusColor, "purple");
+
+supportedThemeColors.delete("purple");
+await shortcuts.get("alt+1").handler(ctx);
+await shortcuts.get("alt+1").handler(ctx);
+await shortcuts.get("alt+1").handler(ctx);
+await shortcuts.get("alt+1").handler(ctx);
+await shortcuts.get("alt+1").handler(ctx);
+assert.equal(status, "TDD");
+assert.equal(statusColor, "accent", "TDD should fall back when purple is unavailable");

@@ -24,7 +24,9 @@
     "variable": "#a9c9ff",
     "codeBg": "#081a3f",
     "successBg": "#0f2f24",
-    "errorBg": "#361726"
+    "errorBg": "#361726",
+    "cyan": "#44d9e8",
+    "purple": "#c084fc"
   },
   "colors": {
     "accent": "shadow2",
@@ -77,7 +79,9 @@
     "thinkingMedium": "glow1",
     "thinkingHigh": "shadow2",
     "thinkingXhigh": "error",
-    "bashMode": "warning"
+    "bashMode": "warning",
+    "cyan": "cyan",
+    "purple": "purple"
   },
   "export": {
     "pageBg": "#06142f",

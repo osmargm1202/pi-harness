@@ -24,7 +24,9 @@
     "variable": "#8839ef",
     "code": "#04a5e5",
     "codeBg": "#e6e9ef",
-    "pink": "#ea76cb"
+    "pink": "#ea76cb",
+    "cyan": "#179299",
+    "purple": "#8839ef"
   },
   "colors": {
     "accent": "accent",
@@ -77,7 +79,9 @@
     "thinkingMedium": "quote",
     "thinkingHigh": "variable",
     "thinkingXhigh": "error",
-    "bashMode": "warning"
+    "bashMode": "warning",
+    "cyan": "cyan",
+    "purple": "purple"
   },
   "export": {
     "pageBg": "#eff1f5",

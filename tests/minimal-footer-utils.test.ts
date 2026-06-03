@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { renderSkillChipRows } from "../extensions/lib/minimal-skill.ts";
 import { visibleWidth } from "../extensions/lib/minimal-title.ts";
-import { formatMinimalPrimaryLabel } from "../extensions/minimal.ts";
+import { formatMinimalModeLabel } from "../extensions/minimal.ts";
 
 const style = (_kind: string, text: string) => text;
 const skills = new Map([
@@ -32,9 +32,7 @@ const minimalSource = readFileSync(new URL("../extensions/minimal.ts", import.me
 assert(!minimalSource.includes('theme.fg("muted"'), "minimal footer should avoid muted theme token because light themes can render it too pale");
 assert(!minimalSource.includes('theme.fg("dim"'), "minimal footer should avoid dim theme token because light themes can render it too pale");
 
-assert.equal(formatMinimalPrimaryLabel("pi"), "pi", "system primary label should stay unchanged");
-assert.equal(
-	formatMinimalPrimaryLabel("pi-orchestrator"),
-	"pi-orchestrator",
-	"minimal footer primary label should show agent name without primary prefix",
-);
+assert.equal(formatMinimalModeLabel("plan"), "PLAN", "minimal footer should render active mode label");
+assert.equal(formatMinimalModeLabel("tdd"), "TDD", "minimal footer should render TDD mode label");
+assert(minimalSource.includes("MODE_STATE_EVENT"), "minimal footer should listen for mode changes");
+assert(!minimalSource.includes('let currentPrimary = "pi"'), "minimal footer should not hard-code pi as the footer mode label");

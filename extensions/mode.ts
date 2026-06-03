@@ -12,12 +12,12 @@ export const MODE_STATE_EVENT = "orgm:mode-changed";
 
 const PACKAGE_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const MODE_PROMPTS_DIR = join(PACKAGE_ROOT, "agents");
-const MODE_DETAILS: Record<OrgmModeName, { label: string; color: string; tools: string[] }> = {
-	plan: { label: "PLAN", color: "warning", tools: ["read", "bash", "grep", "find", "ls", "engram_mem_search", "engram_mem_context", "engram_mem_get_observation", "engram_mem_save", "engram_mem_save_prompt", "engram_mem_session_summary"] },
-	build: { label: "BUILD", color: "accent", tools: [] },
-	ask: { label: "ASK", color: "info", tools: ["read", "bash", "grep", "find", "ls", "engram_mem_search", "engram_mem_context", "engram_mem_get_observation"] },
-	sdd: { label: "SDD", color: "error", tools: [] },
-	tdd: { label: "TDD", color: "purple", tools: [] },
+const MODE_DETAILS: Record<OrgmModeName, { label: string; colors: string[]; tools: string[] }> = {
+	plan: { label: "PLAN", colors: ["warning"], tools: ["read", "bash", "grep", "find", "ls", "engram_mem_search", "engram_mem_context", "engram_mem_get_observation", "engram_mem_save", "engram_mem_save_prompt", "engram_mem_session_summary"] },
+	build: { label: "BUILD", colors: ["accent"], tools: [] },
+	ask: { label: "ASK", colors: ["cyan", "accent"], tools: ["read", "bash", "grep", "find", "ls", "engram_mem_search", "engram_mem_context", "engram_mem_get_observation"] },
+	sdd: { label: "SDD", colors: ["error"], tools: [] },
+	tdd: { label: "TDD", colors: ["purple", "accent"], tools: [] },
 };
 
 const SAFE_BASH_PREFIXES = [
@@ -95,9 +95,29 @@ function setModeTools(pi: ExtensionAPI, mode: OrgmModeName): void {
 	if (names.length > 0) pi.setActiveTools?.(names);
 }
 
+export function formatModeLabel(mode: OrgmModeName): string {
+	return MODE_DETAILS[mode].label;
+}
+
+export function getModeColorCandidates(mode: OrgmModeName): string[] {
+	return [...MODE_DETAILS[mode].colors];
+}
+
+export function safeThemeFg(theme: { fg?: (color: string, text: string) => string } | undefined, colors: string[], text: string): string {
+	if (!theme?.fg) return text;
+	for (const color of colors) {
+		try {
+			return theme.fg(color, text);
+		} catch {
+			// Try next color candidate for themes that do not define this token.
+		}
+	}
+	return text;
+}
+
 function setModeStatus(ctx: ExtensionContext, mode: OrgmModeName): void {
 	const details = MODE_DETAILS[mode];
-	const text = ctx.ui.theme?.fg ? ctx.ui.theme.fg(details.color, details.label) : details.label;
+	const text = safeThemeFg(ctx.ui.theme, details.colors, details.label);
 	ctx.ui.setStatus?.("orgm-mode", text);
 }
 
@@ -118,8 +138,8 @@ export default function modeExtension(pi: ExtensionAPI, options: { configPath?: 
 		setModeTools(pi, currentMode);
 		setModeStatus(ctx, currentMode);
 		pi.appendEntry(MODE_STATE_ENTRY, { mode: currentMode });
-		pi.events?.emit?.(MODE_STATE_EVENT, { mode: currentMode });
-		if (notify) ctx.ui.notify(`Mode: ${currentMode}`, "info");
+		pi.events?.emit?.(MODE_STATE_EVENT, { mode: currentMode, label: formatModeLabel(currentMode), colors: getModeColorCandidates(currentMode) });
+		if (notify) ctx.ui.notify(`Mode: ${currentMode}`, "success");
 	};
 
 	pi.registerCommand("mode", {
@@ -128,7 +148,7 @@ export default function modeExtension(pi: ExtensionAPI, options: { configPath?: 
 		handler: async (args: string, ctx: ExtensionContext) => {
 			const requested = args.trim().toLowerCase();
 			if (!requested) {
-				ctx.ui.notify(`Mode: ${currentMode}`, "info");
+				ctx.ui.notify(`Mode: ${currentMode}`, "success");
 				return;
 			}
 			const next = normalizeMode(requested, currentMode);
@@ -150,6 +170,7 @@ export default function modeExtension(pi: ExtensionAPI, options: { configPath?: 
 		const fallback = normalizeMode(config.mode.defaultMode, "plan");
 		currentMode = restoreModeState(ctx.sessionManager?.getEntries?.() ?? [], fallback);
 		setModeTools(pi, currentMode);
+		pi.events?.emit?.(MODE_STATE_EVENT, { mode: currentMode, label: formatModeLabel(currentMode), colors: getModeColorCandidates(currentMode) });
 		if (ctx.hasUI) setModeStatus(ctx, currentMode);
 	});
 

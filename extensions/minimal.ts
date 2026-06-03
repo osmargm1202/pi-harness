@@ -24,11 +24,19 @@ import {
 	resolveInitialCavemanState,
 } from "./lib/caveman-state.ts";
 import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
+import {
+	MODE_STATE_EVENT,
+	formatModeLabel,
+	getModeColorCandidates,
+	restoreModeState,
+	safeThemeFg,
+	type OrgmModeName,
+} from "./mode.ts";
 
 type MinimalSkillsAction = "on" | "off" | "toggle" | "clear";
 
-export function formatMinimalPrimaryLabel(name: string): string {
-	return name;
+export function formatMinimalModeLabel(mode: OrgmModeName): string {
+	return formatModeLabel(mode);
 }
 
 export interface MinimalSkillsConfig {
@@ -139,7 +147,8 @@ function buildMinimalSkillsUsage(): string {
 export default function (pi: ExtensionAPI) {
 	if (!isOrgmExtensionEnabled("minimal")) return;
 
-	let currentPrimary = "pi";
+	let currentMode: OrgmModeName = "plan";
+	let currentModeColors = getModeColorCandidates(currentMode);
 	let currentCaveman: CavemanLevel = "off";
 	let showCavemanStatus = loadCavemanConfig().showStatus;
 	let showSkillsStatus = loadMinimalSkillsConfig().enabled;
@@ -192,6 +201,8 @@ export default function (pi: ExtensionAPI) {
 	};
 
 	const installFooter = (ctx: ExtensionContext) => {
+		currentMode = restoreModeState(ctx.sessionManager.getEntries(), "plan");
+		currentModeColors = getModeColorCandidates(currentMode);
 		currentCaveman = resolveInitialCavemanState(ctx.sessionManager.getEntries()).level;
 		showCavemanStatus = loadCavemanConfig().showStatus;
 		showSkillsStatus = loadMinimalSkillsConfig().enabled;
@@ -229,8 +240,12 @@ export default function (pi: ExtensionAPI) {
 					const modelName = ctx.model?.name || ctx.model?.id || "no-model";
 					const thinking = pi.getThinkingLevel();
 					const tokenSummary = `↑${formatCompactNumber(inputTokens)} ↓${formatCompactNumber(outputTokens)}`;
-					const primaryLabel = formatMinimalPrimaryLabel(currentPrimary);
-					const agentStatus = timerLabel ? `${primaryLabel} · ${timerLabel}` : primaryLabel;
+					const modeLabel = formatMinimalModeLabel(currentMode);
+					const modeStyled = safeThemeFg(theme, currentModeColors, modeLabel);
+					const agentStatus = timerLabel ? `${modeLabel} · ${timerLabel}` : modeLabel;
+					const agentStatusStyled = timerLabel
+						? `${modeStyled}${theme.fg("borderAccent", ` · ${timerLabel}`)}`
+						: modeStyled;
 					const cavemanStatus = formatCavemanStatus(currentCaveman);
 					const cavemanStyled = currentCaveman === "off"
 						? theme.fg("text", cavemanStatus)
@@ -240,7 +255,7 @@ export default function (pi: ExtensionAPI) {
 					const leftParts = [
 						theme.fg("accent", contextText),
 						theme.fg("text", modelName),
-						theme.fg("borderAccent", `${thinking} · ${agentStatus}`),
+						theme.fg("borderAccent", `${thinking} · `) + agentStatusStyled,
 					];
 					const left = leftParts.join(footerSeparator);
 					const centerRaw = folderLabel;
@@ -273,7 +288,9 @@ export default function (pi: ExtensionAPI) {
 						const styledCompact = showCavemanStatus
 							? theme.fg("accent", `${contextText} `) +
 								theme.fg("text", modelName) +
-								theme.fg("borderAccent", ` · ${thinking} · ${agentStatus} · `) +
+								theme.fg("borderAccent", ` · ${thinking} · `) +
+								agentStatusStyled +
+								theme.fg("borderAccent", ` · `) +
 								theme.fg("text", folderLabel) +
 								footerSeparator +
 								cavemanStyled +
@@ -281,7 +298,9 @@ export default function (pi: ExtensionAPI) {
 								theme.fg("warning", formatCurrency(totalCost))
 							: theme.fg("accent", `${contextText} `) +
 								theme.fg("text", modelName) +
-								theme.fg("borderAccent", ` · ${thinking} · ${agentStatus} · `) +
+								theme.fg("borderAccent", ` · ${thinking} · `) +
+								agentStatusStyled +
+								theme.fg("borderAccent", ` · `) +
 								theme.fg("text", folderLabel) +
 								theme.fg("borderAccent", ` · ${tokenSummary} `) +
 								theme.fg("warning", formatCurrency(totalCost));
@@ -292,12 +311,16 @@ export default function (pi: ExtensionAPI) {
 							const compactBar = theme.fg("accent", `${contextText} `);
 							const compactTail = showCavemanStatus
 								? theme.fg("text", modelName) +
-									theme.fg("borderAccent", ` · ${thinking} · ${agentStatus} · `) +
+									theme.fg("borderAccent", ` · ${thinking} · `) +
+									agentStatusStyled +
+									theme.fg("borderAccent", ` · `) +
 									theme.fg("text", folderLabel) +
 									footerSeparator +
 									cavemanStyled
 								: theme.fg("text", modelName) +
-									theme.fg("borderAccent", ` · ${thinking} · ${agentStatus} · `) +
+									theme.fg("borderAccent", ` · ${thinking} · `) +
+									agentStatusStyled +
+									theme.fg("borderAccent", ` · `) +
 									theme.fg("text", folderLabel);
 
 							const availableTailWidth = Math.max(0, width - visibleWidth(compactBar));
@@ -318,6 +341,12 @@ export default function (pi: ExtensionAPI) {
 		});
 	};
 
+
+	pi.events.on(MODE_STATE_EVENT, (data: { mode?: OrgmModeName; colors?: string[] }) => {
+		if (data?.mode) currentMode = data.mode;
+		currentModeColors = data?.colors?.length ? data.colors : getModeColorCandidates(currentMode);
+		requestRender();
+	});
 
 	pi.events.on(CAVEMAN_STATE_EVENT, (data: { level?: CavemanLevel }) => {
 		if (data?.level) currentCaveman = data.level;
