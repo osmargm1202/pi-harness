@@ -29,11 +29,11 @@ assert(
 	"static command scan should find registered extension commands",
 );
 
-const nonOrgmCommands = commandNames.filter(({ name }) => !name.startsWith("orgm-"));
+const nonOrgmCommands = commandNames.filter(({ name }) => !name.startsWith("orgm-") && name !== "mode");
 assert.deepEqual(
 	nonOrgmCommands,
 	[],
-	"all registered pi command names must use the orgm-* namespace with no legacy aliases",
+	"all registered pi command names must use the orgm-* namespace except /mode",
 );
 
 const extensionSources = roots

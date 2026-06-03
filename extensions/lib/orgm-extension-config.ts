@@ -31,6 +31,7 @@ const FEATURE_ALIASES = new Map<string, string>([
 ]);
 
 export const KNOWN_ORGM_EXTENSION_FEATURES: Record<string, string[]> = {
+	mode: [],
 	ask: ["questions", "permissions"],
 	ask_user_question: ["questions"],
 	ask_user_permission: ["permissions"],
@@ -45,17 +46,13 @@ export const KNOWN_ORGM_EXTENSION_FEATURES: Record<string, string[]> = {
 	todo: [],
 	awareness: [],
 	sessions: [],
-	"repo-index": [],
 	minimal: ["skills"],
-	"sdd-init": [],
 	"agent-status": ["widget", "model", "tokens", "cost", "persistence", "summary", "activity", "caveman"],
 	subagents: [],
 	clear: [],
-	"spec-dis": [],
 	caveman: ["status"],
 	title: ["auto"],
 	notify: ["questions", "permissions", "done"],
-	"agent-selector": [],
 	git: [],
 	orgm: [],
 };

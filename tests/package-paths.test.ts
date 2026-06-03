@@ -4,6 +4,7 @@ import { join } from "node:path";
 import {
 	findInstalledSkillPath,
 	getCurrentPackageAgentsDir,
+	getCurrentPackageAssetsSubagentsDir,
 	getCurrentPackageRoot,
 } from "../extensions/lib/package-paths.ts";
 
@@ -13,7 +14,16 @@ assert(existsSync(`${packageRoot}/package.json`), "package root should contain p
 const agentsDir = getCurrentPackageAgentsDir();
 assert(agentsDir, "current package agents dir should resolve");
 assert(agentsDir.endsWith("/agents"), "agents dir should be the package agents directory");
-assert(existsSync(`${agentsDir}/teams.yaml`), "agents dir should contain teams.yaml");
+assert(!existsSync(`${agentsDir}/teams.yaml`), "agents dir should not contain teams.yaml");
+assert(existsSync(`${agentsDir}/plan.md`), "agents dir should contain plan mode prompt");
+assert(existsSync(`${agentsDir}/build.md`), "agents dir should contain build mode prompt");
+assert(existsSync(`${agentsDir}/ask.md`), "agents dir should contain ask mode prompt");
+
+const subagentsDir = getCurrentPackageAssetsSubagentsDir();
+assert(subagentsDir, "assets/subagents dir should resolve");
+assert(subagentsDir.endsWith("/assets/subagents"), "subagents dir should be assets/subagents");
+assert(existsSync(`${subagentsDir}/tdd/tdd-planner.md`), "assets subagents should contain TDD workers under tdd/");
+assert(existsSync(`${subagentsDir}/sdd/sdd-apply.md`), "assets subagents should contain SDD workers under sdd/");
 
 const packageSkill = join(packageRoot, "skills", "caveman", "SKILL.md");
 assert(existsSync(packageSkill), "current package should bundle caveman skill");

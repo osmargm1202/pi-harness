@@ -39,6 +39,9 @@ try {
 	writeFileSync(configPath, JSON.stringify({
 		unknownFutureKey: { keep: true },
 		title: { autoGenerate: false },
+		defaultPrimaryAgent: "pi-orchestrator",
+		repoTree: { enabled: true, maxDepth: 3 },
+		primaryAuto: { enabled: true },
 	}, null, 2), "utf8");
 
 	const command = commands.get("orgm-init");
@@ -47,19 +50,20 @@ try {
 
 	const saved = JSON.parse(readFileSync(configPath, "utf8"));
 	assert.deepEqual(saved.unknownFutureKey, { keep: true }, "/orgm-init should preserve unknown top-level keys");
-	assert.deepEqual(saved.primaryAuto, { enabled: true }, "/orgm-init should materialize primaryAuto defaults");
+	assert.deepEqual(saved.mode, { defaultMode: "plan", allowedModes: ["plan", "build", "ask", "sdd", "tdd"] }, "/orgm-init should materialize mode defaults");
+	assert.equal(saved.defaultPrimaryAgent, undefined, "/orgm-init should remove primary defaults");
+	assert.equal(saved.repoTree, undefined, "/orgm-init should remove repo tree defaults");
+	assert.equal(saved.primaryAuto, undefined, "/orgm-init should remove primary auto defaults");
 	assert.equal(saved.title.autoGenerate, false, "/orgm-init should keep existing known values through merge");
 	assert.equal(typeof saved.agentStatus?.showWidget, "boolean", "/orgm-init should write full defaults");
-	const settings = JSON.parse(readFileSync(join(configDir, "settings.json"), "utf8"));
-	assert(settings.extensions.some((entry: string) => entry.endsWith("extensions/repo-index.ts")), "/orgm-init should enable repo-index/repo-tree extension when missing");
 	assert.equal(notifications.at(-1)?.kind, "success", "/orgm-init should notify success");
 	assert.match(notifications.at(-1)?.message ?? "", /orgm\.json/i, "/orgm-init success notification should mention orgm.json path");
 
 	const extensionCommand = commands.get("orgm-extension");
 	assert(extensionCommand, "/orgm-extension command should register");
-	await extensionCommand?.handler("todo on", ctx);
+	await extensionCommand?.handler("mode off", ctx);
 	let updated = JSON.parse(readFileSync(configPath, "utf8"));
-	assert.equal(updated.extensions.todo.enabled, true, "/orgm-extension todo on should persist enabled flag");
+	assert.equal(updated.extensions.mode.enabled, false, "/orgm-extension mode off should persist enabled flag");
 	await extensionCommand?.handler("ask permissions off", ctx);
 	updated = JSON.parse(readFileSync(configPath, "utf8"));
 	assert.equal(updated.extensions.ask.features.permissions.enabled, false, "/orgm-extension ask permissions off should persist feature flag");

@@ -33,6 +33,7 @@ import {
 	type AgentConfig,
 	type AgentSource,
 	discoverDeployableAgents,
+	findDeployableAgent,
 	getPackageAgentDirs,
 } from "./lib/agent-discovery.ts";
 import { loadOrgmConfig } from "./lib/orgm-config.ts";
@@ -185,65 +186,9 @@ interface RelayUserResponse {
 	raw?: unknown;
 }
 
-interface TeamConfig {
-	name: string;
-	members: string[];
-	source: AgentSource;
-	filePath: string;
-}
-
-interface QueryTeamQuery {
-	member?: string;
-	agent?: string;
-	question: string;
-}
-
-interface ExpandedTeamQuery {
-	member: string;
-	question: string;
-}
-
-interface QueryTeamResultItem {
-	member: string;
-	question: string;
-	status: DeploymentStatus;
-	exitCode: number;
-	summary: string;
-	fullOutput: string;
-	usage: UsageStats;
-	model?: string;
-	source: AgentSource;
-	filePath: string;
-	deploymentId: string;
-	stopReason?: string;
-	errorMessage?: string;
-	transcript?: DeploymentTranscriptEntry[];
-	interactionOutcome?: AgentRunDetails["interactionOutcome"];
-	awaitingUserInput?: boolean;
-	auditPrompt?: AgentPromptAudit;
-}
-
-interface QueryTeamDetails {
-	team: string;
-	execution: "parallel" | "serial";
-	scope: "user" | "project" | "both";
-	launchBackend: AgentLaunchBackend;
-	mode: AgentDeployMode;
-	reuse: AgentReuseMode;
-	maxContextPercent: number;
-	resolvedMembers: string[];
-	requestedQueries: ExpandedTeamQuery[];
-	completed: number;
-	failed: number;
-	results: QueryTeamResultItem[];
-	missingMembers: string[];
-	teamSource?: AgentSource;
-	teamsFilePath?: string;
-}
-
 const DeployAgentParams = Type.Object({
 	agent: Type.String({
-		description: "Agent name from ~/.pi/agent/agents or nearest .pi/agents",
+		description: "Agent name from assets/subagents or local .pi/assets/subagents",
 	}),
 	task: Type.String({ description: "Task to delegate to that agent" }),
 	cwd: Type.Optional(
@@ -281,78 +226,6 @@ const DeployAgentParams = Type.Object({
 	launchBackend: Type.Optional(
 		StringEnum(["embedded"] as const, {
 			description: "Launch backend. Only `embedded` is supported.",
-			default: "embedded",
-		}),
-	),
-});
-
-const QueryTeamParams = Type.Object({
-	team: Type.String({ description: "Team name from agents/teams.yaml" }),
-	queries: Type.Array(
-		Type.Object({
-			member: Type.Optional(
-				Type.String({
-					description:
-						"Specific team member to query (e.g. 'ext-expert'). Omitting this sends the question to ALL team members — use only when truly needed.",
-				}),
-			),
-			agent: Type.Optional(Type.String({ description: "Alias of member" })),
-			question: Type.String({
-				description: "Question/task for the team member(s)",
-			}),
-		}),
-	),
-	execution: Type.Optional(
-		StringEnum(["parallel", "serial"] as const, {
-			description:
-				"Run all queries concurrently or sequentially. Default: parallel",
-			default: "parallel",
-		}),
-	),
-	scope: Type.Optional(
-		StringEnum(["user", "project", "both"] as const, {
-			description: "Team and member discovery scope. Default: both",
-			default: "both",
-		}),
-	),
-	cwd: Type.Optional(
-		Type.String({
-			description:
-				"Optional working directory for subprocess execution and project discovery",
-		}),
-	),
-	mode: Type.Optional(
-		StringEnum(["ephemeral", "persistent"] as const, {
-			description:
-				"Deployment mode for team members. `persistent` is accepted for compatibility but executed as one-shot.",
-			default: "ephemeral",
-		}),
-	),
-	reuse: Type.Optional(
-		StringEnum(["prefer", "require", "never"] as const, {
-			description:
-				"Reuse policy (kept for compatibility). One-shot runs ignore reuse settings.",
-			default: "prefer",
-		}),
-	),
-	maxContextPercent: Type.Optional(
-		Type.Number({
-			description:
-				"Maximum context usage percent allowed for reusable runtime state. One-shot mode ignores this. Default: 75",
-			default: 75,
-		}),
-	),
-	continueOnError: Type.Optional(
-		Type.Boolean({
-			description:
-				"In serial mode, continue after member failures. Default: true",
-			default: true,
-		}),
-	),
-	launchBackend: Type.Optional(
-		StringEnum(["embedded"] as const, {
-			description:
-				"Launch backend for team members. Only `embedded` is supported.",
 			default: "embedded",
 		}),
 	),
@@ -669,22 +542,6 @@ function formatPromptAuditLines(
 	].filter((line): line is string => Boolean(line));
 }
 
-function formatQueryAuditLines(
-	theme: any,
-	queries: QueryTeamQuery[] | ExpandedTeamQuery[] | undefined,
-): string[] {
-	if (!queries?.length) return [];
-	const lines = [theme.fg("accent", "Subagent prompts")];
-	queries.forEach((query, index) => {
-		const member = "member" in query ? query.member : query.agent;
-		lines.push(
-			theme.fg("toolTitle", `${index + 1}. ${member || "all members"}`),
-		);
-		lines.push(`Task: ${query.question}`);
-	});
-	return lines;
-}
-
 function extractJsonObjectCandidates(text: string): string[] {
 	const candidates = new Set<string>();
 	for (const fenced of text.matchAll(/```(?:json)?\s*([\s\S]*?)```/gi)) {
@@ -996,7 +853,7 @@ function applyConfiguredAgentModels(agents: AgentConfig[]): AgentConfig[] {
 	const agentModels = loadOrgmConfig().agentModels;
 	return agents.map((agent) => ({
 		...agent,
-		model: resolveConfiguredSubagentModel(agent.name, agentModels),
+		model: resolveConfiguredSubagentModel(agent.name, agentModels) ?? agent.model,
 	}));
 }
 
@@ -1005,111 +862,6 @@ function discoverAgents(
 	scope: "user" | "project" | "both" = "both",
 ): AgentConfig[] {
 	return applyConfiguredAgentModels(discoverDeployableAgents(cwd, scope));
-}
-
-function discoverTeamAgents(
-	cwd: string,
-	scope: "user" | "project" | "both" = "both",
-): AgentConfig[] {
-	return applyConfiguredAgentModels(discoverDeployableAgents(cwd, scope));
-}
-
-function findAgent(
-	cwd: string,
-	name: string,
-	scope: "user" | "project" | "both",
-): AgentConfig | undefined {
-	return discoverAgents(cwd, scope).find((agent) => agent.name === name);
-}
-
-function findTeamAgent(
-	cwd: string,
-	name: string,
-	scope: "user" | "project" | "both",
-): AgentConfig | undefined {
-	return discoverTeamAgents(cwd, scope).find((agent) => agent.name === name);
-}
-
-function findNearestProjectTeamsFile(cwd: string): string | null {
-	let current = cwd;
-	while (true) {
-		const candidate = join(current, ".pi", "agents", "teams.yaml");
-		if (existsSync(candidate)) return candidate;
-		const parent = dirname(current);
-		if (parent === current) return null;
-		current = parent;
-	}
-}
-
-function parseTeamsYaml(raw: string): Record<string, string[]> {
-	const teams: Record<string, string[]> = {};
-	let current: string | null = null;
-	for (const rawLine of raw.split("\n")) {
-		const line = rawLine.replace(/	/g, "    ");
-		const trimmed = line.trim();
-		if (!trimmed || trimmed.startsWith("#")) continue;
-		const teamMatch = line.match(/^([^\s:#][^:#]*):\s*$/);
-		if (teamMatch) {
-			current = teamMatch[1].trim();
-			teams[current] = [];
-			continue;
-		}
-		const itemMatch = line.match(/^\s+-\s+(.+?)\s*$/);
-		if (!itemMatch || !current) continue;
-		const value = itemMatch[1].split(/\s+#/)[0]?.trim();
-		if (!value) continue;
-		if (!teams[current].includes(value)) teams[current].push(value);
-	}
-	return teams;
-}
-
-function loadTeamsFromFile(
-	filePath: string,
-	source: AgentSource,
-): TeamConfig[] {
-	if (!existsSync(filePath)) return [];
-	try {
-		const parsed = parseTeamsYaml(readFileSync(filePath, "utf8"));
-		return Object.entries(parsed)
-			.map(([name, members]) => ({
-				name: name.trim(),
-				members: members.map((member) => member.trim()).filter(Boolean),
-				source,
-				filePath,
-			}))
-			.filter((team) => Boolean(team.name));
-	} catch {
-		return [];
-	}
-}
-
-export function discoverTeams(
-	cwd: string,
-	scope: "user" | "project" | "both" = "both",
-): TeamConfig[] {
-	const userFile = join(getAgentDir(), "agents", "teams.yaml");
-	const projectFile = findNearestProjectTeamsFile(cwd);
-	const packageTeams =
-		scope === "project"
-			? []
-			: getPackageAgentDirs().flatMap((dir) =>
-					loadTeamsFromFile(join(dir, "teams.yaml"), "user"),
-				);
-	const userTeams =
-		scope === "project" ? [] : loadTeamsFromFile(userFile, "user");
-	const projectTeams =
-		scope === "user" || !projectFile
-			? []
-			: loadTeamsFromFile(projectFile, "project");
-	return mergeByName([...packageTeams, ...userTeams], projectTeams, scope);
-}
-
-function findTeam(
-	cwd: string,
-	name: string,
-	scope: "user" | "project" | "both",
-): TeamConfig | undefined {
-	return discoverTeams(cwd, scope).find((team) => team.name === name);
 }
 
 // ─── Pi invocation & temp file helpers ──────────────────────────────────────
@@ -2409,12 +2161,12 @@ export default function (pi: ExtensionAPI) {
 					finalText = [
 						questionPayload.executive_summary ||
 							`Subagent ${params.agent.name} requested user input.`,
-						"Parallel team execution cannot relay interactive questions safely. Re-run this member in serial mode or ask it directly.",
+						"Parallel subagent execution cannot relay interactive questions safely. Re-run this agent serially or ask it directly.",
 					].join("\n\n");
 					exitCode = 1;
 					stopReason = "awaiting_user_input_deferred";
 					errorMessage =
-						"Subagent requested user input during non-interactive team execution.";
+						"Subagent requested user input during non-interactive parallel execution.";
 				} else if (questionPayload.question) {
 					deployment.status = "awaiting_user_input";
 					deployment.summary = truncate(
@@ -2644,428 +2396,16 @@ ${finalText}`
 		};
 	}
 
-	function emitQueryTeamProgress(onUpdate: any, details: QueryTeamDetails) {
-		try {
-			onUpdate?.({
-				content: [
-					{
-						type: "text",
-						text: `team ${details.team}: ${details.completed}/${details.requestedQueries.length} completed, ${details.failed} failed`,
-					},
-				],
-				details,
-			});
-		} catch {
-			// noop
-		}
-	}
-
-	pi.registerTool({
-		name: "query_team",
-		label: "Query Team",
-		description:
-			"Query members of a team defined in agents/teams.yaml using parallel or serial execution.",
-		promptSnippet:
-			"Query a team of agents defined in agents/teams.yaml. Use parallel for research fan-out and serial when interaction or deterministic ordering matters.",
-		promptGuidelines: [
-			"Use query_team for research/consultation across a named team, not for persistent PDD phase delegation.",
-			"Defaults to one-shot ephemeral runs. Persistent mode is accepted for compatibility but does not keep reusable runtime state.",
-			"Use execution=parallel for independent research questions and fan-out; no shared runtime states are kept between runs.",
-			"Use execution=serial when a member may need user interaction or when stable ordering matters.",
-		],
-		parameters: QueryTeamParams,
-
-		async execute(_toolCallId, params, signal, onUpdate, ctx) {
-			const scope = params.scope ?? "both";
-			const execution = params.execution ?? "parallel";
-			const mode = params.mode ?? "ephemeral";
-			const reuse = params.reuse ?? "prefer";
-			const maxContextPercent = Math.max(
-				1,
-				Math.min(100, params.maxContextPercent ?? 75),
-			);
-			const continueOnError = params.continueOnError ?? true;
-			const runtimeCwd = params.cwd || ctx.cwd;
-			const launchBackend = resolveLaunchBackend(params.launchBackend);
-			const team = findTeam(runtimeCwd, params.team, scope);
-			if (!team) {
-				const availableTeams = discoverTeams(runtimeCwd, scope)
-					.map((item) => item.name)
-					.join(", ");
-				return {
-					content: [
-						{
-							type: "text",
-							text: `Unknown team: ${params.team}. Available teams: ${availableTeams || "none"}.`,
-						},
-					],
-					isError: true,
-					details: { requestedTeam: params.team, availableTeams },
-				};
-			}
-
-			const requestedQueries: ExpandedTeamQuery[] = [];
-			for (const query of params.queries as QueryTeamQuery[]) {
-				const requestedMember = query.member ?? query.agent;
-				if (requestedMember) {
-					if (!team.members.includes(requestedMember)) {
-						return {
-							content: [
-								{
-									type: "text",
-									text: `Member ${requestedMember} is not part of team ${team.name}. Members: ${team.members.join(", ")}.`,
-								},
-							],
-							isError: true,
-							details: {
-								team: team.name,
-								invalidMember: requestedMember,
-								teamMembers: team.members,
-							},
-						};
-					}
-					requestedQueries.push({
-						member: requestedMember,
-						question: query.question,
-					});
-					continue;
-				}
-				for (const member of team.members)
-					requestedQueries.push({ member, question: query.question });
-			}
-
-			const agentCatalog = new Map(
-				discoverTeamAgents(runtimeCwd, scope).map((agent) => [
-					agent.name,
-					agent,
-				]),
-			);
-			const missingMembers = team.members.filter(
-				(member) => !agentCatalog.has(member),
-			);
-			if (missingMembers.length > 0) {
-				return {
-					content: [
-						{
-							type: "text",
-							text: `Team ${team.name} references unresolved members: ${missingMembers.join(", ")}. Teams file: ${team.filePath}.`,
-						},
-					],
-					isError: true,
-					details: {
-						team: team.name,
-						missingMembers,
-						teamsFilePath: team.filePath,
-					},
-				};
-			}
-
-			const details: QueryTeamDetails = {
-				team: team.name,
-				execution,
-				scope,
-				launchBackend,
-				mode,
-				reuse,
-				maxContextPercent,
-				resolvedMembers: team.members,
-				requestedQueries,
-				completed: 0,
-				failed: 0,
-				results: [],
-				missingMembers: [],
-				teamSource: team.source,
-				teamsFilePath: team.filePath,
-			};
-			emitQueryTeamProgress(onUpdate, details);
-			const localAbort = new AbortController();
-			const forwardAbort = () =>
-				localAbort.abort(signal?.reason ?? new Error("query_team aborted"));
-			if (signal?.aborted) forwardAbort();
-			else signal?.addEventListener("abort", forwardAbort, { once: true });
-			let providerStopDetails: ProviderStopDetails | undefined;
-			const onProviderStop = (data: ProviderStopDetails) => {
-				if (providerStopDetails) return;
-				providerStopDetails = data;
-				localAbort.abort(
-					new Error(data?.summary || "provider error from subagent"),
-				);
-			};
-			pi.events.on(SUBAGENT_PROVIDER_STOP_EVENT, onProviderStop);
-
-			const runOne = async (
-				query: ExpandedTeamQuery,
-				index: number,
-			): Promise<QueryTeamResultItem> => {
-				const memberAgent = agentCatalog.get(query.member)!;
-				const instanceNumber = nextDeploymentNumber(memberAgent.name);
-				const run = await runAgentTask({
-					agent: memberAgent,
-					task: query.question,
-					deploymentId: `${memberAgent.name}#${instanceNumber}`,
-					instanceNumber,
-					cwd: runtimeCwd,
-					scope,
-					mode,
-					reuse,
-					launchBackend,
-					maxContextPercent,
-					signal: localAbort.signal,
-					onUpdate: () => emitQueryTeamProgress(onUpdate, details),
-					ctx,
-					relayUserInput: execution === "serial",
-				});
-				return {
-					member: memberAgent.name,
-					question: query.question,
-					status: run.details.status,
-					exitCode: run.details.exitCode,
-					summary: run.details.summary,
-					fullOutput: run.details.fullOutput || run.text,
-					usage: run.details.usage,
-					model: run.details.model,
-					source: memberAgent.source,
-					filePath: memberAgent.filePath,
-					deploymentId: run.details.deploymentId,
-					stopReason: run.details.stopReason,
-					errorMessage: run.details.errorMessage,
-					transcript: run.details.transcript,
-					interactionOutcome: run.details.interactionOutcome,
-					awaitingUserInput: run.details.awaitingUserInput,
-					auditPrompt: run.details.auditPrompt,
-				};
-			};
-
-			const acceptResult = (result: QueryTeamResultItem) => {
-				details.results.push(result);
-				details.completed += 1;
-				if (
-					result.status === "error" ||
-					result.status === "paused_provider_error"
-				)
-					details.failed += 1;
-				emitQueryTeamProgress(onUpdate, details);
-			};
-
-			const errorResult = (
-				query: ExpandedTeamQuery,
-				index: number,
-				error: unknown,
-			): QueryTeamResultItem => ({
-				member: query.member,
-				question: query.question,
-				status: "error",
-				exitCode: 1,
-				summary: truncate(getErrorMessage(error)),
-				fullOutput: getErrorMessage(error),
-				usage: zeroUsage(),
-				model: agentCatalog.get(query.member)?.model,
-				source: agentCatalog.get(query.member)?.source ?? team.source,
-				filePath: agentCatalog.get(query.member)?.filePath ?? team.filePath,
-				deploymentId: `${team.name}/${query.member}#${index + 1}`,
-				errorMessage: getErrorMessage(error),
-			});
-
-			try {
-				if (execution === "parallel") {
-					const groups = new Map<
-						string,
-						Array<{ query: ExpandedTeamQuery; index: number }>
-					>();
-					for (let i = 0; i < requestedQueries.length; i += 1) {
-						const query = requestedQueries[i];
-						const memberAgent = agentCatalog.get(query.member)!;
-						const key = `${memberAgent.name}#${i}`;
-						const group = groups.get(key) ?? [];
-						group.push({ query, index: i });
-						groups.set(key, group);
-					}
-					const indexedResults: QueryTeamResultItem[] = [];
-					await Promise.all(
-						[...groups.values()].map(async (group) => {
-							for (const item of group) {
-								try {
-									indexedResults[item.index] = await runOne(
-										item.query,
-										item.index,
-									);
-								} catch (error) {
-									indexedResults[item.index] = errorResult(
-										item.query,
-										item.index,
-										error,
-									);
-								}
-							}
-						}),
-					);
-					for (const result of indexedResults) {
-						if (result) acceptResult(result);
-					}
-				} else {
-					for (let i = 0; i < requestedQueries.length; i += 1) {
-						const query = requestedQueries[i];
-						try {
-							acceptResult(await runOne(query, i));
-						} catch (error) {
-							acceptResult(errorResult(query, i, error));
-						}
-						if (!continueOnError && details.failed > 0) break;
-					}
-				}
-
-				const statusLine = `team ${team.name} (${execution} · ${mode} one-shot) — ${details.completed} completed, ${details.failed} failed`;
-				const resultLines = details.results.map((result) => {
-					const icon = result.status === "done" ? "✓" : "✗";
-					return `${icon} ${result.member}: ${result.summary}`;
-				});
-				if (providerStopDetails) {
-					return {
-						content: [
-							{
-								type: "text",
-								text: [
-									statusLine,
-									buildManualResumeRequiredText(providerStopDetails),
-									...resultLines,
-								]
-									.filter(Boolean)
-									.join("\n\n"),
-							},
-						],
-						isError: true,
-						details: { ...details, providerStopDetails },
-					};
-				}
-				return {
-					content: [
-						{ type: "text", text: [statusLine, ...resultLines].join("\n") },
-					],
-					isError:
-						details.results.length === 0 ||
-						details.failed === details.results.length,
-					details,
-				};
-			} finally {
-				signal?.removeEventListener("abort", forwardAbort);
-				pi.events.off?.(SUBAGENT_PROVIDER_STOP_EVENT, onProviderStop);
-			}
-		},
-
-		renderCall(args, theme, context) {
-			const execution = args.execution ?? "parallel";
-			const mode = args.mode ?? "ephemeral";
-			const launchBackend = resolveLaunchBackend(args.launchBackend);
-			const queries = (args.queries || []) as QueryTeamQuery[];
-			const header =
-				theme.fg("toolTitle", theme.bold("query_team ")) +
-				theme.fg("accent", args.team || "unknown") +
-				theme.fg("muted", ` [${execution} · ${mode} · ${launchBackend}]`) +
-				theme.fg(
-					"dim",
-					` · ${queries.length} quer${queries.length === 1 ? "y" : "ies"}`,
-				) +
-				(context.expanded
-					? ""
-					: theme.fg(
-							"dim",
-							` · ${keyHint("app.tools.expand", "audit prompt")}`,
-						));
-			return new Text(
-				[
-					header,
-					...(context.expanded ? formatQueryAuditLines(theme, queries) : []),
-				].join("\n"),
-				0,
-				0,
-			);
-		},
-
-		renderResult(result, options, theme) {
-			const details = result.details as QueryTeamDetails | undefined;
-			if (!details) {
-				const text = result.content[0];
-				return new Text(
-					text?.type === "text" ? text.text : "(no output)",
-					0,
-					0,
-				);
-			}
-			const header =
-				theme.fg(
-					result.isError ? "error" : "success",
-					result.isError ? "✗" : "✓",
-				) +
-				" " +
-				theme.fg("toolTitle", theme.bold(`team ${details.team}`)) +
-				theme.fg(
-					"muted",
-					` · ${details.execution} · ${details.mode} one-shot · ${details.launchBackend} · ${details.completed}/${details.requestedQueries.length} completed · ${details.failed} failed`,
-				);
-			const meta = theme.fg(
-				"muted",
-				`resolved: ${details.resolvedMembers.join(", ")} · teams: ${details.teamsFilePath ?? "n/a"}`,
-			);
-			const members = details.results
-				.map(
-					(item) =>
-						`${item.status === "done" ? "✓" : "✗"} ${item.member} · ${item.summary}`,
-				)
-				.join("\n");
-			const transcriptLines = buildInlineTranscriptLines(
-				details.results.map((item) => ({
-					heading: `member ${item.member} · ${item.deploymentId}`,
-					transcript: item.transcript,
-				})),
-				theme,
-				options.expanded,
-			);
-			const expandedPromptLines = options.expanded
-				? details.results.flatMap((item) =>
-						formatPromptAuditLines(theme, item.auditPrompt),
-					)
-				: [];
-			const expandedOutputLines = options.expanded
-				? details.results.flatMap((item) =>
-						item.fullOutput
-							? [
-									theme.fg("accent", `Full output · ${item.member}`),
-									item.fullOutput,
-								]
-							: [],
-					)
-				: [];
-			const hint = options.expanded
-				? ""
-				: theme.fg("dim", ` ${keyHint("app.tools.expand", "details")}`);
-			return new Text(
-				[
-					header + hint,
-					meta,
-					members || "(no results)",
-					...transcriptLines,
-					...expandedPromptLines,
-					...expandedOutputLines,
-				]
-					.filter(Boolean)
-					.join("\n"),
-				0,
-				0,
-			);
-		},
-	});
-
-	// ── Register deploy_agent tool (unchanged contract) ──────────────────
 	pi.registerTool({
 		name: "deploy_agent",
 		renderShell: "self",
 		label: "Deploy Agent",
 		description:
-			"Run a named agent from ~/.pi/agent/agents or the nearest .pi/agents in an isolated pi subprocess and return its result.",
+			"Run a named agent from assets/subagents or local .pi/assets/subagents in an isolated pi subprocess and return its result.",
 		promptSnippet:
-			"Deploy a named agent with isolated context. Use this for pdd-explorer, pdd-requirements, pdd-planner, pdd-builder, and pdd-reviewer after you decide the minimal flow.",
+			"Deploy a named agent with isolated context. Use assets/subagents workers only when focused delegation helps.",
 		promptGuidelines: [
-			"Use deploy_agent only after you, the orchestrator, decide whether the request needs no flow, a partial flow, or the full PDD flow.",
+			"Use deploy_agent only after you decide that focused subagent work is useful for implementation, review, verification, SDD, or TDD.",
 			"Defaults to one-shot ephemeral runs. Persistent mode is accepted for compatibility but does not keep reusable runtime state.",
 			"Prefer the smallest valid flow. Do not deploy explorer/requirements/planner/reviewer automatically.",
 		],
@@ -3081,7 +2421,7 @@ ${finalText}`
 				1,
 				Math.min(100, params.maxContextPercent ?? 75),
 			);
-			const agent = findAgent(runtimeCwd, params.agent, scope);
+			const agent = findDeployableAgent(runtimeCwd, params.agent, scope);
 			if (!agent) {
 				const available = discoverAgents(runtimeCwd, scope)
 					.map((item) => item.name)

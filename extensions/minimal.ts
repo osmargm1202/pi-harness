@@ -24,17 +24,11 @@ import {
 	resolveInitialCavemanState,
 } from "./lib/caveman-state.ts";
 import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
-import {
-	normalizePrimaryName,
-	PRIMARY_STATE_EVENT,
-	restorePrimaryState,
-	SYSTEM_AGENT,
-} from "./lib/agent-discovery.ts";
 
 type MinimalSkillsAction = "on" | "off" | "toggle" | "clear";
 
 export function formatMinimalPrimaryLabel(name: string): string {
-	return name === SYSTEM_AGENT ? SYSTEM_AGENT : normalizePrimaryName(name);
+	return name;
 }
 
 export interface MinimalSkillsConfig {
@@ -145,7 +139,7 @@ function buildMinimalSkillsUsage(): string {
 export default function (pi: ExtensionAPI) {
 	if (!isOrgmExtensionEnabled("minimal")) return;
 
-	let currentPrimary: string = SYSTEM_AGENT;
+	let currentPrimary = "pi";
 	let currentCaveman: CavemanLevel = "off";
 	let showCavemanStatus = loadCavemanConfig().showStatus;
 	let showSkillsStatus = loadMinimalSkillsConfig().enabled;
@@ -198,7 +192,6 @@ export default function (pi: ExtensionAPI) {
 	};
 
 	const installFooter = (ctx: ExtensionContext) => {
-		currentPrimary = restorePrimaryState(ctx.sessionManager.getEntries(), ctx.cwd, "both");
 		currentCaveman = resolveInitialCavemanState(ctx.sessionManager.getEntries()).level;
 		showCavemanStatus = loadCavemanConfig().showStatus;
 		showSkillsStatus = loadMinimalSkillsConfig().enabled;
@@ -325,10 +318,6 @@ export default function (pi: ExtensionAPI) {
 		});
 	};
 
-	pi.events.on(PRIMARY_STATE_EVENT, (data: { selectedName: string }) => {
-		currentPrimary = data?.selectedName ?? SYSTEM_AGENT;
-		requestRender();
-	});
 
 	pi.events.on(CAVEMAN_STATE_EVENT, (data: { level?: CavemanLevel }) => {
 		if (data?.level) currentCaveman = data.level;

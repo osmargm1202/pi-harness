@@ -17,8 +17,19 @@ export function getCurrentPackageAgentsDir(): string | null {
 	return getCurrentPackageDir("agents");
 }
 
+export function getCurrentPackageAssetsDir(): string | null {
+	return getCurrentPackageDir("assets");
+}
+
+export function getCurrentPackageAssetsSubagentsDir(): string | null {
+	const assetsDir = getCurrentPackageAssetsDir();
+	if (!assetsDir) return null;
+	const candidate = join(assetsDir, "subagents");
+	return existsSync(candidate) ? candidate : null;
+}
+
 export function getCurrentPackageAgentDirs(): string[] {
-	const dir = getCurrentPackageAgentsDir();
+	const dir = getCurrentPackageAssetsSubagentsDir();
 	return dir ? [dir] : [];
 }
 
