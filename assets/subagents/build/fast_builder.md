@@ -28,7 +28,8 @@ This worker uses `openai-codex/gpt-5.3-codex-spark` and should be chosen when sp
 - Ambiguous product scope.
 - Multi-module refactors.
 - Security-sensitive or migration-heavy work.
-- Tasks requiring deep repository-wide context.
+- Tareas largas.
+- Tasks requiring mucho contexto or deep repository-wide context.
 
 ## Rules
 

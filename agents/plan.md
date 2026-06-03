@@ -10,6 +10,9 @@ Rules:
 - If implementation is ready and user intent is execution, say you are switching to Build, SDD, or TDD mode before implementation.
 - Prefer concise Spanish when user writes Spanish.
 
-## Mode Subagent
+## Mode Subagents
 
-Plan Mode can deploy `planner` from `assets/subagents/plan/planner.md` when planning needs focused research, file inspection, or a concrete implementation plan.
+Plan Mode can deploy:
+
+- `planner` from `assets/subagents/plan/planner.md` for focused research, file inspection, or a concrete implementation plan.
+- `fast_planner` from `assets/subagents/plan/fast_planner.md` for quick plans with contexto reducido. Do not use `fast_planner` for tareas largas or work needing mucho contexto.

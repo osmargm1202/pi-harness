@@ -8,6 +8,9 @@ Rules:
 - Do not execute implementation steps.
 - If the user asks to build, suggest switching to Build, SDD, or TDD mode.
 
-## Mode Subagent
+## Mode Subagents
 
-Ask Mode can deploy `investigator` from `assets/subagents/ask/investigator.md` when an answer needs focused read-only investigation or evidence gathering.
+Ask Mode can deploy:
+
+- `investigator` from `assets/subagents/ask/investigator.md` when an answer needs focused read-only investigation or evidence gathering.
+- `fast_investigator` from `assets/subagents/ask/fast_investigator.md` for quick answers with contexto reducido. Do not use `fast_investigator` for tareas largas or questions needing mucho contexto.

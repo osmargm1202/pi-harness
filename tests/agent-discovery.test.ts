@@ -28,6 +28,18 @@ assert(fastBuilder, "build/fast_builder subagent should be discoverable");
 assert(fastBuilder.filePath.endsWith("/assets/subagents/build/fast_builder.md"));
 assert.equal(fastBuilder.model, "openai-codex/gpt-5.3-codex-spark", "fast_builder should request the spark model from frontmatter");
 
+for (const [name, suffix] of [
+	["fast_planner", "/assets/subagents/plan/fast_planner.md"],
+	["fast_investigator", "/assets/subagents/ask/fast_investigator.md"],
+	["fast_sdd", "/assets/subagents/sdd/fast_sdd.md"],
+	["fast_tdd", "/assets/subagents/tdd/fast_tdd.md"],
+] as const) {
+	const agent = packageAgents.find((candidate) => candidate.name === name);
+	assert(agent, `${name} subagent should be discoverable`);
+	assert(agent.filePath.endsWith(suffix), `${name} path should be ${suffix}`);
+	assert.equal(agent.model, "openai-codex/gpt-5.3-codex-spark", `${name} should request the spark model from frontmatter`);
+}
+
 const projectRoot = mkdtempSync(join(tmpdir(), "pi-harness-agent-project-"));
 const projectSubagentsDir = join(projectRoot, ".pi", "assets", "subagents", "tdd");
 mkdirSync(projectSubagentsDir, { recursive: true });
