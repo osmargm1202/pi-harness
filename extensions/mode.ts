@@ -16,8 +16,8 @@ const MODE_DETAILS: Record<OrgmModeName, { label: string; colors: string[]; tool
 	plan: { label: "PLAN", colors: ["warning"], tools: ["read", "bash", "grep", "find", "ls", "engram_mem_search", "engram_mem_context", "engram_mem_get_observation", "engram_mem_save", "engram_mem_save_prompt", "engram_mem_session_summary"] },
 	build: { label: "BUILD", colors: ["accent"], tools: [] },
 	ask: { label: "ASK", colors: ["cyan", "accent"], tools: ["read", "bash", "grep", "find", "ls", "engram_mem_search", "engram_mem_context", "engram_mem_get_observation"] },
-	sdd: { label: "SDD", colors: ["error"], tools: [] },
-	tdd: { label: "TDD", colors: ["purple", "accent"], tools: [] },
+	sdd: { label: "SDD", colors: ["error"], tools: ["read", "bash", "grep", "find", "ls", "deploy_agent", "ask_user_question", "engram_mem_search", "engram_mem_context", "engram_mem_get_observation", "engram_mem_save", "engram_mem_update", "engram_mem_save_prompt", "engram_mem_session_summary", "engram_mem_capture_passive"] },
+	tdd: { label: "TDD", colors: ["purple", "accent"], tools: ["read", "bash", "grep", "find", "ls", "deploy_agent", "ask_user_question", "engram_mem_search", "engram_mem_context", "engram_mem_get_observation", "engram_mem_save", "engram_mem_update", "engram_mem_save_prompt", "engram_mem_session_summary", "engram_mem_capture_passive"] },
 };
 
 const SAFE_BASH_PREFIXES = [
@@ -56,8 +56,8 @@ function normalizedRel(path: string): string {
 }
 
 export function isWriteAllowedInMode(mode: OrgmModeName, path: string): boolean {
-	if (mode === "build" || mode === "sdd" || mode === "tdd") return true;
-	if (mode === "ask") return false;
+	if (mode === "build") return true;
+	if (mode === "ask" || mode === "sdd" || mode === "tdd") return false;
 	const rel = normalizedRel(path);
 	return rel.startsWith("docs/") || rel.startsWith("plans/") || /^agents\/(plan|build|ask|sdd|tdd)\.md$/.test(rel);
 }
@@ -85,7 +85,7 @@ function toolNames(pi: ExtensionAPI): string[] {
 
 function activeToolsForMode(pi: ExtensionAPI, mode: OrgmModeName): string[] {
 	const available = toolNames(pi);
-	if (mode === "build" || mode === "sdd" || mode === "tdd") return available;
+	if (mode === "build") return available;
 	const allow = new Set(MODE_DETAILS[mode].tools);
 	return available.filter((name) => allow.has(name));
 }
@@ -182,7 +182,7 @@ export default function modeExtension(pi: ExtensionAPI, options: { configPath?: 
 	});
 
 	pi.on("tool_call", async (event) => {
-		if (currentMode === "build" || currentMode === "sdd" || currentMode === "tdd") return;
+		if (currentMode === "build") return;
 		if (event.toolName === "write" || event.toolName === "edit" || event.toolName === "upload_file") {
 			const path = extractPath(event.input);
 			if (!path || !isWriteAllowedInMode(currentMode, path)) {

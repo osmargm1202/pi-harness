@@ -39,7 +39,16 @@ const pi = {
 	on(name: string, handler: any) { handlers.set(name, [...(handlers.get(name) ?? []), handler]); },
 	appendEntry(customType: string, data: unknown) { appended.push({ customType, data }); },
 	setActiveTools(names: string[]) { activeTools = names; },
-	getAllTools() { return [{ name: "read" }, { name: "write" }, { name: "edit" }, { name: "bash" }, { name: "deploy_agent" }]; },
+	getAllTools() { return [
+		{ name: "read" },
+		{ name: "write" },
+		{ name: "edit" },
+		{ name: "bash" },
+		{ name: "deploy_agent" },
+		{ name: "ask_user_question" },
+		{ name: "engram_mem_search" },
+		{ name: "engram_mem_save" },
+	]; },
 };
 
 modeExtension(pi as any, { configPath });
@@ -89,10 +98,24 @@ assert.equal(blocked.block, true);
 await shortcuts.get("alt+1").handler(ctx);
 assert.equal(status, "SDD");
 assert.equal(statusColor, "error");
+assert(activeTools.includes("deploy_agent"), "SDD should keep deploy_agent active for orchestration");
+assert(activeTools.includes("ask_user_question"), "SDD should keep ask.ts active for clarification");
+assert(activeTools.includes("engram_mem_save"), "SDD should keep Engram active");
+assert(!activeTools.includes("write"), "SDD should not expose inline write");
+assert(!activeTools.includes("edit"), "SDD should not expose inline edit");
+assert.equal((await toolHandlers[0]({ toolName: "write", input: { path: "src/app.ts" } })).block, true, "SDD should block inline writes");
+assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git status --short" } }))?.block, undefined, "SDD should allow safe inspection bash");
+assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git commit -am nope" } })).block, true, "SDD should block mutating bash");
 
 await shortcuts.get("alt+1").handler(ctx);
 assert.equal(status, "TDD");
 assert.equal(statusColor, "purple");
+assert(activeTools.includes("deploy_agent"), "TDD should keep deploy_agent active for orchestration");
+assert(activeTools.includes("ask_user_question"), "TDD should keep ask.ts active for clarification");
+assert(activeTools.includes("engram_mem_save"), "TDD should keep Engram active");
+assert(!activeTools.includes("write"), "TDD should not expose inline write");
+assert(!activeTools.includes("edit"), "TDD should not expose inline edit");
+assert.equal((await toolHandlers[0]({ toolName: "edit", input: { path: "src/app.ts" } })).block, true, "TDD should block inline edits");
 
 supportedThemeColors.delete("purple");
 await shortcuts.get("alt+1").handler(ctx);
