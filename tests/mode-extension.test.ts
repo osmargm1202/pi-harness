@@ -4,6 +4,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import modeExtension, { MODE_STATE_ENTRY, getNextMode, isWriteAllowedInMode, restoreModeState, type OrgmModeName } from "../extensions/mode.ts";
 
+const originalSubagentRuntimeId = process.env.PI_SUBAGENT_RUNTIME_ID;
+const originalSubagentDeploymentId = process.env.PI_SUBAGENT_DEPLOYMENT_ID;
+delete process.env.PI_SUBAGENT_RUNTIME_ID;
+delete process.env.PI_SUBAGENT_DEPLOYMENT_ID;
+
 assert.equal(getNextMode("plan"), "build");
 assert.equal(getNextMode("build"), "ask");
 assert.equal(getNextMode("ask"), "sdd");
@@ -126,7 +131,6 @@ await shortcuts.get("alt+1").handler(ctx);
 assert.equal(status, "TDD");
 assert.equal(statusColor, "accent", "TDD should fall back when purple is unavailable");
 
-const previousSubagentRuntimeId = process.env.PI_SUBAGENT_RUNTIME_ID;
 try {
 	process.env.PI_SUBAGENT_RUNTIME_ID = "child-runtime";
 	const subagentHandlers = new Map<string, any[]>();
@@ -143,6 +147,8 @@ try {
 	assert.equal(subagentHandlers.size, 0, "subagent runtime should not install mode handlers");
 	assert.equal(subagentActiveTools, undefined, "subagent runtime should keep deploy_agent --tools allowlist untouched");
 } finally {
-	if (previousSubagentRuntimeId === undefined) delete process.env.PI_SUBAGENT_RUNTIME_ID;
-	else process.env.PI_SUBAGENT_RUNTIME_ID = previousSubagentRuntimeId;
+	if (originalSubagentRuntimeId === undefined) delete process.env.PI_SUBAGENT_RUNTIME_ID;
+	else process.env.PI_SUBAGENT_RUNTIME_ID = originalSubagentRuntimeId;
+	if (originalSubagentDeploymentId === undefined) delete process.env.PI_SUBAGENT_DEPLOYMENT_ID;
+	else process.env.PI_SUBAGENT_DEPLOYMENT_ID = originalSubagentDeploymentId;
 }

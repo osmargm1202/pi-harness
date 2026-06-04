@@ -42,6 +42,8 @@ assert.match(sddPrompt, /orchestrator/i, "sdd mode should identify itself as an 
 assert.match(sddPrompt, /90%|noventa/i, "sdd mode should delegate most substantial work");
 assert.match(sddPrompt, /deploy_agent/i, "sdd mode should direct work through deploy_agent");
 assert.match(sddPrompt, /inline.*lecturas|inline.*quick reads|lecturas.*rápidas/i, "sdd mode should limit inline work to quick reads");
+assert.match(sddPrompt, /prohibid|forbidden|do not attempt/i, "sdd mode should explicitly say forbidden inline actions must not be attempted");
+assert.match(sddPrompt, /rm|mkdir|git add|pnpm|docker|ssh/i, "sdd mode should name common blocked command classes");
 
 const tddPrompt = readFileSync("agents/tdd.md", "utf8");
 assert.match(tddPrompt, /fast_tdd/i, "tdd mode prompt should mention fast_tdd subagent");
