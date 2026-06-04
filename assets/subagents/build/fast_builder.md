@@ -2,7 +2,7 @@
 name: fast_builder
 description: Fast builder for aplicaciones rápidas with contexto reducido and small implementation scope
 model: openai-codex/gpt-5.3-codex-spark
-tools: read, grep, find, ls, bash, edit, write, engram_mem_search, engram_mem_context, engram_mem_get_observation, engram_mem_save_prompt, engram_mem_capture_passive
+tools: read, grep, find, ls, bash, edit, write, engram_mem_search, engram_mem_context, engram_mem_get_observation, engram_mem_save_prompt, engram_mem_capture_passive, ask_user_question
 output: fast-build-report.md
 defaultReads: context.md
 defaultProgress: true

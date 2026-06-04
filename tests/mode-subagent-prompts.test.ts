@@ -38,6 +38,17 @@ assert.match(buildPrompt, /fast_builder/i, "build mode prompt should mention fas
 
 const sddPrompt = readFileSync("agents/sdd.md", "utf8");
 assert.match(sddPrompt, /fast_sdd/i, "sdd mode prompt should mention fast_sdd subagent");
+assert.match(sddPrompt, /orchestrator/i, "sdd mode should identify itself as an orchestrator");
+assert.match(sddPrompt, /90%|noventa/i, "sdd mode should delegate most substantial work");
+assert.match(sddPrompt, /deploy_agent/i, "sdd mode should direct work through deploy_agent");
+assert.match(sddPrompt, /inline.*lecturas|inline.*quick reads|lecturas.*rápidas/i, "sdd mode should limit inline work to quick reads");
 
 const tddPrompt = readFileSync("agents/tdd.md", "utf8");
 assert.match(tddPrompt, /fast_tdd/i, "tdd mode prompt should mention fast_tdd subagent");
+assert.match(tddPrompt, /orchestrator/i, "tdd mode should identify itself as an orchestrator");
+assert.match(tddPrompt, /90%|noventa/i, "tdd mode should delegate most substantial work");
+assert.match(tddPrompt, /deploy_agent/i, "tdd mode should direct work through deploy_agent");
+assert.match(tddPrompt, /inline.*lecturas|inline.*quick reads|lecturas.*rápidas/i, "tdd mode should limit inline work to quick reads");
+
+assert.match(planPrompt, /plan first|plan primero|first produce/i, "plan mode should require a concrete plan before switching modes");
+assert.match(planPrompt, /before.*switch|antes.*cambiar|antes.*pedir/i, "plan mode should not ask for a mode switch before producing a plan");

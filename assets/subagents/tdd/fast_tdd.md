@@ -2,7 +2,7 @@
 name: fast_tdd
 description: Fast TDD worker that can perform any TDD function with contexto reducido
 model: openai-codex/gpt-5.3-codex-spark
-tools: read, grep, find, ls, bash, edit, write, engram_mem_search, engram_mem_context, engram_mem_get_observation, engram_mem_save, engram_mem_update, engram_mem_save_prompt, engram_mem_session_summary, engram_mem_capture_passive
+tools: read, grep, find, ls, bash, edit, write, engram_mem_search, engram_mem_context, engram_mem_get_observation, engram_mem_save, engram_mem_update, engram_mem_save_prompt, engram_mem_session_summary, engram_mem_capture_passive, ask_user_question
 output: fast-tdd-report.md
 defaultReads: context.md
 defaultProgress: true
