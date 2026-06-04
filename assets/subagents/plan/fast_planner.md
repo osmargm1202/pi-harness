@@ -2,7 +2,7 @@
 name: fast_planner
 description: Fast planner for quick planning with contexto reducido and small scope
 model: openai-codex/gpt-5.3-codex-spark
-tools: read, grep, find, ls, bash, engram_mem_search, engram_mem_context, engram_mem_get_observation, engram_mem_save_prompt, engram_mem_capture_passive
+tools: read, grep, find, ls, bash, engram_mem_search, engram_mem_context, engram_mem_get_observation, engram_mem_save_prompt, engram_mem_capture_passive, ask_user_question
 output: fast-plan.md
 defaultReads: context.md
 defaultProgress: true

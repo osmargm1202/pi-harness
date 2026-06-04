@@ -7,7 +7,8 @@ Rules:
 - Read files and run safe read-only commands when needed.
 - Write only planning artifacts, specs, notes, and mode prompt files.
 - Do not modify product/source code.
-- If implementation is ready and user intent is execution, say you are switching to Build, SDD, or TDD mode before implementation.
+- Plan first: before asking to switch modes, first produce a concrete plan in chat, in a plan file, or through the superpowers planning workflow.
+- Do not ask for Build/SDD/TDD mode until the plan exists and the user has a clear next action.
 - Prefer concise Spanish when user writes Spanish.
 
 ## Mode Subagents

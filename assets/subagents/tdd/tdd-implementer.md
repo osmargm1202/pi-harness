@@ -1,7 +1,7 @@
 ---
 name: tdd-implementer
 description: Execute approved SDD/TDD mode plan groups with TDD-first approach
-tools: read, grep, find, ls, bash, edit, write, deploy_agent, engram_mem_search, engram_mem_context, engram_mem_get_observation, engram_mem_save, engram_mem_update, engram_mem_save_prompt, engram_mem_session_start, engram_mem_session_end, engram_mem_session_summary, engram_mem_suggest_topic_key, engram_mem_capture_passive
+tools: read, grep, find, ls, bash, edit, write, deploy_agent, engram_mem_search, engram_mem_context, engram_mem_get_observation, engram_mem_save, engram_mem_update, engram_mem_save_prompt, engram_mem_session_start, engram_mem_session_end, engram_mem_session_summary, engram_mem_suggest_topic_key, engram_mem_capture_passive, ask_user_question
 output: build.md
 defaultProgress: true
 interactive: true

@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import {
 	existsSync,
 	mkdirSync,
@@ -89,6 +89,49 @@ const SUBAGENT_DETAILS_TRANSCRIPT_MAX_ENTRIES = 80;
 const SUBAGENT_INLINE_TRANSCRIPT_COLLAPSED_ENTRIES = 3;
 const SUBAGENT_INLINE_TRANSCRIPT_EXPANDED_ENTRIES = 18;
 const SUBAGENT_UI_REFRESH_DEBOUNCE_MS = 120;
+const activeSubagentChildren = new Map<string, ChildProcessWithoutNullStreams>();
+let subagentChildCleanupRegistered = false;
+
+function terminateSubagentProcessTree(child: ChildProcessWithoutNullStreams, signal: NodeJS.Signals = "SIGTERM"): void {
+	if (!child.pid || child.killed) return;
+	try {
+		process.kill(-child.pid, signal);
+		return;
+	} catch {
+		// Fall back to direct child kill when the child is not a process-group leader.
+	}
+	try {
+		child.kill(signal);
+	} catch {
+		// ignore cleanup failures
+	}
+}
+
+function cleanupActiveSubagentChildren(signal: NodeJS.Signals = "SIGTERM"): void {
+	for (const child of activeSubagentChildren.values()) terminateSubagentProcessTree(child, signal);
+}
+
+function registerSubagentChildCleanup(): void {
+	if (subagentChildCleanupRegistered) return;
+	subagentChildCleanupRegistered = true;
+	process.once("exit", () => cleanupActiveSubagentChildren("SIGTERM"));
+	for (const signal of ["SIGINT", "SIGTERM"] as const) {
+		process.once(signal, () => {
+			cleanupActiveSubagentChildren("SIGTERM");
+			setTimeout(() => cleanupActiveSubagentChildren("SIGKILL"), SUBAGENT_FORCE_KILL_TIMEOUT_MS).unref?.();
+			process.exit(signal === "SIGINT" ? 130 : 143);
+		});
+	}
+}
+
+function trackSubagentChild(deploymentId: string, child: ChildProcessWithoutNullStreams): void {
+	registerSubagentChildCleanup();
+	activeSubagentChildren.set(deploymentId, child);
+}
+
+function untrackSubagentChild(deploymentId: string): void {
+	activeSubagentChildren.delete(deploymentId);
+}
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 type AgentReuseMode = "prefer" | "require" | "never";
@@ -1648,10 +1691,7 @@ export default function (pi: ExtensionAPI) {
 				args.push("--session", deployment.sessionFilePath);
 			else args.push("--no-session");
 			if (modelRef) args.push("--model", modelRef);
-			const builtinTools = params.agent.tools.filter((tool) =>
-				["read", "bash", "edit", "write", "grep", "find", "ls"].includes(tool),
-			);
-			if (builtinTools.length > 0) args.push("--tools", builtinTools.join(","));
+			if (params.agent.tools.length > 0) args.push("--tools", params.agent.tools.join(","));
 			if (tmpPromptPath) args.push("--append-system-prompt", tmpPromptPath);
 			args.push(`Task: ${params.task}`);
 
@@ -1663,6 +1703,7 @@ export default function (pi: ExtensionAPI) {
 				PI_SUBAGENT_RUNTIME_DEPTH: String(deployment.depth),
 				PI_SUBAGENT_PARENT_RUNTIME_ID: deployment.parentRuntimeId || "",
 				PI_SUBAGENT_OWNER_SESSION_FILE: deployment.ownerSessionFile || "",
+				PI_SUBAGENT_DEPLOYMENT_ID: deployment.deploymentId,
 				...(interactionBridgeDir && params.relayUserInput && params.ctx.hasUI ? { [SUBAGENT_INTERACTION_BRIDGE_ENV]: interactionBridgeDir } : {}),
 			};
 			let stdoutBuffer = "";
@@ -1918,6 +1959,7 @@ export default function (pi: ExtensionAPI) {
 				const finalize = (code: number) => {
 					if (settled) return;
 					settled = true;
+					untrackSubagentChild(deployment.deploymentId);
 					clearWatchdogs();
 					flushStdoutBuffer();
 					if (aborted) {
@@ -2008,7 +2050,9 @@ export default function (pi: ExtensionAPI) {
 					env,
 					stdio: ["ignore", "pipe", "pipe"],
 					shell: false,
+					detached: true,
 				});
+				trackSubagentChild(deployment.deploymentId, child);
 				if (interactionBridgeDir && params.relayUserInput && params.ctx.hasUI) {
 					interactionPollInterval = setInterval(() => {
 						void relayPendingInteractionRequests().catch((error) => {
@@ -2028,18 +2072,10 @@ export default function (pi: ExtensionAPI) {
 					if (childClosed || terminationRequested) return;
 					terminationRequested = true;
 					if (reason === "abort") aborted = true;
-					try {
-						child.kill("SIGTERM");
-					} catch {
-						/* ignore */
-					}
+					terminateSubagentProcessTree(child, "SIGTERM");
 					forceKillWatchdog = setTimeout(() => {
 						if (!childClosed) {
-							try {
-								child.kill("SIGKILL");
-							} catch {
-								/* ignore */
-							}
+							terminateSubagentProcessTree(child, "SIGKILL");
 						}
 					}, SUBAGENT_FORCE_KILL_TIMEOUT_MS);
 					forceKillWatchdog.unref?.();
@@ -2065,6 +2101,7 @@ export default function (pi: ExtensionAPI) {
 				});
 				child.once("close", (code) => {
 					childClosed = true;
+					untrackSubagentChild(deployment.deploymentId);
 					finalize(resolveExitCode(code));
 				});
 				child.once("exit", (code) => {
@@ -2075,6 +2112,7 @@ export default function (pi: ExtensionAPI) {
 					closeWatchdog.unref?.();
 				});
 				child.once("error", (error) => {
+					untrackSubagentChild(deployment.deploymentId);
 					attemptErrorMessage = error.message;
 					appendTranscript(params.ctx, deployment.deploymentId, {
 						kind: "error",
