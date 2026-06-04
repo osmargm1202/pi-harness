@@ -127,8 +127,13 @@ function extractPath(input: any): string | undefined {
 	return undefined;
 }
 
+function isSubagentRuntime(): boolean {
+	return Boolean(process.env.PI_SUBAGENT_RUNTIME_ID || process.env.PI_SUBAGENT_DEPLOYMENT_ID);
+}
+
 export default function modeExtension(pi: ExtensionAPI, options: { configPath?: string } = {}) {
 	if (!isOrgmExtensionEnabled("mode")) return;
+	if (isSubagentRuntime()) return;
 
 	let config = loadOrgmConfig(options.configPath);
 	let currentMode = normalizeMode(config.mode.defaultMode, "plan");
