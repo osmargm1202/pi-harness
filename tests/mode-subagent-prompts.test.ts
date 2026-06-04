@@ -51,6 +51,10 @@ assert.match(tddPrompt, /orchestrator/i, "tdd mode should identify itself as an 
 assert.match(tddPrompt, /90%|noventa/i, "tdd mode should delegate most substantial work");
 assert.match(tddPrompt, /deploy_agent/i, "tdd mode should direct work through deploy_agent");
 assert.match(tddPrompt, /inline.*lecturas|inline.*quick reads|lecturas.*rápidas/i, "tdd mode should limit inline work to quick reads");
+assert.match(tddPrompt, /prohibid|forbidden|do not attempt/i, "tdd mode should explicitly say forbidden inline actions must not be attempted");
+assert.match(tddPrompt, /rm|mkdir|git add|pnpm|docker|ssh/i, "tdd mode should name common blocked command classes");
+assert.match(tddPrompt, /always.*deploy_agent|siempre.*deploy_agent|must.*deploy_agent/i, "tdd mode should require deploy_agent for substantial work");
+assert.match(sddPrompt, /always.*deploy_agent|siempre.*deploy_agent|must.*deploy_agent/i, "sdd mode should require deploy_agent for substantial work");
 
 assert.match(planPrompt, /plan first|plan primero|first produce/i, "plan mode should require a concrete plan before switching modes");
 assert.match(planPrompt, /before.*switch|antes.*cambiar|antes.*pedir/i, "plan mode should not ask for a mode switch before producing a plan");
