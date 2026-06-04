@@ -52,7 +52,16 @@ const pi = {
 		{ name: "deploy_agent" },
 		{ name: "ask_user_question" },
 		{ name: "engram_mem_search" },
+		{ name: "engram_mem_context" },
+		{ name: "engram_mem_get_observation" },
 		{ name: "engram_mem_save" },
+		{ name: "engram_mem_save_prompt" },
+		{ name: "engram_mem_update" },
+		{ name: "engram_mem_session_summary" },
+		{ name: "engram_mem_capture_passive" },
+		{ name: "exa_search" },
+		{ name: "chrome-devtools_capture" },
+		{ name: "obsidian_note" },
 	]; },
 };
 
@@ -78,7 +87,18 @@ const ctx = {
 for (const handler of handlers.get("session_start") ?? []) await handler({ reason: "new" }, ctx);
 assert.equal(status, "PLAN");
 assert(activeTools.includes("read"));
-assert(!activeTools.includes("write"));
+assert(activeTools.includes("deploy_agent"), "PLAN should keep deploy_agent active for orchestration");
+assert(activeTools.includes("ask_user_question"), "PLAN should keep ask_user_question active for clarifications");
+assert(activeTools.includes("engram_mem_search"), "PLAN should keep Engram memory search active");
+assert(activeTools.includes("exa_search"), "PLAN should expose available exa tools");
+assert(activeTools.includes("chrome-devtools_capture"), "PLAN should expose available chrome-devtools tools");
+assert(activeTools.includes("obsidian_note"), "PLAN should expose available obsidian tools");
+const toolHandlers = handlers.get("tool_call") ?? [];
+assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git status --short" } }))?.block, undefined, "PLAN should allow safe git review");
+assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git add src/app.ts" } }))?.block, undefined, "PLAN should allow git add for commit workflow");
+assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git commit -m 'wip'" } }))?.block, undefined, "PLAN should allow git commit for commit workflow");
+const blocked = await toolHandlers[0]({ toolName: "write", input: { path: "src/app.ts" } }, ctx);
+assert.equal(blocked.block, true);
 
 await commands.get("mode").handler("build", ctx);
 assert.equal(appended.at(-1)?.customType, MODE_STATE_ENTRY);
@@ -96,21 +116,22 @@ const result = await beforeHandlers[0]({ systemPrompt: "base" }, ctx);
 assert.match(result.systemPrompt, /## ORGM Mode: ask/);
 assert.match(result.systemPrompt, /Ask Mode/);
 
-const toolHandlers = handlers.get("tool_call") ?? [];
-const blocked = await toolHandlers[0]({ toolName: "write", input: { path: "src/app.ts" } }, ctx);
-assert.equal(blocked.block, true);
-
 await shortcuts.get("alt+1").handler(ctx);
 assert.equal(status, "SDD");
 assert.equal(statusColor, "error");
 assert(activeTools.includes("deploy_agent"), "SDD should keep deploy_agent active for orchestration");
 assert(activeTools.includes("ask_user_question"), "SDD should keep ask.ts active for clarification");
 assert(activeTools.includes("engram_mem_save"), "SDD should keep Engram active");
+assert(activeTools.includes("exa_search"), "SDD should expose available exa tools");
+assert(activeTools.includes("chrome-devtools_capture"), "SDD should expose available chrome-devtools tools");
+assert(activeTools.includes("obsidian_note"), "SDD should expose available obsidian tools");
 assert(!activeTools.includes("write"), "SDD should not expose inline write");
 assert(!activeTools.includes("edit"), "SDD should not expose inline edit");
 assert.equal((await toolHandlers[0]({ toolName: "write", input: { path: "src/app.ts" } })).block, true, "SDD should block inline writes");
-assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git status --short" } }))?.block, undefined, "SDD should allow safe inspection bash");
-assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git commit -am nope" } })).block, true, "SDD should block mutating bash");
+assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git status --short" } }))?.block, undefined, "SDD should allow safe git review");
+assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git add src/app.ts" } }))?.block, undefined, "SDD should allow git add for commit workflow");
+assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git commit -m 'wip'" } }))?.block, undefined, "SDD should allow git commit for commit workflow");
+assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git push origin main" } })).block, true, "SDD should keep mutating remote commands blocked");
 
 await shortcuts.get("alt+1").handler(ctx);
 assert.equal(status, "TDD");
@@ -118,8 +139,13 @@ assert.equal(statusColor, "purple");
 assert(activeTools.includes("deploy_agent"), "TDD should keep deploy_agent active for orchestration");
 assert(activeTools.includes("ask_user_question"), "TDD should keep ask.ts active for clarification");
 assert(activeTools.includes("engram_mem_save"), "TDD should keep Engram active");
+assert(activeTools.includes("exa_search"), "TDD should expose available exa tools");
+assert(activeTools.includes("chrome-devtools_capture"), "TDD should expose available chrome-devtools tools");
+assert(activeTools.includes("obsidian_note"), "TDD should expose available obsidian tools");
 assert(!activeTools.includes("write"), "TDD should not expose inline write");
 assert(!activeTools.includes("edit"), "TDD should not expose inline edit");
+assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git add src/app.ts" } }))?.block, undefined, "TDD should allow git add for commit workflow");
+assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git commit -m 'wip'" } }))?.block, undefined, "TDD should allow git commit for commit workflow");
 assert.equal((await toolHandlers[0]({ toolName: "edit", input: { path: "src/app.ts" } })).block, true, "TDD should block inline edits");
 
 supportedThemeColors.delete("purple");

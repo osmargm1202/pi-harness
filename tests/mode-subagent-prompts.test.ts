@@ -43,7 +43,7 @@ assert.match(sddPrompt, /90%|noventa/i, "sdd mode should delegate most substanti
 assert.match(sddPrompt, /deploy_agent/i, "sdd mode should direct work through deploy_agent");
 assert.match(sddPrompt, /inline.*lecturas|inline.*quick reads|lecturas.*rápidas/i, "sdd mode should limit inline work to quick reads");
 assert.match(sddPrompt, /prohibid|forbidden|do not attempt/i, "sdd mode should explicitly say forbidden inline actions must not be attempted");
-assert.match(sddPrompt, /rm|mkdir|git add|pnpm|docker|ssh/i, "sdd mode should name common blocked command classes");
+assert.match(sddPrompt, /rm|mkdir|pnpm|docker|ssh|git push|git reset/i, "sdd mode should name common blocked command classes");
 
 const tddPrompt = readFileSync("agents/tdd.md", "utf8");
 assert.match(tddPrompt, /fast_tdd/i, "tdd mode prompt should mention fast_tdd subagent");
@@ -52,7 +52,7 @@ assert.match(tddPrompt, /90%|noventa/i, "tdd mode should delegate most substanti
 assert.match(tddPrompt, /deploy_agent/i, "tdd mode should direct work through deploy_agent");
 assert.match(tddPrompt, /inline.*lecturas|inline.*quick reads|lecturas.*rápidas/i, "tdd mode should limit inline work to quick reads");
 assert.match(tddPrompt, /prohibid|forbidden|do not attempt/i, "tdd mode should explicitly say forbidden inline actions must not be attempted");
-assert.match(tddPrompt, /rm|mkdir|git add|pnpm|docker|ssh/i, "tdd mode should name common blocked command classes");
+assert.match(tddPrompt, /rm|mkdir|pnpm|docker|ssh|git push|git reset/i, "tdd mode should name common blocked command classes");
 assert.match(tddPrompt, /always.*deploy_agent|siempre.*deploy_agent|must.*deploy_agent/i, "tdd mode should require deploy_agent for substantial work");
 assert.match(sddPrompt, /always.*deploy_agent|siempre.*deploy_agent|must.*deploy_agent/i, "sdd mode should require deploy_agent for substantial work");
 

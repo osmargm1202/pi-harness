@@ -13,17 +13,71 @@ export const MODE_STATE_EVENT = "orgm:mode-changed";
 const PACKAGE_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const MODE_PROMPTS_DIR = join(PACKAGE_ROOT, "agents");
 const MODE_DETAILS: Record<OrgmModeName, { label: string; colors: string[]; tools: string[] }> = {
-	plan: { label: "PLAN", colors: ["warning"], tools: ["read", "bash", "grep", "find", "ls", "engram_mem_search", "engram_mem_context", "engram_mem_get_observation", "engram_mem_save", "engram_mem_save_prompt", "engram_mem_session_summary"] },
+	plan: { label: "PLAN", colors: ["warning"], tools: [
+		"read",
+		"bash",
+		"grep",
+		"find",
+		"ls",
+		"deploy_agent",
+		"ask_user_question",
+		"engram_mem_search",
+		"engram_mem_context",
+		"engram_mem_get_observation",
+		"engram_mem_save",
+		"engram_mem_update",
+		"engram_mem_save_prompt",
+		"engram_mem_session_summary",
+		"engram_mem_capture_passive",
+	] },
 	build: { label: "BUILD", colors: ["accent"], tools: [] },
 	ask: { label: "ASK", colors: ["cyan", "accent"], tools: ["read", "bash", "grep", "find", "ls", "engram_mem_search", "engram_mem_context", "engram_mem_get_observation"] },
-	sdd: { label: "SDD", colors: ["error"], tools: ["read", "bash", "grep", "find", "ls", "deploy_agent", "ask_user_question", "engram_mem_search", "engram_mem_context", "engram_mem_get_observation", "engram_mem_save", "engram_mem_update", "engram_mem_save_prompt", "engram_mem_session_summary", "engram_mem_capture_passive"] },
-	tdd: { label: "TDD", colors: ["purple", "accent"], tools: ["read", "bash", "grep", "find", "ls", "deploy_agent", "ask_user_question", "engram_mem_search", "engram_mem_context", "engram_mem_get_observation", "engram_mem_save", "engram_mem_update", "engram_mem_save_prompt", "engram_mem_session_summary", "engram_mem_capture_passive"] },
+	sdd: { label: "SDD", colors: ["error"], tools: [
+		"read",
+		"bash",
+		"grep",
+		"find",
+		"ls",
+		"deploy_agent",
+		"ask_user_question",
+		"engram_mem_search",
+		"engram_mem_context",
+		"engram_mem_get_observation",
+		"engram_mem_save",
+		"engram_mem_update",
+		"engram_mem_save_prompt",
+		"engram_mem_session_summary",
+		"engram_mem_capture_passive",
+	] },
+	tdd: { label: "TDD", colors: ["purple", "accent"], tools: [
+		"read",
+		"bash",
+		"grep",
+		"find",
+		"ls",
+		"deploy_agent",
+		"ask_user_question",
+		"engram_mem_search",
+		"engram_mem_context",
+		"engram_mem_get_observation",
+		"engram_mem_save",
+		"engram_mem_update",
+		"engram_mem_save_prompt",
+		"engram_mem_session_summary",
+		"engram_mem_capture_passive",
+	] },
 };
 
 const SAFE_BASH_PREFIXES = [
-	"pwd", "ls", "find", "rg", "grep", "git status", "git diff", "git log", "git show", "git branch", "git rev-parse", "git ls-files", "test", "[", "echo", "printf", "wc", "head", "tail",
+	"pwd", "ls", "find", "rg", "grep", "test", "[", "echo", "printf", "wc", "head", "tail",
+	"git status", "git diff", "git log", "git show", "git branch", "git rev-parse", "git ls-files",
 ];
-const DANGEROUS_BASH = /(^|[;&|`$()\n])\s*(rm|mv|cp|mkdir|rmdir|touch|chmod|chown|sudo|git\s+(add|commit|push|reset|checkout|switch|merge|rebase|clean|worktree|stash)|npm\s+install|pnpm\s+install|bun\s+(add|install)|cargo\s+install)\b/i;
+const SAFE_GIT_COMMAND_PREFIXES = ["git add", "git commit"];
+const SAFE_GIT_REVIEW_PREFIXES = ["git status", "git diff", "git log", "git show", "git branch", "git rev-parse", "git ls-files"];
+const DANGEROUS_BASH = /(^|[;&|`$()\n])\s*(rm|mv|cp|mkdir|rmdir|touch|chmod|chown|sudo|git\s+(push|reset|checkout|switch|merge|rebase|clean|worktree|stash)|npm\s+install|pnpm\s+install|bun\s+(add|install)|cargo\s+install)\b/i;
+const OPTIONAL_TOOL_PREFIXES = ["exa", "chrome-devtools", "obsidian"];
+const SHELL_COMPOSITE_OPERATOR = /(?:&&|\|\||;|\n|\|)/;
+
 
 function isModeName(value: string): value is OrgmModeName {
 	return ["plan", "build", "ask", "sdd", "tdd"].includes(value);
@@ -62,9 +116,23 @@ export function isWriteAllowedInMode(mode: OrgmModeName, path: string): boolean 
 	return rel.startsWith("docs/") || rel.startsWith("plans/") || /^agents\/(plan|build|ask|sdd|tdd)\.md$/.test(rel);
 }
 
-function isSafeBash(command: string): boolean {
+function allowsGitCommitWorkflow(mode: OrgmModeName): boolean {
+	return mode === "plan" || mode === "sdd" || mode === "tdd";
+}
+
+function isSafeGitCommand(command: string, mode: OrgmModeName): boolean {
+	const trimmed = command.trim().toLowerCase();
+	if (!trimmed.startsWith("git ")) return false;
+	if (SHELL_COMPOSITE_OPERATOR.test(trimmed)) return false;
+	if (SAFE_GIT_REVIEW_PREFIXES.some((prefix) => trimmed === prefix || trimmed.startsWith(`${prefix} `))) return true;
+	if (!allowsGitCommitWorkflow(mode)) return false;
+	return SAFE_GIT_COMMAND_PREFIXES.some((prefix) => trimmed === prefix || trimmed.startsWith(`${prefix} `));
+}
+
+function isSafeBash(command: string, mode: OrgmModeName): boolean {
 	const trimmed = command.trim();
 	if (!trimmed) return true;
+	if (isSafeGitCommand(trimmed, mode)) return true;
 	if (DANGEROUS_BASH.test(trimmed)) return false;
 	return SAFE_BASH_PREFIXES.some((prefix) => trimmed === prefix || trimmed.startsWith(`${prefix} `));
 }
@@ -83,10 +151,21 @@ function toolNames(pi: ExtensionAPI): string[] {
 	}
 }
 
+function isOptionalTool(name: string): boolean {
+	return OPTIONAL_TOOL_PREFIXES.some((prefix) => {
+		if (name === prefix) return true;
+		const suffix = name.slice(prefix.length);
+		return suffix.length > 0 && /^[._/-]/.test(suffix);
+	});
+}
+
 function activeToolsForMode(pi: ExtensionAPI, mode: OrgmModeName): string[] {
 	const available = toolNames(pi);
 	if (mode === "build") return available;
 	const allow = new Set(MODE_DETAILS[mode].tools);
+	for (const name of available) {
+		if (isOptionalTool(name)) allow.add(name);
+	}
 	return available.filter((name) => allow.has(name));
 }
 
@@ -196,7 +275,7 @@ export default function modeExtension(pi: ExtensionAPI, options: { configPath?: 
 		}
 		if (event.toolName === "bash") {
 			const command = String((event.input as any)?.command ?? "");
-			if (!isSafeBash(command)) return { block: true, reason: `${currentMode} mode blocks unsafe bash commands.` };
+			if (!isSafeBash(command, currentMode)) return { block: true, reason: `${currentMode} mode blocks unsafe bash commands.` };
 		}
 	});
 }
