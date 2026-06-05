@@ -41,20 +41,26 @@ assert.match(sddPrompt, /fast_sdd/i, "sdd mode prompt should mention fast_sdd su
 assert.match(sddPrompt, /orchestrator/i, "sdd mode should identify itself as an orchestrator");
 assert.match(sddPrompt, /90%|noventa/i, "sdd mode should delegate most substantial work");
 assert.match(sddPrompt, /deploy_agent/i, "sdd mode should direct work through deploy_agent");
+assert.match(sddPrompt, /deploy_agent.*fast_sdd/i, "sdd mode should route delegation through fast_sdd");
+assert.match(sddPrompt, /fast_sdd.*only/i, "sdd mode should restrict delegation to fast_sdd only");
 assert.match(sddPrompt, /inline.*lecturas|inline.*quick reads|lecturas.*rápidas/i, "sdd mode should limit inline work to quick reads");
 assert.match(sddPrompt, /prohibid|forbidden|do not attempt/i, "sdd mode should explicitly say forbidden inline actions must not be attempted");
 assert.match(sddPrompt, /rm|mkdir|pnpm|docker|ssh|git push|git reset/i, "sdd mode should name common blocked command classes");
+assert.doesNotMatch(sddPrompt, /dedicated|assets\/subagents\/sdd\//i, "sdd mode should not list dedicated SDD worker choices");
 
 const tddPrompt = readFileSync("agents/tdd.md", "utf8");
 assert.match(tddPrompt, /fast_tdd/i, "tdd mode prompt should mention fast_tdd subagent");
 assert.match(tddPrompt, /orchestrator/i, "tdd mode should identify itself as an orchestrator");
 assert.match(tddPrompt, /90%|noventa/i, "tdd mode should delegate most substantial work");
 assert.match(tddPrompt, /deploy_agent/i, "tdd mode should direct work through deploy_agent");
+assert.match(tddPrompt, /deploy_agent.*fast_tdd/i, "tdd mode should route delegation through fast_tdd");
+assert.match(tddPrompt, /fast_tdd.*only/i, "tdd mode should restrict delegation to fast_tdd only");
 assert.match(tddPrompt, /inline.*lecturas|inline.*quick reads|lecturas.*rápidas/i, "tdd mode should limit inline work to quick reads");
 assert.match(tddPrompt, /prohibid|forbidden|do not attempt/i, "tdd mode should explicitly say forbidden inline actions must not be attempted");
 assert.match(tddPrompt, /rm|mkdir|pnpm|docker|ssh|git push|git reset/i, "tdd mode should name common blocked command classes");
 assert.match(tddPrompt, /always.*deploy_agent|siempre.*deploy_agent|must.*deploy_agent/i, "tdd mode should require deploy_agent for substantial work");
 assert.match(sddPrompt, /always.*deploy_agent|siempre.*deploy_agent|must.*deploy_agent/i, "sdd mode should require deploy_agent for substantial work");
+assert.doesNotMatch(tddPrompt, /dedicated|assets\/subagents\/tdd\//i, "tdd mode should not list dedicated TDD worker choices");
 
 assert.match(planPrompt, /plan first|plan primero|first produce/i, "plan mode should require a concrete plan before switching modes");
 assert.match(planPrompt, /before.*switch|antes.*cambiar|antes.*pedir/i, "plan mode should not ask for a mode switch before producing a plan");
