@@ -313,10 +313,7 @@ export default function (pi: ExtensionAPI) {
 						}
 					}
 
-					const lines = [firstLine];
-					if (titleStatus.state !== "idle" || titleStatus.title) {
-						lines.push(renderTitleStatusLine(theme, titleStatus, width, folderLabel, modeLabel));
-					}
+					const lines = [firstLine, renderTitleStatusLine(theme, titleStatus, width, folderLabel, modeLabel)];
 					if (showSkillsStatus && loadedSkills.size > 0) {
 						lines.push(...renderSkillsRows(theme, width, loadedSkills));
 					}

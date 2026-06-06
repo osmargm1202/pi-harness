@@ -38,3 +38,4 @@ assert(minimalSource.includes("MODE_STATE_EVENT"), "minimal footer should listen
 assert(!minimalSource.includes('let currentPrimary = "pi"'), "minimal footer should not hard-code pi as the footer mode label");
 assert(!minimalSource.includes("const centerRaw = folderLabel;"), "primary minimal footer line should not duplicate the folder shown in the title context row");
 assert(!minimalSource.includes("const agentStatus = timerLabel ? `${modeLabel} · ${timerLabel}` : modeLabel;"), "primary minimal footer line should not duplicate the mode shown in the title context row");
+assert(!minimalSource.includes('if (titleStatus.state !== "idle" || titleStatus.title)'), "title context row should render from session start before title generation");
