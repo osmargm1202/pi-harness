@@ -36,3 +36,5 @@ assert.equal(formatMinimalModeLabel("plan"), "PLAN", "minimal footer should rend
 assert.equal(formatMinimalModeLabel("tdd"), "TDD", "minimal footer should render TDD mode label");
 assert(minimalSource.includes("MODE_STATE_EVENT"), "minimal footer should listen for mode changes");
 assert(!minimalSource.includes('let currentPrimary = "pi"'), "minimal footer should not hard-code pi as the footer mode label");
+assert(!minimalSource.includes("const centerRaw = folderLabel;"), "primary minimal footer line should not duplicate the folder shown in the title context row");
+assert(!minimalSource.includes("const agentStatus = timerLabel ? `${modeLabel} · ${timerLabel}` : modeLabel;"), "primary minimal footer line should not duplicate the mode shown in the title context row");

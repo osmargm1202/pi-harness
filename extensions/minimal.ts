@@ -27,9 +27,7 @@ import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 import {
 	MODE_STATE_EVENT,
 	formatModeLabel,
-	getModeColorCandidates,
 	restoreModeState,
-	safeThemeFg,
 	type OrgmModeName,
 } from "./mode.ts";
 
@@ -148,7 +146,6 @@ export default function (pi: ExtensionAPI) {
 	if (!isOrgmExtensionEnabled("minimal")) return;
 
 	let currentMode: OrgmModeName = "plan";
-	let currentModeColors = getModeColorCandidates(currentMode);
 	let currentCaveman: CavemanLevel = "off";
 	let showCavemanStatus = loadCavemanConfig().showStatus;
 	let showSkillsStatus = loadMinimalSkillsConfig().enabled;
@@ -202,7 +199,6 @@ export default function (pi: ExtensionAPI) {
 
 	const installFooter = (ctx: ExtensionContext) => {
 		currentMode = restoreModeState(ctx.sessionManager.getEntries(), "plan");
-		currentModeColors = getModeColorCandidates(currentMode);
 		currentCaveman = resolveInitialCavemanState(ctx.sessionManager.getEntries()).level;
 		showCavemanStatus = loadCavemanConfig().showStatus;
 		showSkillsStatus = loadMinimalSkillsConfig().enabled;
@@ -241,11 +237,7 @@ export default function (pi: ExtensionAPI) {
 					const thinking = pi.getThinkingLevel();
 					const tokenSummary = `↑${formatCompactNumber(inputTokens)} ↓${formatCompactNumber(outputTokens)}`;
 					const modeLabel = formatMinimalModeLabel(currentMode);
-					const modeStyled = safeThemeFg(theme, currentModeColors, modeLabel);
-					const agentStatus = timerLabel ? `${modeLabel} · ${timerLabel}` : modeLabel;
-					const agentStatusStyled = timerLabel
-						? `${modeStyled}${theme.fg("borderAccent", ` · ${timerLabel}`)}`
-						: modeStyled;
+					const timerStatusStyled = timerLabel ? theme.fg("borderAccent", ` · ${timerLabel}`) : "";
 					const cavemanStatus = formatCavemanStatus(currentCaveman);
 					const cavemanStyled = currentCaveman === "off"
 						? theme.fg("text", cavemanStatus)
@@ -255,10 +247,10 @@ export default function (pi: ExtensionAPI) {
 					const leftParts = [
 						theme.fg("accent", contextText),
 						theme.fg("text", modelName),
-						theme.fg("borderAccent", `${thinking} · `) + agentStatusStyled,
+						theme.fg("borderAccent", thinking) + timerStatusStyled,
 					];
 					const left = leftParts.join(footerSeparator);
-					const centerRaw = folderLabel;
+					const centerRaw = "";
 					const rightParts = [
 						showCavemanStatus ? cavemanStyled : "",
 						theme.fg("borderAccent", tokenSummary),
@@ -282,26 +274,23 @@ export default function (pi: ExtensionAPI) {
 						const center = theme.fg("text", centerText);
 						firstLine = left + padBefore + center + padAfter + right;
 					} else {
+						const timerStatus = timerLabel ? ` · ${timerLabel}` : "";
 						const compact = showCavemanStatus
-							? `${contextText} ${modelName} · ${thinking} · ${agentStatus} · ${folderLabel} · ${cavemanStatus} · ${tokenSummary} ${formatCurrency(totalCost)}`
-							: `${contextText} ${modelName} · ${thinking} · ${agentStatus} · ${folderLabel} · ${tokenSummary} ${formatCurrency(totalCost)}`;
+							? `${contextText} ${modelName} · ${thinking}${timerStatus} · ${cavemanStatus} · ${tokenSummary} ${formatCurrency(totalCost)}`
+							: `${contextText} ${modelName} · ${thinking}${timerStatus} · ${tokenSummary} ${formatCurrency(totalCost)}`;
 						const styledCompact = showCavemanStatus
 							? theme.fg("accent", `${contextText} `) +
 								theme.fg("text", modelName) +
-								theme.fg("borderAccent", ` · ${thinking} · `) +
-								agentStatusStyled +
-								theme.fg("borderAccent", ` · `) +
-								theme.fg("text", folderLabel) +
+								theme.fg("borderAccent", ` · ${thinking}`) +
+								timerStatusStyled +
 								footerSeparator +
 								cavemanStyled +
 								theme.fg("borderAccent", ` · ${tokenSummary} `) +
 								theme.fg("warning", formatCurrency(totalCost))
 							: theme.fg("accent", `${contextText} `) +
 								theme.fg("text", modelName) +
-								theme.fg("borderAccent", ` · ${thinking} · `) +
-								agentStatusStyled +
-								theme.fg("borderAccent", ` · `) +
-								theme.fg("text", folderLabel) +
+								theme.fg("borderAccent", ` · ${thinking}`) +
+								timerStatusStyled +
 								theme.fg("borderAccent", ` · ${tokenSummary} `) +
 								theme.fg("warning", formatCurrency(totalCost));
 
@@ -311,17 +300,13 @@ export default function (pi: ExtensionAPI) {
 							const compactBar = theme.fg("accent", `${contextText} `);
 							const compactTail = showCavemanStatus
 								? theme.fg("text", modelName) +
-									theme.fg("borderAccent", ` · ${thinking} · `) +
-									agentStatusStyled +
-									theme.fg("borderAccent", ` · `) +
-									theme.fg("text", folderLabel) +
+									theme.fg("borderAccent", ` · ${thinking}`) +
+									timerStatusStyled +
 									footerSeparator +
 									cavemanStyled
 								: theme.fg("text", modelName) +
-									theme.fg("borderAccent", ` · ${thinking} · `) +
-									agentStatusStyled +
-									theme.fg("borderAccent", ` · `) +
-									theme.fg("text", folderLabel);
+									theme.fg("borderAccent", ` · ${thinking}`) +
+									timerStatusStyled;
 
 							const availableTailWidth = Math.max(0, width - visibleWidth(compactBar));
 							firstLine = compactBar + truncateToWidth(compactTail, availableTailWidth);
@@ -342,9 +327,8 @@ export default function (pi: ExtensionAPI) {
 	};
 
 
-	pi.events.on(MODE_STATE_EVENT, (data: { mode?: OrgmModeName; colors?: string[] }) => {
+	pi.events.on(MODE_STATE_EVENT, (data: { mode?: OrgmModeName }) => {
 		if (data?.mode) currentMode = data.mode;
-		currentModeColors = data?.colors?.length ? data.colors : getModeColorCandidates(currentMode);
 		requestRender();
 	});
 
