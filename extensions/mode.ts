@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { DEFAULT_MODE_ORDER, loadOrgmConfig, type OrgmModeName as ConfigModeName } from "./lib/orgm-config.ts";
 import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
+import { SUBAGENT_ENV_FLAG } from "./lib/subagent-runtime-model.ts";
 
 export type OrgmModeName = "plan" | "build" | "ask" | "sdd" | "tdd";
 
@@ -207,7 +208,8 @@ function extractPath(input: any): string | undefined {
 }
 
 function isSubagentRuntime(): boolean {
-	return Boolean(process.env.PI_SUBAGENT_RUNTIME_ID || process.env.PI_SUBAGENT_DEPLOYMENT_ID);
+	if (process.env[SUBAGENT_ENV_FLAG] === "1") return true;
+	return Boolean(process.env.PI_SUBAGENT_RUNTIME_ID?.trim() || process.env.PI_SUBAGENT_DEPLOYMENT_ID?.trim());
 }
 
 export default function modeExtension(pi: ExtensionAPI, options: { configPath?: string } = {}) {

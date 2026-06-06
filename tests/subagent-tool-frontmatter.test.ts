@@ -20,6 +20,10 @@ function frontmatterTools(content: string): string[] {
 
 for (const path of walkMarkdown("assets/subagents")) {
 	const tools = frontmatterTools(readFileSync(path, "utf8"));
+	const isTddOrSddWorker = path.includes("/tdd/") || path.includes("/sdd/");
 	assert(tools.includes("ask_user_question"), `${path} should include ask_user_question so subagents use ask.ts for clarification`);
 	assert(tools.some((tool) => tool.startsWith("engram_mem_")), `${path} should preserve Engram tools in subagent allowlist`);
+	if (isTddOrSddWorker) {
+		assert(tools.includes("bash"), `${path} should include bash for delegated execution in TDD/SDD workers`);
+	}
 }

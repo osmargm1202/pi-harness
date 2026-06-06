@@ -6,8 +6,10 @@ import modeExtension, { MODE_STATE_ENTRY, getNextMode, isWriteAllowedInMode, res
 
 const originalSubagentRuntimeId = process.env.PI_SUBAGENT_RUNTIME_ID;
 const originalSubagentDeploymentId = process.env.PI_SUBAGENT_DEPLOYMENT_ID;
+const originalSubagentPddFlag = process.env.PI_PDD_SUBAGENT;
 delete process.env.PI_SUBAGENT_RUNTIME_ID;
 delete process.env.PI_SUBAGENT_DEPLOYMENT_ID;
+delete process.env.PI_PDD_SUBAGENT;
 
 assert.equal(getNextMode("plan"), "build");
 assert.equal(getNextMode("build"), "ask");
@@ -158,21 +160,33 @@ assert.equal(status, "TDD");
 assert.equal(statusColor, "accent", "TDD should fall back when purple is unavailable");
 
 try {
-	process.env.PI_SUBAGENT_RUNTIME_ID = "child-runtime";
-	const subagentHandlers = new Map<string, any[]>();
-	let subagentActiveTools: string[] | undefined;
-	const subagentPi = {
-		registerCommand() { throw new Error("subagent runtime should not register mode command"); },
-		registerShortcut() { throw new Error("subagent runtime should not register mode shortcut"); },
-		on(name: string, handler: any) { subagentHandlers.set(name, [...(subagentHandlers.get(name) ?? []), handler]); },
-		appendEntry() { throw new Error("subagent runtime should not append mode state"); },
-		setActiveTools(names: string[]) { subagentActiveTools = names; },
-		getAllTools() { return [{ name: "write" }, { name: "bash" }, { name: "deploy_agent" }]; },
+	const assertNoSubagentGating = (label: string) => {
+		const subagentHandlers = new Map<string, any[]>();
+		let subagentActiveTools: string[] | undefined;
+		const subagentPi = {
+			registerCommand() { throw new Error("subagent runtime should not register mode command"); },
+			registerShortcut() { throw new Error("subagent runtime should not register mode shortcut"); },
+			on(name: string, handler: any) { subagentHandlers.set(name, [...(subagentHandlers.get(name) ?? []), handler]); },
+			appendEntry() { throw new Error("subagent runtime should not append mode state"); },
+			setActiveTools(names: string[]) { subagentActiveTools = names; },
+			getAllTools() { return [{ name: "write" }, { name: "bash" }, { name: "deploy_agent" }]; },
+		};
+		modeExtension(subagentPi as any, { configPath });
+		assert.equal(subagentHandlers.size, 0, `${label}: subagent runtime should not install mode handlers`);
+		assert.equal(subagentActiveTools, undefined, `${label}: subagent runtime should keep deploy_agent --tools allowlist untouched`);
 	};
-	modeExtension(subagentPi as any, { configPath });
-	assert.equal(subagentHandlers.size, 0, "subagent runtime should not install mode handlers");
-	assert.equal(subagentActiveTools, undefined, "subagent runtime should keep deploy_agent --tools allowlist untouched");
+
+	process.env.PI_SUBAGENT_RUNTIME_ID = "child-runtime";
+	assertNoSubagentGating("runtime env id");
+	delete process.env.PI_SUBAGENT_RUNTIME_ID;
+	process.env.PI_SUBAGENT_DEPLOYMENT_ID = "child-deployment";
+	assertNoSubagentGating("deployment id");
+	delete process.env.PI_SUBAGENT_DEPLOYMENT_ID;
+	process.env.PI_PDD_SUBAGENT = "1";
+	assertNoSubagentGating("subagent flag");
 } finally {
+	if (originalSubagentPddFlag === undefined) delete process.env.PI_PDD_SUBAGENT;
+	else process.env.PI_PDD_SUBAGENT = originalSubagentPddFlag;
 	if (originalSubagentRuntimeId === undefined) delete process.env.PI_SUBAGENT_RUNTIME_ID;
 	else process.env.PI_SUBAGENT_RUNTIME_ID = originalSubagentRuntimeId;
 	if (originalSubagentDeploymentId === undefined) delete process.env.PI_SUBAGENT_DEPLOYMENT_ID;

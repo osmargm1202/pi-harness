@@ -1,7 +1,7 @@
 ---
 name: sdd-design
 description: Design the technical approach for an SDD change.
-tools: read, grep, glob, write, edit, engram_mem_context, engram_mem_search, engram_mem_get_observation, engram_mem_save, engram_mem_save_prompt, engram_mem_session_start, engram_mem_session_end, engram_mem_session_summary, engram_mem_suggest_topic_key, engram_mem_update, engram_mem_capture_passive, ask_user_question
+tools: read, grep, glob, ls, bash, write, edit, engram_mem_context, engram_mem_search, engram_mem_get_observation, engram_mem_save, engram_mem_save_prompt, engram_mem_session_start, engram_mem_session_end, engram_mem_session_summary, engram_mem_suggest_topic_key, engram_mem_update, engram_mem_capture_passive, ask_user_question
 inheritProjectContext: true
 ---
 ## Engram Memory Workflow
