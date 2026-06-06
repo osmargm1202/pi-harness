@@ -107,13 +107,13 @@ export function renderTitleContextLine(
 	width: number,
 	leftText: string,
 	centerText: string,
-	style: (kind: "accent" | "dim" | "warning" | "error", text: string) => string,
+	style: (kind: "accent" | "dim" | "warning" | "error" | "mode", text: string) => string,
 ): string {
 	if (width <= 0) return "";
 
 	const center = truncateToWidth(centerText, width);
 	const centerWidth = visibleWidth(center);
-	if (width <= centerWidth + 1) return centerToWidth(style("accent", center), width);
+	if (width <= centerWidth + 1) return centerToWidth(style("mode", center), width);
 
 	const centerStart = Math.max(0, Math.floor((width - centerWidth) / 2));
 	const leftWidth = Math.max(0, centerStart - 1);
@@ -126,5 +126,5 @@ export function renderTitleContextLine(
 	const gapBeforeCenter = " ".repeat(Math.max(0, centerStart - visibleWidth(left)));
 	const gapBeforeRight = " ".repeat(Math.max(0, width - centerStart - centerWidth - visibleWidth(right)));
 
-	return style("dim", left) + gapBeforeCenter + style("accent", center) + gapBeforeRight + style(formatted.kind, right);
+	return style("dim", left) + gapBeforeCenter + style("mode", center) + gapBeforeRight + style(formatted.kind, right);
 }

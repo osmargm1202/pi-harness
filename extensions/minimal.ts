@@ -27,7 +27,9 @@ import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 import {
 	MODE_STATE_EVENT,
 	formatModeLabel,
+	getModeColorCandidates,
 	restoreModeState,
+	safeThemeFg,
 	type OrgmModeName,
 } from "./mode.ts";
 
@@ -77,11 +79,19 @@ function renderSkillsRows(theme: Theme, width: number, loadedSkills: Map<string,
 	});
 }
 
-function renderTitleStatusLine(theme: Theme, status: TitleStatus, width: number, folderLabel: string, modeLabel: string): string {
+function renderTitleStatusLine(
+	theme: Theme,
+	status: TitleStatus,
+	width: number,
+	folderLabel: string,
+	modeLabel: string,
+	modeColors: string[],
+): string {
 	return renderTitleContextLine(status, width, folderLabel, modeLabel, (kind, text) => {
 		if (kind === "error") return theme.fg("error", text);
 		if (kind === "warning") return theme.fg("warning", text);
 		if (kind === "dim") return theme.fg("text", text);
+		if (kind === "mode") return safeThemeFg(theme, modeColors, text);
 		return theme.fg("accent", text);
 	});
 }
@@ -146,6 +156,7 @@ export default function (pi: ExtensionAPI) {
 	if (!isOrgmExtensionEnabled("minimal")) return;
 
 	let currentMode: OrgmModeName = "plan";
+	let currentModeColors = getModeColorCandidates(currentMode);
 	let currentCaveman: CavemanLevel = "off";
 	let showCavemanStatus = loadCavemanConfig().showStatus;
 	let showSkillsStatus = loadMinimalSkillsConfig().enabled;
@@ -199,6 +210,7 @@ export default function (pi: ExtensionAPI) {
 
 	const installFooter = (ctx: ExtensionContext) => {
 		currentMode = restoreModeState(ctx.sessionManager.getEntries(), "plan");
+		currentModeColors = getModeColorCandidates(currentMode);
 		currentCaveman = resolveInitialCavemanState(ctx.sessionManager.getEntries()).level;
 		showCavemanStatus = loadCavemanConfig().showStatus;
 		showSkillsStatus = loadMinimalSkillsConfig().enabled;
@@ -313,7 +325,7 @@ export default function (pi: ExtensionAPI) {
 						}
 					}
 
-					const lines = [firstLine, renderTitleStatusLine(theme, titleStatus, width, folderLabel, modeLabel)];
+					const lines = [firstLine, renderTitleStatusLine(theme, titleStatus, width, folderLabel, modeLabel, currentModeColors)];
 					if (showSkillsStatus && loadedSkills.size > 0) {
 						lines.push(...renderSkillsRows(theme, width, loadedSkills));
 					}
@@ -324,8 +336,9 @@ export default function (pi: ExtensionAPI) {
 	};
 
 
-	pi.events.on(MODE_STATE_EVENT, (data: { mode?: OrgmModeName }) => {
+	pi.events.on(MODE_STATE_EVENT, (data: { mode?: OrgmModeName; colors?: string[] }) => {
 		if (data?.mode) currentMode = data.mode;
+		currentModeColors = data?.colors?.length ? data.colors : getModeColorCandidates(currentMode);
 		requestRender();
 	});
 

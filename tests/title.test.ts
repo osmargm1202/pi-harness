@@ -42,16 +42,21 @@ assert(contextualReady.includes("Mi sesión larga"), "contextual ready line shou
 assert(contextualReady.indexOf(" pi-harness") < contextualReady.indexOf("PLAN"));
 assert(contextualReady.indexOf("PLAN") < contextualReady.indexOf("Mi sesión larga"));
 
+const contextualIdleKinds: string[] = [];
 const contextualIdle = renderTitleContextLine(
 	{ state: "idle" },
 	32,
 	" pi-harness",
 	"PLAN",
-	(kind, text) => text,
+	(kind, text) => {
+		contextualIdleKinds.push(`${kind}:${text}`);
+		return text;
+	},
 );
 assert.equal(visibleWidth(contextualIdle), 32, "idle contextual line should fill width");
 assert(contextualIdle.includes(" pi-harness"), "idle contextual line should show folder before a title exists");
 assert(contextualIdle.includes("PLAN"), "idle contextual line should show mode before a title exists");
+assert(contextualIdleKinds.includes("mode:PLAN"), "contextual line should expose mode as its own style kind");
 
 const contextualNarrow = renderTitleContextLine(
 	{ state: "ready", title: "Título muy largo" },
