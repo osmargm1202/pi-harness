@@ -77,23 +77,54 @@ export function centerToWidth(text: string, width: number): string {
 	return padToWidth(`${" ".repeat(left)}${clipped}`, width);
 }
 
+function formatTitleStatusText(status: TitleStatus, width: number): { kind: "accent" | "dim" | "warning" | "error"; text: string } {
+	if (status.state === "generating") {
+		return { kind: "warning", text: `${status.frame ?? SPINNER_FRAMES[0]} Generando título…` };
+	}
+	if (status.state === "error") {
+		const fallback = status.title ? `⚠ ${status.title} · /orgm-title regen` : "⚠ Error generando título · /orgm-title regen";
+		return { kind: "error", text: visibleWidth(fallback) > width && width >= 14 ? "⚠ /orgm-title regen" : fallback };
+	}
+	if (status.state === "ready") {
+		return { kind: "accent", text: status.title };
+	}
+	return { kind: "dim", text: status.title ?? "" };
+}
+
 export function renderTitleLine(
 	status: TitleStatus,
 	width: number,
 	style: (kind: "accent" | "dim" | "warning" | "error", text: string) => string,
 ): string {
 	if (width <= 0) return "";
-	if (status.state === "generating") {
-		return centerToWidth(style("warning", `${status.frame ?? SPINNER_FRAMES[0]} Generando título…`), width);
-	}
-	if (status.state === "error") {
-		const fallback = status.title ? `⚠ ${status.title} · /orgm-title regen` : "⚠ Error generando título · /orgm-title regen";
-		const text = visibleWidth(fallback) > width && width >= 14 ? "⚠ /orgm-title regen" : fallback;
-		return centerToWidth(style("error", text), width);
-	}
-	if (status.state === "ready") {
-		return centerToWidth(style("accent", status.title), width);
-	}
-	if (status.title) return centerToWidth(style("dim", status.title), width);
-	return "".padEnd(width);
+	const formatted = formatTitleStatusText(status, width);
+	if (!formatted.text) return "".padEnd(width);
+	return centerToWidth(style(formatted.kind, formatted.text), width);
+}
+
+export function renderTitleContextLine(
+	status: TitleStatus,
+	width: number,
+	leftText: string,
+	centerText: string,
+	style: (kind: "accent" | "dim" | "warning" | "error", text: string) => string,
+): string {
+	if (width <= 0) return "";
+
+	const center = truncateToWidth(centerText, width);
+	const centerWidth = visibleWidth(center);
+	if (width <= centerWidth + 1) return centerToWidth(style("accent", center), width);
+
+	const centerStart = Math.max(0, Math.floor((width - centerWidth) / 2));
+	const leftWidth = Math.max(0, centerStart - 1);
+	const rightSlotWidth = Math.max(0, width - centerStart - centerWidth);
+	const rightWidth = Math.max(0, rightSlotWidth - 1);
+	const formatted = formatTitleStatusText(status, rightWidth);
+
+	const left = truncateToWidth(leftText, leftWidth);
+	const right = truncateToWidth(formatted.text, rightWidth);
+	const gapBeforeCenter = " ".repeat(Math.max(0, centerStart - visibleWidth(left)));
+	const gapBeforeRight = " ".repeat(Math.max(0, width - centerStart - centerWidth - visibleWidth(right)));
+
+	return style("dim", left) + gapBeforeCenter + style("accent", center) + gapBeforeRight + style(formatted.kind, right);
 }

@@ -10,7 +10,7 @@ import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import { loadOrgmConfigSlice, saveOrgmConfigSlice } from "./lib/orgm-config.ts";
 import { renderSkillChipRows, type ChipStyleKind, type SkillStatus } from "./lib/minimal-skill.ts";
 import {
-	renderTitleLine,
+	renderTitleContextLine,
 	sanitizeTitle,
 	SESSION_TITLE_ENTRY_TYPE,
 	TITLE_STATE_EVENT,
@@ -79,8 +79,8 @@ function renderSkillsRows(theme: Theme, width: number, loadedSkills: Map<string,
 	});
 }
 
-function renderTitleStatusLine(theme: Theme, status: TitleStatus, width: number): string {
-	return renderTitleLine(status, width, (kind, text) => {
+function renderTitleStatusLine(theme: Theme, status: TitleStatus, width: number, folderLabel: string, modeLabel: string): string {
+	return renderTitleContextLine(status, width, folderLabel, modeLabel, (kind, text) => {
 		if (kind === "error") return theme.fg("error", text);
 		if (kind === "warning") return theme.fg("warning", text);
 		if (kind === "dim") return theme.fg("text", text);
@@ -330,7 +330,7 @@ export default function (pi: ExtensionAPI) {
 
 					const lines = [firstLine];
 					if (titleStatus.state !== "idle" || titleStatus.title) {
-						lines.push(renderTitleStatusLine(theme, titleStatus, width));
+						lines.push(renderTitleStatusLine(theme, titleStatus, width, folderLabel, modeLabel));
 					}
 					if (showSkillsStatus && loadedSkills.size > 0) {
 						lines.push(...renderSkillsRows(theme, width, loadedSkills));
