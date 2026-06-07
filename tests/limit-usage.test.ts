@@ -7,6 +7,7 @@ import {
 	formatLimitBar,
 	formatLimitMetric,
 	formatLimitsRow,
+	limitColorKind,
 	parseUsagePayload,
 	readCodexAuth,
 	remainingPercent,
@@ -26,8 +27,16 @@ assert.equal(formatLimitBar(90), "[#########-]");
 assert.equal(formatLimitBar(0), "[----------]");
 assert.equal(formatLimitBar(undefined), "[----------]");
 
-assert.equal(formatLimitMetric("Codex 5H", 90), "Codex 5H [#########-] 90%");
-assert.equal(formatLimitMetric("Spark S", undefined), "Spark S [----------] --%");
+assert.equal(formatLimitMetric("Codex 5H", 90), "Codex 5H [#########-]90%");
+assert.equal(formatLimitMetric("Spark S", undefined), "Spark S [----------]--%");
+assert.equal(limitColorKind(0), "error");
+assert.equal(limitColorKind(1), "warning");
+assert.equal(limitColorKind(29), "warning");
+assert.equal(limitColorKind(30), "success");
+assert.equal(limitColorKind(50), "success");
+assert.equal(limitColorKind(51), "normal");
+assert.equal(limitColorKind(100), "normal");
+assert.equal(limitColorKind(undefined), "normal");
 
 const payload = {
 	plan_type: "pro",
@@ -56,11 +65,11 @@ assert.equal(parsed.spark.secondary?.remainingPercent, 80);
 
 assert.equal(
 	formatLimitsRow(parsed, "full"),
-	"Codex 5H [#########-] 90% | Codex S [#########-] 92% | Spark 5H [#####-----] 50% | Spark S [########--] 80%",
+	"Codex 5H [#########-]90% | Codex S [#########-]92% | Spark 5H [#####-----]50% | Spark S [########--]80%",
 );
 assert.equal(
 	formatLimitsRow(parsed, "compact"),
-	"C 5H [#########-] 90% | C S [#########-] 92% | SP 5H [#####-----] 50% | SP S [########--] 80%",
+	"C 5H [#########-]90% | C S [#########-]92% | SP 5H [#####-----]50% | SP S [########--]80%",
 );
 
 const noSpark = parseUsagePayload({
@@ -71,7 +80,7 @@ const noSpark = parseUsagePayload({
 });
 assert.equal(
 	formatLimitsRow(noSpark, "full"),
-	"Codex 5H [##########] 100% | Codex S [----------] 0% | Spark 5H [----------] --% | Spark S [----------] --%",
+	"Codex 5H [##########]100% | Codex S [----------]0% | Spark 5H [----------]--% | Spark S [----------]--%",
 );
 
 const tempDir = mkdtempSync(join(tmpdir(), "limit-auth-"));
@@ -115,7 +124,7 @@ try {
 }
 
 const limitExtensionSource = readFileSync(new URL("../extensions/limit.ts", import.meta.url), "utf8");
-assert(limitExtensionSource.includes('isOrgmExtensionEnabled("limit")'), "limit extension should be gated by orgm extension config");
+assert(limitExtensionSource.includes("isOrgmExtensionEnabled(\"limit\")"), "limit extension should be gated by orgm extension config");
 assert(limitExtensionSource.includes("LIMITS_EVENT"), "limit extension should emit limits event");
 assert(limitExtensionSource.includes("setInterval"), "limit extension should refresh on an interval");
 assert(limitExtensionSource.includes("session_shutdown"), "limit extension should cleanup timer on shutdown");

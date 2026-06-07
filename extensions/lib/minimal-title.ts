@@ -1,3 +1,5 @@
+import { limitColorKind, type LimitColorKind } from "./limit-usage.ts";
+
 export const SESSION_TITLE_ENTRY_TYPE = "session-title";
 export const TITLE_STATE_EVENT = "title:state-changed";
 export const MAX_TITLE_WIDTH = 80;
@@ -129,14 +131,32 @@ export function renderTitleContextLine(
 	return style("dim", left) + gapBeforeCenter + style("mode", center) + gapBeforeRight + style(formatted.kind, right);
 }
 
+function renderStyledLimitMetric(metric: string, style: (kind: LimitColorKind, text: string) => string): string {
+	const match = metric.match(/^(.*? )(\[[#-]+\]((?:--|\d+)%))$/);
+	if (!match) return style("normal", metric);
+	const label = match[1] ?? "";
+	const value = match[2] ?? "";
+	const percentText = match[3]?.slice(0, -1);
+	const percent = percentText === "--" ? undefined : Number(percentText);
+	const kind = limitColorKind(Number.isFinite(percent) ? percent : undefined);
+	return style("normal", label) + style(kind, value);
+}
+
+function renderStyledLimitsText(text: string, style: (kind: LimitColorKind, text: string) => string): string {
+	return text
+		.split(" | ")
+		.map((metric, index) => `${index === 0 ? "" : style("normal", " | ")}${renderStyledLimitMetric(metric, style)}`)
+		.join("");
+}
+
 export function renderLimitsContextLine(
 	width: number,
 	fullText: string,
 	compactText: string,
-	style: (kind: "dim", text: string) => string,
+	style: (kind: LimitColorKind, text: string) => string,
 ): string {
 	if (width <= 0) return "";
-	if (visibleWidth(fullText) <= width) return style("dim", fullText);
-	if (visibleWidth(compactText) <= width) return style("dim", compactText);
-	return style("dim", truncateToWidth(compactText, width));
+	if (visibleWidth(fullText) <= width) return renderStyledLimitsText(fullText, style);
+	if (visibleWidth(compactText) <= width) return renderStyledLimitsText(compactText, style);
+	return renderStyledLimitsText(truncateToWidth(compactText, width), style);
 }

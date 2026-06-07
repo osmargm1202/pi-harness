@@ -36,6 +36,8 @@ export type LimitDisplayModel = {
 	error?: string;
 };
 
+export type LimitColorKind = "normal" | "error" | "warning" | "success";
+
 type RawWindow = {
 	used_percent?: unknown;
 	reset_at?: unknown;
@@ -92,8 +94,16 @@ export function formatLimitBar(percent: number | undefined, width = 10): string 
 	return `[${"#".repeat(filled)}${"-".repeat(width - filled)}]`;
 }
 
+export function limitColorKind(percent: number | undefined): LimitColorKind {
+	if (percent === undefined) return "normal";
+	if (percent === 0) return "error";
+	if (percent >= 1 && percent <= 29) return "warning";
+	if (percent >= 30 && percent <= 50) return "success";
+	return "normal";
+}
+
 export function formatLimitMetric(label: string, percent: number | undefined): string {
-	return `${label} ${formatLimitBar(percent)} ${percent === undefined ? "--" : Math.round(percent)}%`;
+	return `${label} ${formatLimitBar(percent)}${percent === undefined ? "--" : Math.round(percent)}%`;
 }
 
 function parseWindow(window: RawWindow | null | undefined): LimitWindow | undefined {
