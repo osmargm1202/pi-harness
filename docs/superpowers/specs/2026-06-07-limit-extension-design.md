@@ -2,25 +2,28 @@
 
 ## Goal
 
-Add `extensions/limit.ts` to show remaining ChatGPT/Codex usage limits in the existing minimal second context row.
+Add `extensions/limit.ts` to show remaining ChatGPT/Codex usage limits in a new minimal context row below the existing folder/mode/title row.
 
 ## Approved Layout
 
-Second row format:
+Minimal context area uses two rows:
 
 ```text
-<folder> | 5H [#######---] 90% | S [#########-] 92%        PLAN        <title>
+<folder>                         PLAN                         <title>
+Codex 5H [#######---] 90% | Codex S [#########-] 92% | Spark 5H [#####-----] 50% | Spark S [########--] 80%
 ```
 
 Where:
 
 - `<folder>` is the current working directory basename, matching the existing minimal title-context row behavior.
-- `5H` is the remaining primary usage window.
-- `S` is the remaining secondary/weekly usage window.
 - `PLAN` is the current ORGM mode label, still centered.
 - `<title>` is the current generated session title/status, still right aligned.
+- `Codex 5H` is the main Codex remaining primary usage window.
+- `Codex S` is the main Codex remaining secondary/weekly usage window.
+- `Spark 5H` is the Spark remaining primary usage window from `additional_rate_limits`.
+- `Spark S` is the Spark remaining secondary/weekly usage window from `additional_rate_limits`.
 
-The limit text appears immediately after the folder name on the left side of the second line.
+The existing folder/mode/title row stays clean. The new limits row appears directly below it.
 
 ## Data Source
 
@@ -73,7 +76,7 @@ Interpretation:
 - `rate_limit.primary_window.used_percent` is consumed percent for the short window, normally 5 hours (`18000` seconds).
 - `rate_limit.secondary_window.used_percent` is consumed percent for the weekly window, normally 7 days (`604800` seconds).
 - Remaining percent is `100 - used_percent`, clamped to `0..100`.
-- `additional_rate_limits` may contain separate buckets such as Spark. The first version stores/parses this safely but does not show extra buckets in the row.
+- `additional_rate_limits` may contain separate buckets such as Spark. The first version must parse Spark and show both Codex and Spark windows when available.
 
 ## Authentication
 
@@ -136,13 +139,23 @@ Rules:
 - Empty char: `-`.
 - Missing data: `[----------]`.
 
-### Full Segment
+### Full Limits Row
 
 ```text
-5H [#######---] 90% | S [#########-] 92%
+Codex 5H [#######---] 90% | Codex S [#########-] 92% | Spark 5H [#####-----] 50% | Spark S [########--] 80%
 ```
 
 Use muted/dim theme color for normal text. Use warning/error colors only if theme-safe helpers already used elsewhere are easy to reuse in implementation; otherwise keep formatting plain to avoid theme regressions.
+
+### Narrow Width Behavior
+
+Render the full row when it fits. If terminal width is too narrow, use compact labels:
+
+```text
+C 5H [#######---] 90% | C S [#########-] 92% | SP 5H [#####-----] 50% | SP S [########--] 80%
+```
+
+If the compact row still does not fit, truncate to available width with an ellipsis.
 
 ## Refresh Behavior
 
@@ -163,13 +176,13 @@ Current minimal row already renders:
 - mode centered,
 - title/status on the right.
 
-Do not create a separate footer/status entry for limits. Instead, expose a small shared state/event from `limit.ts`, then have `minimal.ts` include the formatted limit segment after the folder.
+Do not create a separate footer/status entry for limits. Instead, expose a small shared state/event from `limit.ts`, then have `minimal.ts` render a new context row under the existing folder/mode/title row.
 
 Proposed integration contract:
 
-- `extensions/limit.ts` emits `orgm:limits-changed` with a display string.
-- `extensions/minimal.ts` listens for this event and stores the latest string.
-- `extensions/lib/minimal-title.ts` accepts optional `leftExtra` or `limitText` and joins it after folder with ` | `.
+- `extensions/limit.ts` emits `orgm:limits-changed` with structured Codex and Spark window data plus preformatted full/compact display strings.
+- `extensions/minimal.ts` listens for this event and stores the latest limit display model.
+- `extensions/lib/minimal-title.ts` keeps the existing folder/mode/title row intact and adds a helper for rendering/truncating the limits row.
 
 This keeps `limit.ts` responsible for data/auth/fetch/formatting and keeps `minimal.ts` responsible for layout.
 
@@ -203,12 +216,12 @@ Add focused unit tests for:
 3. Parsing `/wham/usage` primary/secondary windows.
 4. Parsing `additional_rate_limits` without breaking the default bucket.
 5. Auth file lookup order with temp directories.
-6. Minimal title row includes limits after folder and preserves mode center/title right behavior.
-7. Extension gating recognizes `limit` in completions/status.
+6. Minimal title row preserves folder/mode/title behavior unchanged.
+7. New minimal limits row renders full labels when wide and compact/truncated output when narrow.
+8. Extension gating recognizes `limit` in completions/status.
 
 ## Out of Scope For First Version
 
-- Showing Spark and Codex buckets simultaneously in the row.
 - Keyring auth lookup.
 - Full settings UI for refresh intervals.
 - Blocking model requests when limits reach 0.
