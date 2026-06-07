@@ -132,14 +132,15 @@ export function renderTitleContextLine(
 }
 
 function renderStyledLimitMetric(metric: string, style: (kind: LimitColorKind, text: string) => string): string {
-	const match = metric.match(/^(.*? )(\[[#-]+\]((?:--|\d+)%))$/);
+	const match = metric.match(/^(.*? )(\[[#-]+\]((?:--|\d+)%))(.*)$/);
 	if (!match) return style("normal", metric);
 	const label = match[1] ?? "";
 	const value = match[2] ?? "";
+	const reset = match[4] ?? "";
 	const percentText = match[3]?.slice(0, -1);
 	const percent = percentText === "--" ? undefined : Number(percentText);
 	const kind = limitColorKind(Number.isFinite(percent) ? percent : undefined);
-	return style("normal", label) + style(kind, value);
+	return style("normal", label) + style(kind, value) + style("normal", reset);
 }
 
 function renderStyledLimitsText(text: string, style: (kind: LimitColorKind, text: string) => string): string {
@@ -154,8 +155,26 @@ export function renderLimitsContextLine(
 	fullText: string,
 	compactText: string,
 	style: (kind: LimitColorKind, text: string) => string,
-): string {
-	if (width <= 0) return "";
+): string;
+export function renderLimitsContextLine(
+	width: number,
+	fullText: string[],
+	compactText: string[],
+	style: (kind: LimitColorKind, text: string) => string,
+): string[];
+export function renderLimitsContextLine(
+	width: number,
+	fullText: string | string[],
+	compactText: string | string[],
+	style: (kind: LimitColorKind, text: string) => string,
+): string | string[] {
+	if (width <= 0) return Array.isArray(fullText) ? [] : "";
+	if (Array.isArray(fullText) || Array.isArray(compactText)) {
+		const fullRows = Array.isArray(fullText) ? fullText : [fullText];
+		const compactRows = Array.isArray(compactText) ? compactText : [compactText];
+		const sourceRows = fullRows.every((row) => visibleWidth(row) <= width) ? fullRows : compactRows;
+		return sourceRows.map((row) => renderStyledLimitsText(visibleWidth(row) <= width ? row : truncateToWidth(row, width), style));
+	}
 	if (visibleWidth(fullText) <= width) return renderStyledLimitsText(fullText, style);
 	if (visibleWidth(compactText) <= width) return renderStyledLimitsText(compactText, style);
 	return renderStyledLimitsText(truncateToWidth(compactText, width), style);

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { renderSkillChipRows } from "../extensions/lib/minimal-skill.ts";
 import { renderLimitsContextLine, visibleWidth } from "../extensions/lib/minimal-title.ts";
+import { displayModel, normalizeLimitDisplayModel, type LimitDisplayModel } from "../extensions/lib/limit-usage.ts";
 import { formatMinimalModeLabel } from "../extensions/minimal.ts";
 
 const style = (_kind: string, text: string) => text;
@@ -44,19 +45,55 @@ assert(minimalSource.includes("LIMITS_EVENT"), "minimal footer should listen for
 assert(minimalSource.includes("renderLimitsContextLine"), "minimal footer should render new limits context line");
 assert(minimalSource.includes("currentLimits"), "minimal footer should keep latest limit display model");
 
-const fullLimitText = "Codex 5H [#########-]90% | Codex S [#########-]92% | Spark 5H [#####-----]50% | Spark S [########--]80%";
-const compactLimitText = "C 5H [#########-]90% | C S [#########-]92% | SP 5H [#####-----]50% | SP S [########--]80%";
+const fullLimitRows = [
+	"Codex  5H [########--]82% 8:26PM | S [######----]61% Jun 10, 2026 8:26PM",
+	"Spark  5H [####------]40% 9:10PM | S [########--]80% Jun 12, 2026 1:05AM",
+];
+const compactLimitRows = [
+	"C  5H [########--]82% 8:26PM | S [######----]61% Jun 10, 2026 8:26PM",
+	"SP  5H [####------]40% 9:10PM | S [########--]80% Jun 12, 2026 1:05AM",
+];
 
-assert.equal(renderLimitsContextLine(160, fullLimitText, compactLimitText, style), fullLimitText, "wide limit row should render full labels");
-assert.equal(renderLimitsContextLine(100, fullLimitText, compactLimitText, style), compactLimitText, "medium limit row should render compact labels");
-const tinyLimitLine = renderLimitsContextLine(32, fullLimitText, compactLimitText, style);
-assert(visibleWidth(tinyLimitLine) <= 32, "tiny limit row should fit width");
-assert(tinyLimitLine.endsWith("…"), "tiny limit row should truncate with ellipsis");
-assert.equal(renderLimitsContextLine(0, fullLimitText, compactLimitText, style), "", "zero-width limit row should be empty");
+assert.deepEqual(renderLimitsContextLine(160, fullLimitRows, compactLimitRows, style), fullLimitRows, "wide limit rows should render full labels");
+assert.deepEqual(renderLimitsContextLine(69, fullLimitRows, compactLimitRows, style), compactLimitRows, "medium limit rows should render compact labels");
+const tinyLimitLines = renderLimitsContextLine(32, fullLimitRows, compactLimitRows, style);
+assert(tinyLimitLines.every((line) => visibleWidth(line) <= 32), "tiny limit rows should fit width");
+assert(tinyLimitLines.every((line) => line.endsWith("…")), "tiny limit rows should truncate with ellipsis");
+assert.deepEqual(renderLimitsContextLine(0, fullLimitRows, compactLimitRows, style), [], "zero-width limit rows should be empty");
 
-const thresholdLimitText = "Codex 5H [----------]0% | Codex S [##--------]29% | Spark 5H [#####-----]50% | Spark S [#####-----]51%";
-assert.equal(
-	renderLimitsContextLine(160, thresholdLimitText, thresholdLimitText, markedStyle),
-	"<normal>Codex 5H </normal><error>[----------]0%</error><normal> | </normal><normal>Codex S </normal><warning>[##--------]29%</warning><normal> | </normal><normal>Spark 5H </normal><success>[#####-----]50%</success><normal> | </normal><normal>Spark S </normal><normal>[#####-----]51%</normal>",
-	"limit row should color only metrics below 51 percent and keep normal text gray-themed",
+const validRowModel = displayModel(undefined);
+assert.equal(normalizeLimitDisplayModel(validRowModel), validRowModel, "valid row limit payload should stay unchanged");
+
+const legacyLimitModel: LimitDisplayModel = {
+	fullText: "Codex 5H [########--]82% | Codex S [######----]61% | Spark 5H [####------]40% | Spark S [########--]80%",
+	compactText: "C 5H [########--]82% | C S [######----]61% | SP 5H [####------]40% | SP S [########--]80%",
+	fullRows: [],
+	compactRows: [],
+	stale: true,
+};
+assert.deepEqual(
+	normalizeLimitDisplayModel(legacyLimitModel),
+	{
+		...legacyLimitModel,
+		fullRows: [legacyLimitModel.fullText],
+		compactRows: [legacyLimitModel.compactText],
+	},
+	"legacy text-only limit payload should render one fallback row instead of unavailable rows",
+);
+assert.deepEqual(
+	renderLimitsContextLine(
+		160,
+		normalizeLimitDisplayModel(legacyLimitModel).fullRows,
+		normalizeLimitDisplayModel(legacyLimitModel).compactRows,
+		style,
+	),
+	[legacyLimitModel.fullText],
+	"legacy text-only limit payload should render as one full-width row",
+);
+
+const thresholdLimitRows = ["Codex  5H [----------]0% -- | S [##--------]29% Jun 10, 2026 8:26PM"];
+assert.deepEqual(
+	renderLimitsContextLine(160, thresholdLimitRows, thresholdLimitRows, markedStyle),
+	["<normal>Codex  5H </normal><error>[----------]0%</error><normal> --</normal><normal> | </normal><normal>S </normal><warning>[##--------]29%</warning><normal> Jun 10, 2026 8:26PM</normal>"],
+	"limit rows should color only bar+percent below 51 percent and keep reset text normal gray-themed",
 );

@@ -4,9 +4,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
 	authFileCandidates,
+	displayModel,
 	formatLimitBar,
 	formatLimitMetric,
+	formatLimitRows,
 	formatLimitsRow,
+	formatResetLabel,
 	limitColorKind,
 	parseUsagePayload,
 	readCodexAuth,
@@ -29,6 +32,13 @@ assert.equal(formatLimitBar(undefined), "[----------]");
 
 assert.equal(formatLimitMetric("Codex 5H", 90), "Codex 5H [#########-]90%");
 assert.equal(formatLimitMetric("Spark S", undefined), "Spark S [----------]--%");
+
+const now = new Date("2026-06-07T07:15:00Z");
+const unix = (iso: string) => Math.floor(new Date(iso).getTime() / 1000);
+
+assert.equal(formatResetLabel(unix("2026-06-07T20:26:00Z"), now), "8:26PM", "same-day reset should omit date");
+assert.equal(formatResetLabel(unix("2026-06-10T20:26:00Z"), now), "Jun 10, 2026 8:26PM", "different-day reset should include date");
+assert.equal(formatResetLabel(undefined, now), "--", "missing reset should render placeholder");
 assert.equal(limitColorKind(0), "error");
 assert.equal(limitColorKind(1), "warning");
 assert.equal(limitColorKind(29), "warning");
@@ -72,6 +82,33 @@ assert.equal(
 	"C 5H [#########-]90% | C S [#########-]92% | SP 5H [#####-----]50% | SP S [########--]80%",
 );
 
+const resetPayload = {
+	rate_limit: {
+		primary_window: { used_percent: 18, reset_at: unix("2026-06-07T20:26:00Z"), limit_window_seconds: 18000 },
+		secondary_window: { used_percent: 39, reset_at: unix("2026-06-10T20:26:00Z"), limit_window_seconds: 604800 },
+	},
+	additional_rate_limits: [
+		{
+			limit_name: "GPT-5.3-Codex-Spark",
+			metered_feature: "codex_bengalfox",
+			rate_limit: {
+				primary_window: { used_percent: 60, reset_at: unix("2026-06-07T21:10:00Z"), limit_window_seconds: 18000 },
+				secondary_window: { used_percent: 20, reset_at: unix("2026-06-12T01:05:00Z"), limit_window_seconds: 604800 },
+			},
+		},
+	],
+};
+const resetParsed = parseUsagePayload(resetPayload);
+assert.deepEqual(formatLimitRows(resetParsed, "full", now), [
+	"Codex  5H [########--]82% 8:26PM | S [######----]61% Jun 10, 2026 8:26PM",
+	"Spark  5H [####------]40% 9:10PM | S [########--]80% Jun 12, 2026 1:05AM",
+]);
+assert.deepEqual(formatLimitRows(resetParsed, "compact", now), [
+	"C  5H [########--]82% 8:26PM | S [######----]61% Jun 10, 2026 8:26PM",
+	"SP  5H [####------]40% 9:10PM | S [########--]80% Jun 12, 2026 1:05AM",
+]);
+assert.deepEqual(displayModel(resetParsed, false, undefined, now).fullRows, formatLimitRows(resetParsed, "full", now));
+
 const noSpark = parseUsagePayload({
 	rate_limit: {
 		primary_window: { used_percent: 0 },
@@ -82,6 +119,10 @@ assert.equal(
 	formatLimitsRow(noSpark, "full"),
 	"Codex 5H [##########]100% | Codex S [----------]0% | Spark 5H [----------]--% | Spark S [----------]--%",
 );
+assert.deepEqual(formatLimitRows(noSpark, "full", now), [
+	"Codex  5H [##########]100% -- | S [----------]0% --",
+	"Spark  5H [----------]--% -- | S [----------]--% --",
+]);
 
 const tempDir = mkdtempSync(join(tmpdir(), "limit-auth-"));
 try {

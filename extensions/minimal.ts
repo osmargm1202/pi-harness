@@ -25,7 +25,7 @@ import {
 	resolveInitialCavemanState,
 } from "./lib/caveman-state.ts";
 import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
-import { LIMITS_EVENT, displayModel, type LimitColorKind, type LimitDisplayModel } from "./lib/limit-usage.ts";
+import { LIMITS_EVENT, displayModel, normalizeLimitDisplayModel, type LimitColorKind, type LimitDisplayModel } from "./lib/limit-usage.ts";
 import {
 	MODE_STATE_EVENT,
 	formatModeLabel,
@@ -344,7 +344,7 @@ export default function (pi: ExtensionAPI) {
 					const lines = [
 						firstLine,
 						renderTitleStatusLine(theme, titleStatus, width, folderLabel, modeLabel, currentModeColors),
-						renderLimitsContextLine(width, currentLimits.fullText, currentLimits.compactText, (kind, text) => renderLimitText(theme, kind, text)),
+						...renderLimitsContextLine(width, currentLimits.fullRows, currentLimits.compactRows, (kind, text) => renderLimitText(theme, kind, text)),
 					];
 					if (showSkillsStatus && loadedSkills.size > 0) {
 						lines.push(...renderSkillsRows(theme, width, loadedSkills));
@@ -374,7 +374,7 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.events.on(LIMITS_EVENT, (data: LimitDisplayModel) => {
-		currentLimits = data?.fullText && data?.compactText ? data : displayModel(undefined);
+		currentLimits = normalizeLimitDisplayModel(data);
 		requestRender();
 	});
 
