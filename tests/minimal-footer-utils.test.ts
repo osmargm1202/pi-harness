@@ -97,3 +97,10 @@ assert.deepEqual(
 	["<normal>Codex  5H </normal><error>[----------]0%</error><normal> --</normal><normal> | </normal><normal>S </normal><warning>[##--------]29%</warning><normal> Jun 10, 2026 8:26PM</normal>"],
 	"limit rows should color only bar+percent below 51 percent and keep reset text normal gray-themed",
 );
+
+const exhaustedLimitRows = ["Codex  reposición Jun 10, 2026 8:26PM"];
+assert.deepEqual(
+	renderLimitsContextLine(160, exhaustedLimitRows, exhaustedLimitRows, markedStyle),
+	["<normal>Codex  reposición Jun 10, 2026 8:26PM</normal>"],
+	"exhausted replenishment-only rows should keep normal gray-themed styling",
+);

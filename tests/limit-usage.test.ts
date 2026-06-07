@@ -111,6 +111,49 @@ assert.deepEqual(formatLimitRows(resetParsed, "compact", now), [
 ]);
 assert.deepEqual(displayModel(resetParsed, false, undefined, now).fullRows, formatLimitRows(resetParsed, "full", now));
 
+const exhaustedParsed = parseUsagePayload({
+	rate_limit: {
+		primary_window: { used_percent: 100, reset_at: unix("2026-06-08T00:26:00Z"), limit_window_seconds: 18000 },
+		secondary_window: { used_percent: 100, reset_at: unix("2026-06-11T00:26:00Z"), limit_window_seconds: 604800 },
+	},
+	additional_rate_limits: [
+		{
+			limit_name: "GPT-5.3-Codex-Spark",
+			metered_feature: "codex_bengalfox",
+			rate_limit: {
+				primary_window: { used_percent: 100, reset_at: unix("2026-06-08T01:10:00Z"), limit_window_seconds: 18000 },
+				secondary_window: { used_percent: 20, reset_at: unix("2026-06-12T05:05:00Z"), limit_window_seconds: 604800 },
+			},
+		},
+	],
+});
+assert.deepEqual(formatLimitRows(exhaustedParsed, "full", now), [
+	"Codex  reposición Jun 10, 2026 8:26PM",
+	"Spark  reposición 9:10PM",
+], "exhausted rows should show only group label and selected replenishment time, with weekly priority");
+assert.deepEqual(formatLimitRows(exhaustedParsed, "compact", now), [
+	"C  repo Jun 10, 2026 8:26PM",
+	"SP  repo 9:10PM",
+], "compact exhausted rows should show only compact group label and selected replenishment time");
+assert.deepEqual(formatLimitRows(parseUsagePayload({
+	rate_limit: {
+		primary_window: { used_percent: 100, reset_at: unix("2026-06-08T00:26:00Z"), limit_window_seconds: 18000 },
+		secondary_window: { used_percent: 10, reset_at: unix("2026-06-11T00:26:00Z"), limit_window_seconds: 604800 },
+	},
+}), "full", now), [
+	"Codex  reposición 8:26PM",
+	"Spark  5H [----------]--% -- | S [----------]--% --",
+], "primary exhaustion should choose primary reset when weekly still has remaining quota");
+assert.deepEqual(formatLimitRows(parseUsagePayload({
+	rate_limit: {
+		primary_window: { used_percent: 20, reset_at: unix("2026-06-08T00:26:00Z"), limit_window_seconds: 18000 },
+		secondary_window: { used_percent: 100, limit_window_seconds: 604800 },
+	},
+}), "full", now), [
+	"Codex  reposición --",
+	"Spark  5H [----------]--% -- | S [----------]--% --",
+], "exhausted selected bucket without reset should render placeholder");
+
 const noSpark = parseUsagePayload({
 	rate_limit: {
 		primary_window: { used_percent: 0 },
@@ -122,7 +165,7 @@ assert.equal(
 	"Codex 5H [##########]100% | Codex S [----------]0% | Spark 5H [----------]--% | Spark S [----------]--%",
 );
 assert.deepEqual(formatLimitRows(noSpark, "full", now), [
-	"Codex  5H [##########]100% -- | S [----------]0% --",
+	"Codex  reposición --",
 	"Spark  5H [----------]--% -- | S [----------]--% --",
 ]);
 

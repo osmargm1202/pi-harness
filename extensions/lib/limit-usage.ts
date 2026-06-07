@@ -160,6 +160,12 @@ function formatLimitMetricWithReset(label: string, window: LimitWindow | undefin
 	return `${formatLimitMetric(label, window?.remainingPercent)} ${formatResetLabel(window?.resetAt, now)}`;
 }
 
+function exhaustedResetWindow(bucket: LimitBucket | undefined): LimitWindow | undefined {
+	if (bucket?.secondary?.remainingPercent === 0) return bucket.secondary;
+	if (bucket?.primary?.remainingPercent === 0) return bucket.primary;
+	return undefined;
+}
+
 function parseWindow(window: RawWindow | null | undefined): LimitWindow | undefined {
 	if (!window) return undefined;
 	const usedPercent = numberFrom(window.used_percent);
@@ -227,9 +233,15 @@ export function formatLimitRows(snapshot: LimitSnapshot | undefined, mode: "full
 	const labels = mode === "full"
 		? ["Codex", "Spark"]
 		: ["C", "SP"];
+	const replenishmentLabel = mode === "full" ? "reposición" : "repo";
+	const formatGroupRow = (label: string, bucket: LimitBucket | undefined) => {
+		const exhaustedWindow = exhaustedResetWindow(bucket);
+		if (exhaustedWindow) return `${label}  ${replenishmentLabel} ${formatResetLabel(exhaustedWindow.resetAt, now)}`;
+		return `${label}  ${formatLimitMetricWithReset("5H", bucket?.primary, now)} | ${formatLimitMetricWithReset("S", bucket?.secondary, now)}`;
+	};
 	return [
-		`${labels[0]}  ${formatLimitMetricWithReset("5H", codex?.primary, now)} | ${formatLimitMetricWithReset("S", codex?.secondary, now)}`,
-		`${labels[1]}  ${formatLimitMetricWithReset("5H", spark?.primary, now)} | ${formatLimitMetricWithReset("S", spark?.secondary, now)}`,
+		formatGroupRow(labels[0]!, codex),
+		formatGroupRow(labels[1]!, spark),
 	];
 }
 
