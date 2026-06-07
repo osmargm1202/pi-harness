@@ -101,6 +101,13 @@ assert.deepEqual(
 const exhaustedLimitRows = ["Codex  reposición Jun 10, 2026 8:26PM"];
 assert.deepEqual(
 	renderLimitsContextLine(160, exhaustedLimitRows, exhaustedLimitRows, markedStyle),
-	["<normal>Codex  reposición Jun 10, 2026 8:26PM</normal>"],
-	"exhausted replenishment-only rows should keep normal gray-themed styling",
+	["<error>Codex  reposición Jun 10, 2026 8:26PM</error>"],
+	"exhausted replenishment-only rows should render replenishment content as error/red",
+);
+
+const compactExhaustedLimitRows = ["C  repo Jun 10, 2026 8:26PM"];
+assert.deepEqual(
+	renderLimitsContextLine(160, compactExhaustedLimitRows, compactExhaustedLimitRows, markedStyle),
+	["<error>C  repo Jun 10, 2026 8:26PM</error>"],
+	"compact exhausted replenishment-only rows should render repo content as error/red",
 );

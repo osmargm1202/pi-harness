@@ -132,6 +132,7 @@ export function renderTitleContextLine(
 }
 
 function renderStyledLimitMetric(metric: string, style: (kind: LimitColorKind, text: string) => string): string {
+	if (/^(?:\S+\s+)?(?:reposición|repo)\b/.test(metric)) return style("error", metric);
 	const match = metric.match(/^(.*? )(\[[#-]+\]((?:--|\d+)%))(.*)$/);
 	if (!match) return style("normal", metric);
 	const label = match[1] ?? "";
