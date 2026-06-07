@@ -39,6 +39,9 @@ assert(!minimalSource.includes('let currentPrimary = "pi"'), "minimal footer sho
 assert(!minimalSource.includes("const centerRaw = folderLabel;"), "primary minimal footer line should not duplicate the folder shown in the title context row");
 assert(!minimalSource.includes("const agentStatus = timerLabel ? `${modeLabel} · ${timerLabel}` : modeLabel;"), "primary minimal footer line should not duplicate the mode shown in the title context row");
 assert(!minimalSource.includes('if (titleStatus.state !== "idle" || titleStatus.title)'), "title context row should render from session start before title generation");
+assert(minimalSource.includes("LIMITS_EVENT"), "minimal footer should listen for limits event");
+assert(minimalSource.includes("renderLimitsContextLine"), "minimal footer should render new limits context line");
+assert(minimalSource.includes("currentLimits"), "minimal footer should keep latest limit display model");
 
 const fullLimitText = "Codex 5H [#########-] 90% | Codex S [#########-] 92% | Spark 5H [#####-----] 50% | Spark S [########--] 80%";
 const compactLimitText = "C 5H [#########-] 90% | C S [#########-] 92% | SP 5H [#####-----] 50% | SP S [########--] 80%";
