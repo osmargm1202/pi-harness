@@ -1,9 +1,14 @@
 import assert from "node:assert/strict";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
+	authFileCandidates,
 	formatLimitBar,
 	formatLimitMetric,
 	formatLimitsRow,
 	parseUsagePayload,
+	readCodexAuth,
 	remainingPercent,
 } from "../extensions/lib/limit-usage.ts";
 
@@ -68,3 +73,40 @@ assert.equal(
 	formatLimitsRow(noSpark, "full"),
 	"Codex 5H [##########] 100% | Codex S [----------] 0% | Spark 5H [----------] --% | Spark S [----------] --%",
 );
+
+const tempDir = mkdtempSync(join(tmpdir(), "limit-auth-"));
+try {
+	const codeHome = join(tempDir, "codex-home");
+	const fakeHome = join(tempDir, "home");
+	mkdirSync(codeHome, { recursive: true });
+	mkdirSync(join(fakeHome, ".config", "codex"), { recursive: true });
+	mkdirSync(join(fakeHome, ".codex"), { recursive: true });
+
+	assert.deepEqual(authFileCandidates({ CODEX_HOME: codeHome }, fakeHome), [
+		join(codeHome, "auth.json"),
+		join(fakeHome, ".config", "codex", "auth.json"),
+		join(fakeHome, ".codex", "auth.json"),
+	]);
+
+	writeFileSync(join(fakeHome, ".codex", "auth.json"), JSON.stringify({
+		tokens: {
+			access_token: "fallback-access",
+			refresh_token: "fallback-refresh",
+			account_id: "fallback-account",
+		},
+	}), "utf8");
+	writeFileSync(join(codeHome, "auth.json"), JSON.stringify({
+		tokens: {
+			access_token: "primary-access",
+			refresh_token: "primary-refresh",
+			account_id: "primary-account",
+		},
+	}), "utf8");
+
+	const auth = readCodexAuth({ CODEX_HOME: codeHome }, fakeHome);
+	assert.equal(auth?.tokens.accessToken, "primary-access");
+	assert.equal(auth?.tokens.refreshToken, "primary-refresh");
+	assert.equal(auth?.tokens.accountId, "primary-account");
+} finally {
+	rmSync(tempDir, { recursive: true, force: true });
+}
