@@ -10,6 +10,7 @@ import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import { loadOrgmConfigSlice, saveOrgmConfigSlice } from "./lib/orgm-config.ts";
 import { renderSkillChipRows, type ChipStyleKind, type SkillStatus } from "./lib/minimal-skill.ts";
 import {
+	renderLimitsContextLine,
 	renderTitleContextLine,
 	sanitizeTitle,
 	SESSION_TITLE_ENTRY_TYPE,
@@ -24,6 +25,7 @@ import {
 	resolveInitialCavemanState,
 } from "./lib/caveman-state.ts";
 import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
+import { LIMITS_EVENT, displayModel, type LimitDisplayModel } from "./lib/limit-usage.ts";
 import {
 	MODE_STATE_EVENT,
 	formatModeLabel,
@@ -161,6 +163,7 @@ export default function (pi: ExtensionAPI) {
 	let showCavemanStatus = loadCavemanConfig().showStatus;
 	let showSkillsStatus = loadMinimalSkillsConfig().enabled;
 	let titleStatus: TitleStatus = { state: "idle" };
+	let currentLimits: LimitDisplayModel = displayModel(undefined);
 	let timerStartedAt = 0;
 	let timerLabel = "";
 	let timerHasError = false;
@@ -325,7 +328,11 @@ export default function (pi: ExtensionAPI) {
 						}
 					}
 
-					const lines = [firstLine, renderTitleStatusLine(theme, titleStatus, width, folderLabel, modeLabel, currentModeColors)];
+					const lines = [
+						firstLine,
+						renderTitleStatusLine(theme, titleStatus, width, folderLabel, modeLabel, currentModeColors),
+						renderLimitsContextLine(width, currentLimits.fullText, currentLimits.compactText, (_kind, text) => theme.fg("text", text)),
+					];
 					if (showSkillsStatus && loadedSkills.size > 0) {
 						lines.push(...renderSkillsRows(theme, width, loadedSkills));
 					}
@@ -350,6 +357,11 @@ export default function (pi: ExtensionAPI) {
 
 	pi.events.on(TITLE_STATE_EVENT, (data: TitleStatus) => {
 		titleStatus = data?.state ? data : { state: "idle" };
+		requestRender();
+	});
+
+	pi.events.on(LIMITS_EVENT, (data: LimitDisplayModel) => {
+		currentLimits = data?.fullText && data?.compactText ? data : displayModel(undefined);
 		requestRender();
 	});
 

@@ -20,6 +20,7 @@ try {
 	assert.equal(isOrgmExtensionEnabled("ask", defaultConfig, "permissions"), false, "ask permissions should default off");
 	assert.equal(isOrgmExtensionEnabled("todo", defaultConfig), false, "todo extension should default off");
 	assert.equal(isOrgmExtensionEnabled("title", defaultConfig), true, "unknown extension should default on");
+	assert.equal(isOrgmExtensionEnabled("limit", defaultConfig), true, "limit extension should default on");
 
 	writeFileSync(configPath, JSON.stringify({
 		extensions: {
@@ -51,6 +52,9 @@ try {
 	const todoCompletions = buildOrgmExtensionCommandCompletions("todo ").map((item) => item.value);
 	assert(todoCompletions.includes("todo on"), "autocomplete should include todo on");
 	assert(todoCompletions.includes("todo off"), "autocomplete should include todo off");
+	const limitCompletions = buildOrgmExtensionCommandCompletions("limit ").map((item) => item.value);
+	assert(limitCompletions.includes("limit on"), "autocomplete should include limit on");
+	assert(limitCompletions.includes("limit off"), "autocomplete should include limit off");
 } finally {
 	rmSync(tempDir, { recursive: true, force: true });
 }
