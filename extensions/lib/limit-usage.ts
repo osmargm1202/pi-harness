@@ -6,6 +6,7 @@ export const LIMITS_EVENT = "orgm:limits-changed";
 export const CODEX_USAGE_URL = "https://chatgpt.com/backend-api/wham/usage";
 export const CODEX_REFRESH_URL = "https://auth.openai.com/oauth/token";
 export const CODEX_OAUTH_CLIENT_ID = "app_EMoamEEZ73f0CkXaXp7hrann";
+export const DEFAULT_RESET_TIME_ZONE = "America/Santo_Domingo";
 
 export type LimitWindow = {
 	usedPercent?: number;
@@ -108,25 +109,51 @@ export function formatLimitMetric(label: string, percent: number | undefined): s
 	return `${label} ${formatLimitBar(percent)}${percent === undefined ? "--" : Math.round(percent)}%`;
 }
 
-function formatClock(date: Date): string {
-	let hours = date.getHours();
-	const suffix = hours >= 12 ? "PM" : "AM";
-	hours %= 12;
-	if (hours === 0) hours = 12;
-	return `${hours}:${String(date.getMinutes()).padStart(2, "0")}${suffix}`;
+type ResetDateParts = {
+	year: string;
+	month: string;
+	day: string;
+	hour: string;
+	minute: string;
+	dayPeriod: string;
+};
+
+function resetDateParts(date: Date, timeZone = DEFAULT_RESET_TIME_ZONE): ResetDateParts {
+	const parts = new Intl.DateTimeFormat("en-US", {
+		timeZone,
+		month: "short",
+		day: "numeric",
+		year: "numeric",
+		hour: "numeric",
+		minute: "2-digit",
+		hour12: true,
+	}).formatToParts(date);
+	const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+	return {
+		year: value("year"),
+		month: value("month"),
+		day: value("day"),
+		hour: value("hour"),
+		minute: value("minute"),
+		dayPeriod: value("dayPeriod"),
+	};
 }
 
-export function formatResetLabel(resetAt: number | undefined, now: Date = new Date()): string {
+function formatClock(parts: ResetDateParts): string {
+	return `${parts.hour}:${parts.minute}${parts.dayPeriod}`;
+}
+
+export function formatResetLabel(resetAt: number | undefined, now: Date = new Date(), timeZone = DEFAULT_RESET_TIME_ZONE): string {
 	if (resetAt === undefined || !Number.isFinite(resetAt)) return "--";
-	const reset = new Date(resetAt * 1000);
-	const time = formatClock(reset);
+	const resetParts = resetDateParts(new Date(resetAt * 1000), timeZone);
+	const nowParts = resetDateParts(now, timeZone);
+	const time = formatClock(resetParts);
 	if (
-		reset.getFullYear() === now.getFullYear() &&
-		reset.getMonth() === now.getMonth() &&
-		reset.getDate() === now.getDate()
+		resetParts.year === nowParts.year &&
+		resetParts.month === nowParts.month &&
+		resetParts.day === nowParts.day
 	) return time;
-	const month = reset.toLocaleString("en-US", { month: "short" });
-	return `${month} ${reset.getDate()}, ${reset.getFullYear()} ${time}`;
+	return `${resetParts.month} ${resetParts.day}, ${resetParts.year} ${time}`;
 }
 
 function formatLimitMetricWithReset(label: string, window: LimitWindow | undefined, now: Date): string {

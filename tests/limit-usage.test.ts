@@ -36,8 +36,10 @@ assert.equal(formatLimitMetric("Spark S", undefined), "Spark S [----------]--%")
 const now = new Date("2026-06-07T07:15:00Z");
 const unix = (iso: string) => Math.floor(new Date(iso).getTime() / 1000);
 
-assert.equal(formatResetLabel(unix("2026-06-07T20:26:00Z"), now), "8:26PM", "same-day reset should omit date");
-assert.equal(formatResetLabel(unix("2026-06-10T20:26:00Z"), now), "Jun 10, 2026 8:26PM", "different-day reset should include date");
+assert.equal(formatResetLabel(unix("2026-06-08T00:26:00Z"), now), "8:26PM", "same-day reset should omit date");
+assert.equal(formatResetLabel(unix("2026-06-11T00:26:00Z"), now), "Jun 10, 2026 8:26PM", "different-day reset should include date");
+assert.equal(formatResetLabel(unix("2026-06-07T22:00:00Z"), new Date("2026-06-07T23:00:00Z")), "6:00PM", "same Santo Domingo day should format reset in Santo Domingo time");
+assert.equal(formatResetLabel(unix("2026-06-08T02:00:00Z"), new Date("2026-06-08T03:00:00Z")), "10:00PM", "same Santo Domingo day should ignore UTC day boundary");
 assert.equal(formatResetLabel(undefined, now), "--", "missing reset should render placeholder");
 assert.equal(limitColorKind(0), "error");
 assert.equal(limitColorKind(1), "warning");
@@ -84,16 +86,16 @@ assert.equal(
 
 const resetPayload = {
 	rate_limit: {
-		primary_window: { used_percent: 18, reset_at: unix("2026-06-07T20:26:00Z"), limit_window_seconds: 18000 },
-		secondary_window: { used_percent: 39, reset_at: unix("2026-06-10T20:26:00Z"), limit_window_seconds: 604800 },
+		primary_window: { used_percent: 18, reset_at: unix("2026-06-08T00:26:00Z"), limit_window_seconds: 18000 },
+		secondary_window: { used_percent: 39, reset_at: unix("2026-06-11T00:26:00Z"), limit_window_seconds: 604800 },
 	},
 	additional_rate_limits: [
 		{
 			limit_name: "GPT-5.3-Codex-Spark",
 			metered_feature: "codex_bengalfox",
 			rate_limit: {
-				primary_window: { used_percent: 60, reset_at: unix("2026-06-07T21:10:00Z"), limit_window_seconds: 18000 },
-				secondary_window: { used_percent: 20, reset_at: unix("2026-06-12T01:05:00Z"), limit_window_seconds: 604800 },
+				primary_window: { used_percent: 60, reset_at: unix("2026-06-08T01:10:00Z"), limit_window_seconds: 18000 },
+				secondary_window: { used_percent: 20, reset_at: unix("2026-06-12T05:05:00Z"), limit_window_seconds: 604800 },
 			},
 		},
 	],
