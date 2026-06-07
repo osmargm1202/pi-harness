@@ -74,6 +74,44 @@ export {
 	getDeployAgentInlineStatusText,
 } from "./lib/subagent-runtime-model.ts";
 
+type OrgmModeName = "plan" | "build" | "ask" | "sdd" | "tdd";
+const MODE_STATE_ENTRY = "orgm-mode";
+const MODE_AGENT_DIRS: Record<OrgmModeName, string> = {
+	plan: "/assets/subagents/plan/",
+	build: "/assets/subagents/build/",
+	ask: "/assets/subagents/ask/",
+	sdd: "/assets/subagents/sdd/",
+	tdd: "/assets/subagents/tdd/",
+};
+
+function normalizeAgentPath(path: string): string {
+	return path.replace(/\\/g, "/");
+}
+
+function isOrgmModeName(value: unknown): value is OrgmModeName {
+	return typeof value === "string" && value in MODE_AGENT_DIRS;
+}
+
+function currentOrgmModeFromEntries(entries: readonly any[] | undefined): OrgmModeName | undefined {
+	if (!entries) return undefined;
+	for (let index = entries.length - 1; index >= 0; index -= 1) {
+		const entry = entries[index];
+		if (entry?.type !== "custom" || entry.customType !== MODE_STATE_ENTRY) continue;
+		const mode = String(entry.data?.mode ?? "").trim().toLowerCase();
+		return isOrgmModeName(mode) ? mode : undefined;
+	}
+	return undefined;
+}
+
+export function isAgentAllowedForOrgmMode(mode: OrgmModeName | undefined, agent: Pick<AgentConfig, "filePath">): boolean {
+	if (!mode) return true;
+	return normalizeAgentPath(agent.filePath).includes(MODE_AGENT_DIRS[mode]);
+}
+
+function buildModeAgentScopeError(mode: OrgmModeName, agent: AgentConfig): string {
+	return `${mode.toUpperCase()} mode can only deploy agents from ${MODE_AGENT_DIRS[mode].slice(1)}. Requested ${agent.name} from ${normalizeAgentPath(agent.filePath)}.`;
+}
+
 // ─── Widget / status keys ───────────────────────────────────────────────────
 const SUBAGENT_PROVIDER_STOP_EVENT = "subagents:provider-stop";
 const DEFAULT_CONTEXT_WINDOW = 200_000;
@@ -2473,6 +2511,15 @@ ${finalText}`
 					],
 					isError: true,
 					details: { requestedAgent: params.agent, availableAgents: available },
+				};
+			}
+			const currentOrgmMode = currentOrgmModeFromEntries(ctx.sessionManager?.getEntries?.());
+			if (!isAgentAllowedForOrgmMode(currentOrgmMode, agent)) {
+				const text = buildModeAgentScopeError(currentOrgmMode!, agent);
+				return {
+					content: [{ type: "text", text }],
+					isError: true,
+					details: { requestedAgent: params.agent, agent: agent.name, mode: currentOrgmMode, reason: text },
 				};
 			}
 			const instanceNumber = nextDeploymentNumber(agent.name);
