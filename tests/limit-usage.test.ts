@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -110,3 +110,9 @@ try {
 } finally {
 	rmSync(tempDir, { recursive: true, force: true });
 }
+
+const limitExtensionSource = readFileSync(new URL("../extensions/limit.ts", import.meta.url), "utf8");
+assert(limitExtensionSource.includes('isOrgmExtensionEnabled("limit")'), "limit extension should be gated by orgm extension config");
+assert(limitExtensionSource.includes("LIMITS_EVENT"), "limit extension should emit limits event");
+assert(limitExtensionSource.includes("setInterval"), "limit extension should refresh on an interval");
+assert(limitExtensionSource.includes("session_shutdown"), "limit extension should cleanup timer on shutdown");
