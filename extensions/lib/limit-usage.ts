@@ -160,9 +160,9 @@ function formatLimitMetricWithReset(label: string, window: LimitWindow | undefin
 	return `${formatLimitMetric(label, window?.remainingPercent)} ${formatResetLabel(window?.resetAt, now)}`;
 }
 
-function exhaustedResetWindow(bucket: LimitBucket | undefined): LimitWindow | undefined {
-	if (bucket?.secondary?.remainingPercent === 0) return bucket.secondary;
-	if (bucket?.primary?.remainingPercent === 0) return bucket.primary;
+function exhaustedResetWindow(bucket: LimitBucket | undefined): { window: LimitWindow; kind: "primary" | "secondary" } | undefined {
+	if (bucket?.secondary?.remainingPercent === 0) return { window: bucket.secondary, kind: "secondary" };
+	if (bucket?.primary?.remainingPercent === 0) return { window: bucket.primary, kind: "primary" };
 	return undefined;
 }
 
@@ -233,10 +233,13 @@ export function formatLimitRows(snapshot: LimitSnapshot | undefined, mode: "full
 	const labels = mode === "full"
 		? ["Codex", "Spark"]
 		: ["C", "SP"];
-	const replenishmentLabel = mode === "full" ? "reposición" : "repo";
+	const replenishmentLabel = (kind: "primary" | "secondary") => {
+		if (kind === "primary") return mode === "full" ? "reposición 5H" : "repo 5H";
+		return mode === "full" ? "reposición semanal" : "repo S";
+	};
 	const formatGroupRow = (label: string, bucket: LimitBucket | undefined) => {
 		const exhaustedWindow = exhaustedResetWindow(bucket);
-		if (exhaustedWindow) return `${label}  ${replenishmentLabel} ${formatResetLabel(exhaustedWindow.resetAt, now)}`;
+		if (exhaustedWindow) return `${label}  ${replenishmentLabel(exhaustedWindow.kind)} ${formatResetLabel(exhaustedWindow.window.resetAt, now)}`;
 		return `${label}  ${formatLimitMetricWithReset("5H", bucket?.primary, now)} | ${formatLimitMetricWithReset("S", bucket?.secondary, now)}`;
 	};
 	return [

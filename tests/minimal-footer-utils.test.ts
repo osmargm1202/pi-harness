@@ -98,16 +98,23 @@ assert.deepEqual(
 	"limit rows should color only bar+percent below 51 percent and keep reset text normal gray-themed",
 );
 
-const exhaustedLimitRows = ["Codex  reposición Jun 10, 2026 8:26PM"];
+const exhaustedLimitRows = ["Codex  reposición semanal Jun 10, 2026 8:26PM"];
 assert.deepEqual(
 	renderLimitsContextLine(160, exhaustedLimitRows, exhaustedLimitRows, markedStyle),
-	["<error>Codex  reposición Jun 10, 2026 8:26PM</error>"],
-	"exhausted replenishment-only rows should render replenishment content as error/red",
+	["<error>Codex  reposición semanal Jun 10, 2026 8:26PM</error>"],
+	"exhausted weekly replenishment-only rows should render window label and content as error/red",
 );
 
-const compactExhaustedLimitRows = ["C  repo Jun 10, 2026 8:26PM"];
+const compactExhaustedLimitRows = ["C  repo S Jun 10, 2026 8:26PM"];
 assert.deepEqual(
 	renderLimitsContextLine(160, compactExhaustedLimitRows, compactExhaustedLimitRows, markedStyle),
-	["<error>C  repo Jun 10, 2026 8:26PM</error>"],
-	"compact exhausted replenishment-only rows should render repo content as error/red",
+	["<error>C  repo S Jun 10, 2026 8:26PM</error>"],
+	"compact weekly replenishment-only rows should render compact window label and repo content as error/red",
+);
+
+const compactFiveHourExhaustedLimitRows = ["SP  repo 5H 9:10PM"];
+assert.deepEqual(
+	renderLimitsContextLine(160, compactFiveHourExhaustedLimitRows, compactFiveHourExhaustedLimitRows, markedStyle),
+	["<error>SP  repo 5H 9:10PM</error>"],
+	"compact 5H replenishment-only rows should render compact window label and repo content as error/red",
 );
