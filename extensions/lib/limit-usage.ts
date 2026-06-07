@@ -32,6 +32,8 @@ export type LimitDisplayModel = {
 	snapshot?: LimitSnapshot;
 	fullText: string;
 	compactText: string;
+	fullRows: string[];
+	compactRows: string[];
 	stale: boolean;
 	error?: string;
 };
@@ -106,6 +108,31 @@ export function formatLimitMetric(label: string, percent: number | undefined): s
 	return `${label} ${formatLimitBar(percent)}${percent === undefined ? "--" : Math.round(percent)}%`;
 }
 
+function formatClock(date: Date): string {
+	let hours = date.getHours();
+	const suffix = hours >= 12 ? "PM" : "AM";
+	hours %= 12;
+	if (hours === 0) hours = 12;
+	return `${hours}:${String(date.getMinutes()).padStart(2, "0")}${suffix}`;
+}
+
+export function formatResetLabel(resetAt: number | undefined, now: Date = new Date()): string {
+	if (resetAt === undefined || !Number.isFinite(resetAt)) return "--";
+	const reset = new Date(resetAt * 1000);
+	const time = formatClock(reset);
+	if (
+		reset.getFullYear() === now.getFullYear() &&
+		reset.getMonth() === now.getMonth() &&
+		reset.getDate() === now.getDate()
+	) return time;
+	const month = reset.toLocaleString("en-US", { month: "short" });
+	return `${month} ${reset.getDate()}, ${reset.getFullYear()} ${time}`;
+}
+
+function formatLimitMetricWithReset(label: string, window: LimitWindow | undefined, now: Date): string {
+	return `${formatLimitMetric(label, window?.remainingPercent)} ${formatResetLabel(window?.resetAt, now)}`;
+}
+
 function parseWindow(window: RawWindow | null | undefined): LimitWindow | undefined {
 	if (!window) return undefined;
 	const usedPercent = numberFrom(window.used_percent);
@@ -165,6 +192,18 @@ export function formatLimitsRow(snapshot: LimitSnapshot | undefined, mode: "full
 		formatLimitMetric(labels[2]!, spark?.primary?.remainingPercent),
 		formatLimitMetric(labels[3]!, spark?.secondary?.remainingPercent),
 	].join(" | ");
+}
+
+export function formatLimitRows(snapshot: LimitSnapshot | undefined, mode: "full" | "compact" = "full", now: Date = new Date()): string[] {
+	const codex = snapshot?.codex;
+	const spark = snapshot?.spark;
+	const labels = mode === "full"
+		? ["Codex", "Spark"]
+		: ["C", "SP"];
+	return [
+		`${labels[0]}  ${formatLimitMetricWithReset("5H", codex?.primary, now)} | ${formatLimitMetricWithReset("S", codex?.secondary, now)}`,
+		`${labels[1]}  ${formatLimitMetricWithReset("5H", spark?.primary, now)} | ${formatLimitMetricWithReset("S", spark?.secondary, now)}`,
+	];
 }
 
 export function authFileCandidates(env: NodeJS.ProcessEnv = process.env, home = homedir()): string[] {
@@ -258,11 +297,13 @@ export async function fetchUsageSnapshot(auth: CodexAuthFile, fetchImpl: typeof 
 	return parseUsagePayload(await response.json());
 }
 
-export function displayModel(snapshot: LimitSnapshot | undefined, stale = false, error?: string): LimitDisplayModel {
+export function displayModel(snapshot: LimitSnapshot | undefined, stale = false, error?: string, now: Date = new Date()): LimitDisplayModel {
 	return {
 		snapshot,
 		fullText: formatLimitsRow(snapshot, "full"),
 		compactText: formatLimitsRow(snapshot, "compact"),
+		fullRows: formatLimitRows(snapshot, "full", now),
+		compactRows: formatLimitRows(snapshot, "compact", now),
 		stale,
 		error,
 	};

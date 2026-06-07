@@ -344,7 +344,7 @@ export default function (pi: ExtensionAPI) {
 					const lines = [
 						firstLine,
 						renderTitleStatusLine(theme, titleStatus, width, folderLabel, modeLabel, currentModeColors),
-						renderLimitsContextLine(width, currentLimits.fullText, currentLimits.compactText, (kind, text) => renderLimitText(theme, kind, text)),
+						...renderLimitsContextLine(width, currentLimits.fullRows, currentLimits.compactRows, (kind, text) => renderLimitText(theme, kind, text)),
 					];
 					if (showSkillsStatus && loadedSkills.size > 0) {
 						lines.push(...renderSkillsRows(theme, width, loadedSkills));
@@ -374,7 +374,7 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.events.on(LIMITS_EVENT, (data: LimitDisplayModel) => {
-		currentLimits = data?.fullText && data?.compactText ? data : displayModel(undefined);
+		currentLimits = data?.fullRows?.length && data?.compactRows?.length ? data : displayModel(undefined);
 		requestRender();
 	});
 
