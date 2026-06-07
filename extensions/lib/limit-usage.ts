@@ -168,7 +168,12 @@ export function authFileCandidates(env: NodeJS.ProcessEnv = process.env, home = 
 export function readCodexAuth(env: NodeJS.ProcessEnv = process.env, home = homedir()): CodexAuthFile | undefined {
 	for (const path of authFileCandidates(env, home)) {
 		if (!existsSync(path)) continue;
-		const raw = JSON.parse(readFileSync(path, "utf8")) as Record<string, unknown>;
+		let raw: Record<string, unknown>;
+		try {
+			raw = JSON.parse(readFileSync(path, "utf8")) as Record<string, unknown>;
+		} catch {
+			continue;
+		}
 		const tokens = raw.tokens && typeof raw.tokens === "object" ? raw.tokens as Record<string, unknown> : raw;
 		const accessToken = stringFrom(tokens.access_token);
 		if (!accessToken) continue;

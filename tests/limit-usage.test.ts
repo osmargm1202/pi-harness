@@ -107,6 +107,9 @@ try {
 	assert.equal(auth?.tokens.accessToken, "primary-access");
 	assert.equal(auth?.tokens.refreshToken, "primary-refresh");
 	assert.equal(auth?.tokens.accountId, "primary-account");
+
+	writeFileSync(join(codeHome, "auth.json"), "{not-json", "utf8");
+	assert.equal(readCodexAuth({ CODEX_HOME: codeHome }, fakeHome)?.tokens.accessToken, "fallback-access", "invalid primary auth should fall back to next auth file");
 } finally {
 	rmSync(tempDir, { recursive: true, force: true });
 }
