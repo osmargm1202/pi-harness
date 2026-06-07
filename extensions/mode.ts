@@ -75,6 +75,7 @@ const SAFE_BASH_PREFIXES = [
 ];
 const SAFE_GIT_COMMAND_PREFIXES = ["git add", "git commit"];
 const SAFE_GIT_REVIEW_PREFIXES = ["git status", "git diff", "git log", "git show", "git branch", "git rev-parse", "git ls-files"];
+const SAFE_GIT_FINISH_PREFIXES = ["git merge", "git worktree remove", "git worktree prune", "git branch -d", "git branch -D"];
 const DANGEROUS_BASH = /(^|[;&|`$()\n])\s*(rm|mv|cp|mkdir|rmdir|touch|chmod|chown|sudo|git\s+(push|reset|checkout|switch|merge|rebase|clean|worktree|stash)|npm\s+install|pnpm\s+install|bun\s+(add|install)|cargo\s+install)\b/i;
 const OPTIONAL_TOOL_PREFIXES = ["exa", "chrome-devtools", "obsidian"];
 const SHELL_COMPOSITE_OPERATOR = /(?:&&|\|\||;|\n|\|)/;
@@ -121,11 +122,16 @@ function allowsGitCommitWorkflow(mode: OrgmModeName): boolean {
 	return mode === "plan" || mode === "sdd" || mode === "tdd";
 }
 
+function allowsGitFinishWorkflow(mode: OrgmModeName): boolean {
+	return mode === "plan" || mode === "sdd" || mode === "tdd";
+}
+
 function isSafeGitCommand(command: string, mode: OrgmModeName): boolean {
 	const trimmed = command.trim().toLowerCase();
 	if (!trimmed.startsWith("git ")) return false;
 	if (SHELL_COMPOSITE_OPERATOR.test(trimmed)) return false;
 	if (SAFE_GIT_REVIEW_PREFIXES.some((prefix) => trimmed === prefix || trimmed.startsWith(`${prefix} `))) return true;
+	if (allowsGitFinishWorkflow(mode) && SAFE_GIT_FINISH_PREFIXES.some((prefix) => trimmed === prefix.toLowerCase() || trimmed.startsWith(`${prefix.toLowerCase()} `))) return true;
 	if (!allowsGitCommitWorkflow(mode)) return false;
 	return SAFE_GIT_COMMAND_PREFIXES.some((prefix) => trimmed === prefix || trimmed.startsWith(`${prefix} `));
 }

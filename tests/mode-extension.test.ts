@@ -133,6 +133,9 @@ assert.equal((await toolHandlers[0]({ toolName: "write", input: { path: "src/app
 assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git status --short" } }))?.block, undefined, "SDD should allow safe git review");
 assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git add src/app.ts" } }))?.block, undefined, "SDD should allow git add for commit workflow");
 assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git commit -m 'wip'" } }))?.block, undefined, "SDD should allow git commit for commit workflow");
+assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git merge feature-branch" } }))?.block, undefined, "SDD should allow local merge workflow");
+assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git worktree remove /tmp/pi-worktree" } }))?.block, undefined, "SDD should allow worktree cleanup workflow");
+assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git branch -d feature-branch" } }))?.block, undefined, "SDD should allow merged branch cleanup workflow");
 assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git push origin main" } })).block, true, "SDD should keep mutating remote commands blocked");
 
 await shortcuts.get("alt+1").handler(ctx);
@@ -148,6 +151,9 @@ assert(!activeTools.includes("write"), "TDD should not expose inline write");
 assert(!activeTools.includes("edit"), "TDD should not expose inline edit");
 assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git add src/app.ts" } }))?.block, undefined, "TDD should allow git add for commit workflow");
 assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git commit -m 'wip'" } }))?.block, undefined, "TDD should allow git commit for commit workflow");
+assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git merge feature-branch" } }))?.block, undefined, "TDD should allow local merge workflow");
+assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git worktree prune" } }))?.block, undefined, "TDD should allow worktree prune cleanup workflow");
+assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git branch -D stale-branch" } }))?.block, undefined, "TDD should allow branch cleanup workflow");
 assert.equal((await toolHandlers[0]({ toolName: "edit", input: { path: "src/app.ts" } })).block, true, "TDD should block inline edits");
 
 supportedThemeColors.delete("purple");
