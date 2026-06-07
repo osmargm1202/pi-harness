@@ -54,6 +54,7 @@ export const KNOWN_ORGM_EXTENSION_FEATURES: Record<string, string[]> = {
 	title: ["auto"],
 	notify: ["questions", "permissions", "done"],
 	git: [],
+	limit: [],
 	orgm: [],
 };
 
