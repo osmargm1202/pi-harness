@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { renderSkillChipRows } from "../extensions/lib/minimal-skill.ts";
 import { renderLimitsContextLine, visibleWidth } from "../extensions/lib/minimal-title.ts";
+import { displayModel, normalizeLimitDisplayModel, type LimitDisplayModel } from "../extensions/lib/limit-usage.ts";
 import { formatMinimalModeLabel } from "../extensions/minimal.ts";
 
 const style = (_kind: string, text: string) => text;
@@ -59,6 +60,36 @@ const tinyLimitLines = renderLimitsContextLine(32, fullLimitRows, compactLimitRo
 assert(tinyLimitLines.every((line) => visibleWidth(line) <= 32), "tiny limit rows should fit width");
 assert(tinyLimitLines.every((line) => line.endsWith("…")), "tiny limit rows should truncate with ellipsis");
 assert.deepEqual(renderLimitsContextLine(0, fullLimitRows, compactLimitRows, style), [], "zero-width limit rows should be empty");
+
+const validRowModel = displayModel(undefined);
+assert.equal(normalizeLimitDisplayModel(validRowModel), validRowModel, "valid row limit payload should stay unchanged");
+
+const legacyLimitModel: LimitDisplayModel = {
+	fullText: "Codex 5H [########--]82% | Codex S [######----]61% | Spark 5H [####------]40% | Spark S [########--]80%",
+	compactText: "C 5H [########--]82% | C S [######----]61% | SP 5H [####------]40% | SP S [########--]80%",
+	fullRows: [],
+	compactRows: [],
+	stale: true,
+};
+assert.deepEqual(
+	normalizeLimitDisplayModel(legacyLimitModel),
+	{
+		...legacyLimitModel,
+		fullRows: [legacyLimitModel.fullText],
+		compactRows: [legacyLimitModel.compactText],
+	},
+	"legacy text-only limit payload should render one fallback row instead of unavailable rows",
+);
+assert.deepEqual(
+	renderLimitsContextLine(
+		160,
+		normalizeLimitDisplayModel(legacyLimitModel).fullRows,
+		normalizeLimitDisplayModel(legacyLimitModel).compactRows,
+		style,
+	),
+	[legacyLimitModel.fullText],
+	"legacy text-only limit payload should render as one full-width row",
+);
 
 const thresholdLimitRows = ["Codex  5H [----------]0% -- | S [##--------]29% Jun 10, 2026 8:26PM"];
 assert.deepEqual(

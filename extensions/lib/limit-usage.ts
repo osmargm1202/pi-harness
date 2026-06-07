@@ -308,3 +308,15 @@ export function displayModel(snapshot: LimitSnapshot | undefined, stale = false,
 		error,
 	};
 }
+
+export function normalizeLimitDisplayModel(data: LimitDisplayModel | undefined): LimitDisplayModel {
+	if (data?.fullRows?.length && data?.compactRows?.length) return data;
+	if (data?.fullText && data?.compactText) {
+		return {
+			...data,
+			fullRows: [data.fullText],
+			compactRows: [data.compactText],
+		};
+	}
+	return displayModel(undefined);
+}

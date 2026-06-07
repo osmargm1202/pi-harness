@@ -25,7 +25,7 @@ import {
 	resolveInitialCavemanState,
 } from "./lib/caveman-state.ts";
 import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
-import { LIMITS_EVENT, displayModel, type LimitColorKind, type LimitDisplayModel } from "./lib/limit-usage.ts";
+import { LIMITS_EVENT, displayModel, normalizeLimitDisplayModel, type LimitColorKind, type LimitDisplayModel } from "./lib/limit-usage.ts";
 import {
 	MODE_STATE_EVENT,
 	formatModeLabel,
@@ -374,7 +374,7 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.events.on(LIMITS_EVENT, (data: LimitDisplayModel) => {
-		currentLimits = data?.fullRows?.length && data?.compactRows?.length ? data : displayModel(undefined);
+		currentLimits = normalizeLimitDisplayModel(data);
 		requestRender();
 	});
 
