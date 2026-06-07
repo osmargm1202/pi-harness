@@ -128,3 +128,15 @@ export function renderTitleContextLine(
 
 	return style("dim", left) + gapBeforeCenter + style("mode", center) + gapBeforeRight + style(formatted.kind, right);
 }
+
+export function renderLimitsContextLine(
+	width: number,
+	fullText: string,
+	compactText: string,
+	style: (kind: "dim", text: string) => string,
+): string {
+	if (width <= 0) return "";
+	if (visibleWidth(fullText) <= width) return style("dim", fullText);
+	if (visibleWidth(compactText) <= width) return style("dim", compactText);
+	return style("dim", truncateToWidth(compactText, width));
+}

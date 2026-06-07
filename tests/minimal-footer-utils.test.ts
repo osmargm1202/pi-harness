@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { renderSkillChipRows } from "../extensions/lib/minimal-skill.ts";
-import { visibleWidth } from "../extensions/lib/minimal-title.ts";
+import { renderLimitsContextLine, visibleWidth } from "../extensions/lib/minimal-title.ts";
 import { formatMinimalModeLabel } from "../extensions/minimal.ts";
 
 const style = (_kind: string, text: string) => text;
@@ -39,3 +39,13 @@ assert(!minimalSource.includes('let currentPrimary = "pi"'), "minimal footer sho
 assert(!minimalSource.includes("const centerRaw = folderLabel;"), "primary minimal footer line should not duplicate the folder shown in the title context row");
 assert(!minimalSource.includes("const agentStatus = timerLabel ? `${modeLabel} · ${timerLabel}` : modeLabel;"), "primary minimal footer line should not duplicate the mode shown in the title context row");
 assert(!minimalSource.includes('if (titleStatus.state !== "idle" || titleStatus.title)'), "title context row should render from session start before title generation");
+
+const fullLimitText = "Codex 5H [#########-] 90% | Codex S [#########-] 92% | Spark 5H [#####-----] 50% | Spark S [########--] 80%";
+const compactLimitText = "C 5H [#########-] 90% | C S [#########-] 92% | SP 5H [#####-----] 50% | SP S [########--] 80%";
+
+assert.equal(renderLimitsContextLine(160, fullLimitText, compactLimitText, style), fullLimitText, "wide limit row should render full labels");
+assert.equal(renderLimitsContextLine(100, fullLimitText, compactLimitText, style), compactLimitText, "medium limit row should render compact labels");
+const tinyLimitLine = renderLimitsContextLine(32, fullLimitText, compactLimitText, style);
+assert(visibleWidth(tinyLimitLine) <= 32, "tiny limit row should fit width");
+assert(tinyLimitLine.endsWith("…"), "tiny limit row should truncate with ellipsis");
+assert.equal(renderLimitsContextLine(0, fullLimitText, compactLimitText, style), "", "zero-width limit row should be empty");
