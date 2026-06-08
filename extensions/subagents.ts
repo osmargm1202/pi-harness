@@ -307,6 +307,8 @@ const DeployAgentParams = Type.Object({
 			default: 75,
 		}),
 	),
+	// Future RPC launch backend should relay Pi `extension_ui_request` events through
+	// extensions/lib/rpc-extension-ui.ts helpers before widening this enum.
 	launchBackend: Type.Optional(
 		StringEnum(["embedded"] as const, {
 			description: "Launch backend. Only `embedded` is supported.",
