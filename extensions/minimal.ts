@@ -126,6 +126,28 @@ function formatCompactNumber(value: number): string {
 	return `${(value / 1_000_000).toFixed(1)}m`;
 }
 
+export interface MinimalTokenSummaryUsage {
+	input: number;
+	output: number;
+	cacheRead?: number;
+	cacheWrite?: number;
+}
+
+export function formatMinimalTokenSummary(usage: MinimalTokenSummaryUsage): string {
+	const input = usage.input || 0;
+	const output = usage.output || 0;
+	const cacheRead = usage.cacheRead || 0;
+	const cacheWrite = usage.cacheWrite || 0;
+	const parts = [`↑${formatCompactNumber(input)}`, `↓${formatCompactNumber(output)}`];
+	if (cacheRead > 0) parts.push(`R${formatCompactNumber(cacheRead)}`);
+	if (cacheWrite > 0) parts.push(`W${formatCompactNumber(cacheWrite)}`);
+	const latestPromptTokens = input + cacheRead + cacheWrite;
+	if ((cacheRead > 0 || cacheWrite > 0) && latestPromptTokens > 0) {
+		parts.push(`CH${((cacheRead / latestPromptTokens) * 100).toFixed(1)}%`);
+	}
+	return parts.join(" ");
+}
+
 function formatCurrency(value: number): string {
 	if (!Number.isFinite(value) || value <= 0) return "$0.000";
 	if (value < 0.001) return `$${value.toFixed(4)}`;
@@ -250,6 +272,8 @@ export default function (pi: ExtensionAPI) {
 
 					let inputTokens = 0;
 					let outputTokens = 0;
+					let cacheReadTokens = 0;
+					let cacheWriteTokens = 0;
 					let totalCost = 0;
 
 					for (const entry of ctx.sessionManager.getBranch()) {
@@ -257,13 +281,20 @@ export default function (pi: ExtensionAPI) {
 							const message = entry.message as AssistantMessage;
 							inputTokens += message.usage?.input ?? 0;
 							outputTokens += message.usage?.output ?? 0;
+							cacheReadTokens += message.usage?.cacheRead ?? 0;
+							cacheWriteTokens += message.usage?.cacheWrite ?? 0;
 							totalCost += message.usage?.cost?.total ?? 0;
 						}
 					}
 
 					const modelName = ctx.model?.name || ctx.model?.id || "no-model";
 					const thinking = pi.getThinkingLevel();
-					const tokenSummary = `↑${formatCompactNumber(inputTokens)} ↓${formatCompactNumber(outputTokens)}`;
+					const tokenSummary = formatMinimalTokenSummary({
+						input: inputTokens,
+						output: outputTokens,
+						cacheRead: cacheReadTokens,
+						cacheWrite: cacheWriteTokens,
+					});
 					const modeLabel = formatMinimalModeLabel(currentMode);
 					const timerStatusStyled = timerLabel ? theme.fg("borderAccent", ` · ${timerLabel}`) : "";
 					const cavemanStatus = formatCavemanStatus(currentCaveman);

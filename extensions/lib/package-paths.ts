@@ -2,10 +2,18 @@ import { existsSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { getAgentDir } from "@earendil-works/pi-coding-agent";
+import { getAgentDir, getDocsPath, getExamplesPath } from "@earendil-works/pi-coding-agent";
 
 export function getCurrentPackageRoot(): string {
 	return dirname(dirname(dirname(fileURLToPath(import.meta.url))));
+}
+
+export function getPiDocsDir(): string {
+	return getDocsPath();
+}
+
+export function getPiExamplesDir(): string {
+	return getExamplesPath();
 }
 
 export function getCurrentPackageDir(name: string): string | null {

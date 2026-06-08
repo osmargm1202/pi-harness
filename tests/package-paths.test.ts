@@ -6,10 +6,17 @@ import {
 	getCurrentPackageAgentsDir,
 	getCurrentPackageAssetsSubagentsDir,
 	getCurrentPackageRoot,
+	getPiDocsDir,
+	getPiExamplesDir,
 } from "../extensions/lib/package-paths.ts";
 
 const packageRoot = getCurrentPackageRoot();
 assert(existsSync(`${packageRoot}/package.json`), "package root should contain package.json");
+
+const piDocsDir = getPiDocsDir();
+assert(existsSync(`${piDocsDir}/extensions.md`), "Pi docs helper should resolve installed Pi extension docs through public SDK exports");
+const piExamplesDir = getPiExamplesDir();
+assert(existsSync(`${piExamplesDir}/extensions/project-trust.ts`), "Pi examples helper should resolve installed Pi extension examples through public SDK exports");
 
 const agentsDir = getCurrentPackageAgentsDir();
 assert(agentsDir, "current package agents dir should resolve");

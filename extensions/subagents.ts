@@ -16,7 +16,9 @@ import type {
 import {
 	DynamicBorder,
 	getAgentDir,
+	hasProjectTrustInputs,
 	keyHint,
+	ProjectTrustStore,
 } from "@earendil-works/pi-coding-agent";
 import {
 	Box,
@@ -173,6 +175,7 @@ function untrackSubagentChild(deploymentId: string): void {
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 type AgentReuseMode = "prefer" | "require" | "never";
+type SubagentProjectTrustMode = "inherit" | "approve" | "no-approve";
 
 interface ProviderStopDetails {
 	deploymentId?: string;
@@ -308,6 +311,13 @@ const DeployAgentParams = Type.Object({
 		StringEnum(["embedded"] as const, {
 			description: "Launch backend. Only `embedded` is supported.",
 			default: "embedded",
+		}),
+	),
+	projectTrust: Type.Optional(
+		StringEnum(["inherit", "approve", "no-approve"] as const, {
+			description:
+				"Project-local trust for child pi. `inherit` uses saved trust decisions and no-trust-input projects only; `approve` passes --approve; `no-approve` passes --no-approve.",
+			default: "inherit",
 		}),
 	),
 });
@@ -938,11 +948,24 @@ function applyConfiguredAgentModels(agents: AgentConfig[]): AgentConfig[] {
 	}));
 }
 
+function isProjectTrustedForSubagent(cwd: string, mode: SubagentProjectTrustMode): boolean {
+	if (mode === "approve") return true;
+	if (mode === "no-approve") return false;
+	if (!hasProjectTrustInputs(cwd)) return true;
+	return new ProjectTrustStore(getAgentDir()).get(cwd) === true;
+}
+
+function appendProjectTrustArgs(args: string[], mode: SubagentProjectTrustMode): void {
+	if (mode === "approve") args.push("--approve");
+	if (mode === "no-approve") args.push("--no-approve");
+}
+
 function discoverAgents(
 	cwd: string,
 	scope: "user" | "project" | "both" = "both",
+	projectTrusted = true,
 ): AgentConfig[] {
-	return applyConfiguredAgentModels(discoverDeployableAgents(cwd, scope));
+	return applyConfiguredAgentModels(discoverDeployableAgents(cwd, scope, { projectTrusted }));
 }
 
 // ─── Pi invocation & temp file helpers ──────────────────────────────────────
@@ -1544,6 +1567,7 @@ export default function (pi: ExtensionAPI) {
 		reuse: AgentReuseMode;
 		launchBackend: AgentLaunchBackend;
 		maxContextPercent: number;
+		projectTrust: SubagentProjectTrustMode;
 		signal?: AbortSignal;
 		onUpdate?: (payload: { text: string; details: AgentRunDetails }) => void;
 		ctx: ExtensionContext;
@@ -1729,6 +1753,7 @@ export default function (pi: ExtensionAPI) {
 				args.push("--session", deployment.sessionFilePath);
 			else args.push("--no-session");
 			if (modelRef) args.push("--model", modelRef);
+			appendProjectTrustArgs(args, params.projectTrust);
 			if (params.agent.tools.length > 0) args.push("--tools", params.agent.tools.join(","));
 			if (tmpPromptPath) args.push("--append-system-prompt", tmpPromptPath);
 			args.push(`Task: ${params.task}`);
@@ -2492,14 +2517,16 @@ ${finalText}`
 			const runtimeCwd = params.cwd || ctx.cwd;
 			const mode = params.mode ?? "ephemeral";
 			const reuse = params.reuse ?? "prefer";
+			const projectTrust = (params.projectTrust ?? "inherit") as SubagentProjectTrustMode;
+			const projectTrusted = isProjectTrustedForSubagent(runtimeCwd, projectTrust);
 			const launchBackend = resolveLaunchBackend(params.launchBackend);
 			const maxContextPercent = Math.max(
 				1,
 				Math.min(100, params.maxContextPercent ?? 75),
 			);
-			const agent = findDeployableAgent(runtimeCwd, params.agent, scope);
+			const agent = findDeployableAgent(runtimeCwd, params.agent, scope, { projectTrusted });
 			if (!agent) {
-				const available = discoverAgents(runtimeCwd, scope)
+				const available = discoverAgents(runtimeCwd, scope, projectTrusted)
 					.map((item) => item.name)
 					.join(", ");
 				return {
@@ -2549,6 +2576,7 @@ ${finalText}`
 					reuse,
 					launchBackend,
 					maxContextPercent,
+					projectTrust,
 					signal: localAbort.signal,
 					onUpdate: onUpdate
 						? ({ text, details }) =>

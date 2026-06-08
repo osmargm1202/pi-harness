@@ -6,6 +6,10 @@ import { getCurrentPackageAgentDirs } from "./package-paths.ts";
 export type AgentSource = "user" | "project";
 export type AgentScope = "user" | "project" | "both";
 
+export interface AgentDiscoveryOptions {
+	projectTrusted?: boolean;
+}
+
 export const SYSTEM_AGENT = "pi";
 export const DEFAULT_PRIMARY_AGENT = SYSTEM_AGENT;
 
@@ -135,7 +139,7 @@ function getUserSubagentDirs(): string[] {
 export const getPackageAgentsDir = () => getCurrentPackageAgentDirs()[0] ?? null;
 export const getPackageAgentDirs = getCurrentPackageAgentDirs;
 
-export function discoverDeployableAgents(cwd: string, scope: AgentScope = "both"): AgentConfig[] {
+export function discoverDeployableAgents(cwd: string, scope: AgentScope = "both", discoveryOptions: AgentDiscoveryOptions = {}): AgentConfig[] {
 	const options = {
 		excludeFileNames: new Set(["index.md"]),
 	};
@@ -145,14 +149,15 @@ export function discoverDeployableAgents(cwd: string, scope: AgentScope = "both"
 	const userAgents = scope === "project"
 		? []
 		: getUserSubagentDirs().flatMap((dir) => loadAgentsRecursiveFromDir(dir, "user", options));
-	const projectAgents = scope === "user"
+	const projectTrusted = discoveryOptions.projectTrusted !== false;
+	const projectAgents = scope === "user" || !projectTrusted
 		? []
 		: findNearestProjectSubagentsDirs(cwd).flatMap((dir) => loadAgentsRecursiveFromDir(dir, "project", options));
 	return mergeByName([...packageAgents, ...userAgents], projectAgents, scope);
 }
 
-export function findDeployableAgent(cwd: string, name: string, scope: AgentScope = "both"): AgentConfig | undefined {
-	return discoverDeployableAgents(cwd, scope).find((agent) => agent.name === name);
+export function findDeployableAgent(cwd: string, name: string, scope: AgentScope = "both", discoveryOptions: AgentDiscoveryOptions = {}): AgentConfig | undefined {
+	return discoverDeployableAgents(cwd, scope, discoveryOptions).find((agent) => agent.name === name);
 }
 
 export function normalizePrimaryName(name: string): string {

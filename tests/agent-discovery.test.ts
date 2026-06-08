@@ -57,3 +57,15 @@ assert.equal(overridden.model, "openai-codex/gpt-5.5", "agent frontmatter model 
 assert.equal(overridden.systemPrompt, "Project override body");
 
 assert.equal(findDeployableAgent(projectRoot, "tdd-planner", "both")?.source, "project");
+
+const untrustedAgents = discoverDeployableAgents(projectRoot, "both", { projectTrusted: false });
+assert.equal(
+	untrustedAgents.find((agent) => agent.name === "tdd-planner")?.source,
+	"user",
+	"untrusted project discovery should ignore .pi/assets/subagents instead of allowing project override",
+);
+assert.equal(
+	findDeployableAgent(projectRoot, "tdd-planner", "both", { projectTrusted: false })?.source,
+	"user",
+	"findDeployableAgent should honor untrusted project-local subagent gating",
+);

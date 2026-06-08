@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { renderSkillChipRows } from "../extensions/lib/minimal-skill.ts";
 import { renderLimitsContextLine, visibleWidth } from "../extensions/lib/minimal-title.ts";
 import { displayModel, normalizeLimitDisplayModel, type LimitDisplayModel } from "../extensions/lib/limit-usage.ts";
-import { formatMinimalModeLabel } from "../extensions/minimal.ts";
+import { formatMinimalModeLabel, formatMinimalTokenSummary } from "../extensions/minimal.ts";
 
 const style = (_kind: string, text: string) => text;
 const markedStyle = (kind: string, text: string) => `<${kind}>${text}</${kind}>`;
@@ -36,6 +36,16 @@ assert(!minimalSource.includes("theme.fg(\"dim\""), "minimal footer should avoid
 
 assert.equal(formatMinimalModeLabel("plan"), "PLAN", "minimal footer should render active mode label");
 assert.equal(formatMinimalModeLabel("tdd"), "TDD", "minimal footer should render TDD mode label");
+assert.equal(
+	formatMinimalTokenSummary({ input: 1000, output: 250, cacheRead: 3000, cacheWrite: 1000 }),
+	"↑1.0k ↓250 R3.0k W1.0k CH60.0%",
+	"minimal footer should show cache read/write totals and latest prompt cache hit rate",
+);
+assert.equal(
+	formatMinimalTokenSummary({ input: 1000, output: 250, cacheRead: 0, cacheWrite: 0 }),
+	"↑1.0k ↓250",
+	"minimal footer should omit cache hit rate when no cache tokens are present",
+);
 assert(minimalSource.includes("MODE_STATE_EVENT"), "minimal footer should listen for mode changes");
 assert(!minimalSource.includes("let currentPrimary = \"pi\""), "minimal footer should not hard-code pi as the footer mode label");
 assert(!minimalSource.includes("const centerRaw = folderLabel;"), "primary minimal footer line should not duplicate the folder shown in the title context row");
