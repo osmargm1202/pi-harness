@@ -5,15 +5,19 @@ import { join } from "node:path";
 import {
 	authFileCandidates,
 	displayModel,
+	fetchMinimaxUsageSnapshot,
 	formatLimitBar,
 	formatLimitMetric,
 	formatLimitRows,
 	formatLimitsRow,
 	formatResetLabel,
 	limitColorKind,
+	parseMinimaxUsagePayload,
 	parseUsagePayload,
+	providerLimitKind,
 	readCodexAuth,
 	remainingPercent,
+	unsupportedLimitsDisplayModel,
 } from "../extensions/lib/limit-usage.ts";
 
 assert.equal(remainingPercent(0), 100, "0 used means 100 remaining");
@@ -69,11 +73,58 @@ const payload = {
 };
 
 const parsed = parseUsagePayload(payload);
+assert.equal(parsed.provider, "openai-codex");
 assert.equal(parsed.planType, "pro");
 assert.equal(parsed.codex.primary?.remainingPercent, 90);
 assert.equal(parsed.codex.secondary?.remainingPercent, 92);
 assert.equal(parsed.spark.primary?.remainingPercent, 50);
 assert.equal(parsed.spark.secondary?.remainingPercent, 80);
+
+const minimaxParsed = parseMinimaxUsagePayload({
+	model_remains: [
+		{
+			model_name: "general",
+			current_interval_remaining_percent: 88,
+			current_weekly_remaining_percent: 61,
+			remains_time: 1_800_000,
+			weekly_remains_time: 86_400_000,
+		},
+		{
+			model_name: "video",
+			current_interval_remaining_percent: 50,
+			current_weekly_remaining_percent: 75,
+		},
+	],
+}, now.getTime());
+assert.equal(minimaxParsed.provider, "minimax");
+assert.equal(minimaxParsed.codex.limitId, "minimax-general");
+assert.equal(minimaxParsed.codex.limitName, "general");
+assert.equal(minimaxParsed.codex.primary?.remainingPercent, 88);
+assert.equal(minimaxParsed.codex.secondary?.remainingPercent, 61);
+assert.equal(minimaxParsed.codex.primary?.resetAt, Math.floor((now.getTime() + 1_800_000) / 1000));
+assert.equal(minimaxParsed.spark.limitId, "minimax-video");
+assert.equal(minimaxParsed.spark.limitName, "video");
+assert.equal(minimaxParsed.spark.primary?.remainingPercent, 50);
+assert.equal(minimaxParsed.spark.secondary?.remainingPercent, 75);
+const minimaxCountFallback = parseMinimaxUsagePayload({
+	model_remains: [{
+		model_name: "MiniMax-M*",
+		current_interval_total_count: 1500,
+		current_interval_usage_count: 750,
+		current_weekly_total_count: 5000,
+		current_weekly_usage_count: 1250,
+	}],
+}, now.getTime());
+assert.equal(minimaxCountFallback.codex.primary?.remainingPercent, 50, "MiniMax count fallback should derive remaining percent from interval count/total");
+assert.equal(minimaxCountFallback.codex.secondary?.remainingPercent, 25, "MiniMax count fallback should derive remaining percent from weekly count/total");
+assert.deepEqual(formatLimitRows(minimaxParsed, "full", now), [
+	"general  5H [#########-]88% 3:45AM | S [######----]61% Jun 8, 2026 3:15AM",
+	"video  5H [#####-----]50% -- | S [########--]75% --",
+]);
+assert.equal(
+	formatLimitsRow(minimaxParsed, "full"),
+	"general 5H [#########-]88% | general S [######----]61% | video 5H [#####-----]50% | video S [########--]75%",
+);
 
 assert.equal(
 	formatLimitsRow(parsed, "full"),
@@ -168,6 +219,30 @@ assert.deepEqual(formatLimitRows(noSpark, "full", now), [
 	"Codex  reposición semanal --",
 	"Spark  5H [----------]--% -- | S [----------]--% --",
 ]);
+
+assert.equal(providerLimitKind({ provider: "openai-codex", id: "gpt-5.3-codex", name: "GPT-5.3 Codex" }), "openai-codex");
+assert.equal(providerLimitKind({ provider: "minimax", id: "MiniMax-M2.7", name: "MiniMax M2.7" }), "minimax");
+assert.equal(providerLimitKind({ provider: "minimax-cn", id: "MiniMax-M2.7", name: "MiniMax M2.7" }), "minimax");
+assert.equal(providerLimitKind({ provider: "anthropic", id: "claude", name: "Claude" }), "unsupported");
+assert.equal(providerLimitKind(undefined), "unsupported");
+assert.deepEqual(unsupportedLimitsDisplayModel("anthropic").fullRows, ["Limits: no disponible para anthropic"]);
+assert.deepEqual(unsupportedLimitsDisplayModel().compactRows, ["Limits: no disponible"]);
+
+const minimaxRequests: { url: string; init?: RequestInit }[] = [];
+const minimaxSnapshot = await fetchMinimaxUsageSnapshot("minimax-key", async (url, init) => {
+	minimaxRequests.push({ url: String(url), init });
+	return new Response(JSON.stringify({
+		model_remains: [{
+			model_name: "general",
+			current_interval_remaining_percent: 91,
+			current_weekly_remaining_percent: 82,
+		}],
+	}), { status: 200, headers: { "Content-Type": "application/json" } });
+});
+assert.equal(minimaxRequests[0]?.url, "https://api.minimax.io/v1/api/openplatform/coding_plan/remains");
+assert.equal(minimaxRequests[0]?.init?.method, "GET");
+assert.equal((minimaxRequests[0]?.init?.headers as Record<string, string>)?.Authorization, "Bearer minimax-key");
+assert.equal(minimaxSnapshot.codex.primary?.remainingPercent, 91);
 
 const tempDir = mkdtempSync(join(tmpdir(), "limit-auth-"));
 try {

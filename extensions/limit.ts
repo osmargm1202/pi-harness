@@ -2,9 +2,14 @@ import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-a
 import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 import {
 	LIMITS_EVENT,
+	MINIMAX_CN_USAGE_URL,
 	displayModel,
+	fetchMinimaxUsageSnapshot,
 	fetchUsageSnapshot,
+	providerLimitKind,
 	readCodexAuth,
+	readMinimaxApiKey,
+	unsupportedLimitsDisplayModel,
 	type LimitSnapshot,
 } from "./lib/limit-usage.ts";
 
@@ -25,6 +30,35 @@ export default function (pi: ExtensionAPI) {
 
 	const refresh = async (ctx: ExtensionContext) => {
 		currentCtx = ctx;
+		const kind = providerLimitKind(ctx.model);
+		if (kind === "unsupported") {
+			lastSnapshot = undefined;
+			pi.events.emit(LIMITS_EVENT, unsupportedLimitsDisplayModel(typeof ctx.model?.provider === "string" ? ctx.model.provider : undefined));
+			if (ctx.hasUI) ctx.ui.setStatus("orgm-limit", undefined);
+			return;
+		}
+		if (kind === "minimax") {
+			const apiKey = readMinimaxApiKey();
+			if (!apiKey) {
+				lastSnapshot = undefined;
+				pi.events.emit(LIMITS_EVENT, unsupportedLimitsDisplayModel("minimax"));
+				if (!warnedAuth && ctx.hasUI) {
+					warnedAuth = true;
+					ctx.ui.notify("MiniMax auth not found; limits unavailable", "warning");
+				}
+				return;
+			}
+			try {
+				const url = ctx.model?.provider === "minimax-cn" ? MINIMAX_CN_USAGE_URL : undefined;
+				lastSnapshot = await fetchMinimaxUsageSnapshot(apiKey, fetch, url);
+				emit(ctx, false);
+			} catch {
+				if (lastSnapshot) emit(ctx, true, "fetch-failed");
+				else pi.events.emit(LIMITS_EVENT, unsupportedLimitsDisplayModel("minimax"));
+			}
+			return;
+		}
+
 		const auth = readCodexAuth();
 		if (!auth) {
 			emit(ctx, false, "missing-auth");
@@ -73,7 +107,7 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("orgm-limits", {
-		description: "Refresh Codex and Spark usage limit display",
+		description: "Refresh active provider usage limit display",
 		handler: async (_args, ctx) => {
 			if (!ctx.hasUI) return;
 			await refresh(ctx);

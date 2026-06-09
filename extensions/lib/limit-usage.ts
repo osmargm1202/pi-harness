@@ -5,6 +5,8 @@ import { join } from "node:path";
 export const LIMITS_EVENT = "orgm:limits-changed";
 export const CODEX_USAGE_URL = "https://chatgpt.com/backend-api/wham/usage";
 export const CODEX_REFRESH_URL = "https://auth.openai.com/oauth/token";
+export const MINIMAX_USAGE_URL = "https://api.minimax.io/v1/api/openplatform/coding_plan/remains";
+export const MINIMAX_CN_USAGE_URL = "https://api.minimaxi.com/v1/api/openplatform/coding_plan/remains";
 export const CODEX_OAUTH_CLIENT_ID = "app_EMoamEEZ73f0CkXaXp7hrann";
 export const DEFAULT_RESET_TIME_ZONE = "America/Santo_Domingo";
 
@@ -23,6 +25,7 @@ export type LimitBucket = {
 };
 
 export type LimitSnapshot = {
+	provider?: "openai-codex" | "minimax";
 	planType?: string;
 	codex: LimitBucket;
 	spark: LimitBucket;
@@ -64,6 +67,24 @@ type RawUsagePayload = {
 	additional_rate_limits?: RawAdditionalLimit[] | null;
 };
 
+type RawMinimaxRemain = {
+	model_name?: unknown;
+	remains_time?: unknown;
+	weekly_remains_time?: unknown;
+	current_interval_total_count?: unknown;
+	current_interval_usage_count?: unknown;
+	current_interval_remaining_percent?: unknown;
+	current_weekly_total_count?: unknown;
+	current_weekly_usage_count?: unknown;
+	current_weekly_remaining_percent?: unknown;
+};
+
+type RawMinimaxPayload = {
+	model_remains?: RawMinimaxRemain[] | null;
+};
+
+export type LimitProviderKind = "openai-codex" | "minimax" | "unsupported";
+
 export type CodexAuthTokens = {
 	accessToken: string;
 	refreshToken?: string;
@@ -83,6 +104,36 @@ function numberFrom(value: unknown): number | undefined {
 
 function stringFrom(value: unknown): string | undefined {
 	return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
+function slugFrom(value: string): string {
+	return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "unknown";
+}
+
+function percentFromRemaining(value: unknown): number | undefined {
+	const percent = numberFrom(value);
+	if (percent === undefined) return undefined;
+	return Math.max(0, Math.min(100, Math.round(percent)));
+}
+
+function percentFromRemainingCount(remainingCount: unknown, totalCount: unknown): number | undefined {
+	const remaining = numberFrom(remainingCount);
+	const total = numberFrom(totalCount);
+	if (remaining === undefined || total === undefined || total <= 0) return undefined;
+	return percentFromRemaining((remaining / total) * 100);
+}
+
+function resetAtFromRemainingMs(value: unknown, nowMs = Date.now()): number | undefined {
+	const remainingMs = numberFrom(value);
+	if (remainingMs === undefined) return undefined;
+	return Math.floor((nowMs + remainingMs) / 1000);
+}
+
+export function providerLimitKind(model: { provider?: unknown; id?: unknown; name?: unknown } | undefined): LimitProviderKind {
+	const provider = stringFrom(model?.provider)?.toLowerCase();
+	if (provider === "openai-codex") return "openai-codex";
+	if (provider === "minimax" || provider === "minimax-cn") return "minimax";
+	return "unsupported";
 }
 
 export function remainingPercent(usedPercent: number | undefined): number | undefined {
@@ -202,6 +253,7 @@ export function parseUsagePayload(payload: unknown): LimitSnapshot {
 	const raw = (payload && typeof payload === "object" ? payload : {}) as RawUsagePayload;
 	const sparkRaw = findSparkLimit(raw.additional_rate_limits);
 	return {
+		provider: "openai-codex",
 		planType: stringFrom(raw.plan_type),
 		codex: parseBucket("codex", undefined, raw.rate_limit),
 		spark: parseBucket(
@@ -213,12 +265,50 @@ export function parseUsagePayload(payload: unknown): LimitSnapshot {
 	};
 }
 
+function parseMinimaxRemain(item: RawMinimaxRemain | undefined, fallbackName: string, nowMs: number): LimitBucket {
+	const modelName = stringFrom(item?.model_name) ?? fallbackName;
+	return {
+		limitId: `minimax-${slugFrom(modelName)}`,
+		limitName: modelName,
+		primary: {
+			remainingPercent: percentFromRemaining(item?.current_interval_remaining_percent)
+				?? percentFromRemainingCount(item?.current_interval_usage_count, item?.current_interval_total_count),
+			resetAt: resetAtFromRemainingMs(item?.remains_time, nowMs),
+			windowSeconds: 18_000,
+		},
+		secondary: {
+			remainingPercent: percentFromRemaining(item?.current_weekly_remaining_percent)
+				?? percentFromRemainingCount(item?.current_weekly_usage_count, item?.current_weekly_total_count),
+			resetAt: resetAtFromRemainingMs(item?.weekly_remains_time, nowMs),
+			windowSeconds: 604_800,
+		},
+	};
+}
+
+export function parseMinimaxUsagePayload(payload: unknown, nowMs = Date.now()): LimitSnapshot {
+	const raw = (payload && typeof payload === "object" ? payload : {}) as RawMinimaxPayload;
+	const remains = Array.isArray(raw.model_remains) ? raw.model_remains : [];
+	return {
+		provider: "minimax",
+		codex: parseMinimaxRemain(remains[0], "general", nowMs),
+		spark: parseMinimaxRemain(remains[1], "video", nowMs),
+		updatedAt: nowMs,
+	};
+}
+
 export function formatLimitsRow(snapshot: LimitSnapshot | undefined, mode: "full" | "compact" = "full"): string {
 	const codex = snapshot?.codex;
 	const spark = snapshot?.spark;
-	const labels = mode === "full"
-		? ["Codex 5H", "Codex S", "Spark 5H", "Spark S"]
-		: ["C 5H", "C S", "SP 5H", "SP S"];
+	const labels = snapshot?.provider === "minimax"
+		? [
+			`${codex?.limitName ?? "MiniMax"} 5H`,
+			`${codex?.limitName ?? "MiniMax"} S`,
+			`${spark?.limitName ?? "MiniMax 2"} 5H`,
+			`${spark?.limitName ?? "MiniMax 2"} S`,
+		]
+		: mode === "full"
+			? ["Codex 5H", "Codex S", "Spark 5H", "Spark S"]
+			: ["C 5H", "C S", "SP 5H", "SP S"];
 	return [
 		formatLimitMetric(labels[0]!, codex?.primary?.remainingPercent),
 		formatLimitMetric(labels[1]!, codex?.secondary?.remainingPercent),
@@ -230,9 +320,11 @@ export function formatLimitsRow(snapshot: LimitSnapshot | undefined, mode: "full
 export function formatLimitRows(snapshot: LimitSnapshot | undefined, mode: "full" | "compact" = "full", now: Date = new Date()): string[] {
 	const codex = snapshot?.codex;
 	const spark = snapshot?.spark;
-	const labels = mode === "full"
-		? ["Codex", "Spark"]
-		: ["C", "SP"];
+	const labels = snapshot?.provider === "minimax"
+		? [codex?.limitName ?? "MiniMax", spark?.limitName ?? "MiniMax 2"]
+		: mode === "full"
+			? ["Codex", "Spark"]
+			: ["C", "SP"];
 	const replenishmentLabel = (kind: "primary" | "secondary") => {
 		if (kind === "primary") return mode === "full" ? "reposición 5H" : "repo 5H";
 		return mode === "full" ? "reposición semanal" : "repo S";
@@ -278,6 +370,24 @@ export function readCodexAuth(env: NodeJS.ProcessEnv = process.env, home = homed
 				accountId: stringFrom(tokens.account_id),
 			},
 		};
+	}
+	return undefined;
+}
+
+export function readMinimaxApiKey(env: NodeJS.ProcessEnv = process.env, home = homedir()): string | undefined {
+	const envKey = stringFrom(env.MINIMAX_API_KEY);
+	if (envKey) return envKey;
+	for (const path of [join(home, ".mmx", "credentials.json"), join(home, ".mmx", "config.json")]) {
+		if (!existsSync(path)) continue;
+		try {
+			const raw = JSON.parse(readFileSync(path, "utf8")) as Record<string, unknown>;
+			const accessToken = stringFrom(raw.access_token);
+			if (accessToken) return accessToken;
+			const apiKey = stringFrom(raw.api_key);
+			if (apiKey) return apiKey;
+		} catch {
+			continue;
+		}
 	}
 	return undefined;
 }
@@ -337,6 +447,33 @@ export async function fetchUsageSnapshot(auth: CodexAuthFile, fetchImpl: typeof 
 	}
 	if (!response.ok) throw new Error(`Usage fetch failed: ${response.status}`);
 	return parseUsagePayload(await response.json());
+}
+
+export async function fetchMinimaxUsageSnapshot(apiKey: string, fetchImpl: typeof fetch = fetch, url = MINIMAX_USAGE_URL): Promise<LimitSnapshot> {
+	const response = await fetchImpl(url, {
+		method: "GET",
+		headers: {
+			Authorization: `Bearer ${apiKey}`,
+			Accept: "application/json",
+			"Content-Type": "application/json",
+			"User-Agent": "mmx-cli",
+		},
+	});
+	if (!response.ok) throw new Error(`MiniMax usage fetch failed: ${response.status}`);
+	return parseMinimaxUsagePayload(await response.json());
+}
+
+export function unsupportedLimitsDisplayModel(provider?: string): LimitDisplayModel {
+	const suffix = provider ? ` para ${provider}` : "";
+	const row = `Limits: no disponible${suffix}`;
+	return {
+		fullText: row,
+		compactText: "Limits: no disponible",
+		fullRows: [row],
+		compactRows: ["Limits: no disponible"],
+		stale: false,
+		error: "unsupported-provider",
+	};
 }
 
 export function displayModel(snapshot: LimitSnapshot | undefined, stale = false, error?: string, now: Date = new Date()): LimitDisplayModel {
