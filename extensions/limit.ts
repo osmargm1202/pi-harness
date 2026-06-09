@@ -6,6 +6,7 @@ import {
 	displayModel,
 	fetchMinimaxUsageSnapshot,
 	fetchUsageSnapshot,
+	noLimitsDisplayModel,
 	providerLimitKind,
 	readCodexAuth,
 	readMinimaxApiKey,
@@ -51,6 +52,10 @@ export default function (pi: ExtensionAPI) {
 			try {
 				const url = ctx.model?.provider === "minimax-cn" ? MINIMAX_CN_USAGE_URL : undefined;
 				lastSnapshot = await fetchMinimaxUsageSnapshot(apiKey, fetch, url);
+				if (lastSnapshot.planType === "unlimited") {
+					pi.events.emit(LIMITS_EVENT, noLimitsDisplayModel("minimax"));
+					return;
+				}
 				emit(ctx, false);
 			} catch {
 				if (lastSnapshot) emit(ctx, true, "fetch-failed");

@@ -12,6 +12,7 @@ import {
 	formatLimitsRow,
 	formatResetLabel,
 	limitColorKind,
+	noLimitsDisplayModel,
 	parseMinimaxUsagePayload,
 	parseUsagePayload,
 	providerLimitKind,
@@ -227,6 +228,27 @@ assert.equal(providerLimitKind({ provider: "anthropic", id: "claude", name: "Cla
 assert.equal(providerLimitKind(undefined), "unsupported");
 assert.deepEqual(unsupportedLimitsDisplayModel("anthropic").fullRows, ["Limits: no disponible para anthropic"]);
 assert.deepEqual(unsupportedLimitsDisplayModel().compactRows, ["Limits: no disponible"]);
+
+// ── noLimitsDisplayModel (API-key / pay-per-token accounts) ──────────────────
+assert.deepEqual(noLimitsDisplayModel().fullRows, ["Limits: sin limite (uso por API)"]);
+assert.deepEqual(noLimitsDisplayModel().compactRows, ["Limits: sin limite"]);
+assert.deepEqual(noLimitsDisplayModel("minimax").fullRows, ["Limits: sin limite para minimax (uso por API)"]);
+assert.deepEqual(noLimitsDisplayModel("minimax").compactRows, ["Limits: sin limite"]);
+
+// ── parseMinimaxUsagePayload — empty model_remains → planType: "unlimited" ──
+const noLimitsParsed = parseMinimaxUsagePayload({ model_remains: [] }, now.getTime());
+assert.equal(noLimitsParsed.provider, "minimax");
+assert.equal(noLimitsParsed.planType, "unlimited", "empty model_remains should set planType to unlimited");
+assert.equal(noLimitsParsed.codex.limitName, "general", "empty model_remains uses fallback name in bucket but planType marks as unlimited");
+
+const noLimitsNull = parseMinimaxUsagePayload({ model_remains: null }, now.getTime());
+assert.equal(noLimitsNull.planType, "unlimited", "null model_remains should set planType to unlimited");
+
+const noLimitsMissing = parseMinimaxUsagePayload({}, now.getTime());
+assert.equal(noLimitsMissing.planType, "unlimited", "missing model_remains should set planType to unlimited");
+
+const withLimitsParsed = parseMinimaxUsagePayload({ model_remains: [{ model_name: "general", current_interval_remaining_percent: 80 }] }, now.getTime());
+assert.equal(withLimitsParsed.planType, undefined, "non-empty model_remains should not set planType");
 
 const minimaxRequests: { url: string; init?: RequestInit }[] = [];
 const minimaxSnapshot = await fetchMinimaxUsageSnapshot("minimax-key", async (url, init) => {

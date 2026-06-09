@@ -288,8 +288,10 @@ function parseMinimaxRemain(item: RawMinimaxRemain | undefined, fallbackName: st
 export function parseMinimaxUsagePayload(payload: unknown, nowMs = Date.now()): LimitSnapshot {
 	const raw = (payload && typeof payload === "object" ? payload : {}) as RawMinimaxPayload;
 	const remains = Array.isArray(raw.model_remains) ? raw.model_remains : [];
+	const planType = remains.length === 0 ? "unlimited" : undefined;
 	return {
 		provider: "minimax",
+		planType,
 		codex: parseMinimaxRemain(remains[0], "general", nowMs),
 		spark: parseMinimaxRemain(remains[1], "video", nowMs),
 		updatedAt: nowMs,
@@ -473,6 +475,19 @@ export function unsupportedLimitsDisplayModel(provider?: string): LimitDisplayMo
 		compactRows: ["Limits: no disponible"],
 		stale: false,
 		error: "unsupported-provider",
+	};
+}
+
+export function noLimitsDisplayModel(provider?: string): LimitDisplayModel {
+	const suffix = provider ? ` para ${provider}` : "";
+	const row = `Limits: sin limite${suffix} (uso por API)`;
+	return {
+		fullText: row,
+		compactText: "Limits: sin limite",
+		fullRows: [row],
+		compactRows: ["Limits: sin limite"],
+		stale: false,
+		error: "no-limits-account",
 	};
 }
 
