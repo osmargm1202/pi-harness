@@ -143,9 +143,7 @@ export function discoverDeployableAgents(cwd: string, scope: AgentScope = "both"
 	const options = {
 		excludeFileNames: new Set(["index.md"]),
 	};
-	const packageAgents = scope === "project"
-		? []
-		: getPackageAgentDirs().flatMap((dir) => loadAgentsRecursiveFromDir(dir, "user", options));
+	const packageAgents = getPackageAgentDirs().flatMap((dir) => loadAgentsRecursiveFromDir(dir, "user", options));
 	const userAgents = scope === "project"
 		? []
 		: getUserSubagentDirs().flatMap((dir) => loadAgentsRecursiveFromDir(dir, "user", options));
@@ -153,7 +151,16 @@ export function discoverDeployableAgents(cwd: string, scope: AgentScope = "both"
 	const projectAgents = scope === "user" || !projectTrusted
 		? []
 		: findNearestProjectSubagentsDirs(cwd).flatMap((dir) => loadAgentsRecursiveFromDir(dir, "project", options));
-	return mergeByName([...packageAgents, ...userAgents], projectAgents, scope);
+
+	const merged = new Map<string, AgentConfig>();
+	for (const agent of packageAgents) merged.set(agent.name, agent);
+	if (scope !== "project") {
+		for (const agent of userAgents) merged.set(agent.name, agent);
+	}
+	if (scope !== "user") {
+		for (const agent of projectAgents) merged.set(agent.name, agent);
+	}
+	return Array.from(merged.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function findDeployableAgent(cwd: string, name: string, scope: AgentScope = "both", discoveryOptions: AgentDiscoveryOptions = {}): AgentConfig | undefined {

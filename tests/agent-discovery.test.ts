@@ -11,6 +11,12 @@ assert.equal(tddPlanner.source, "user");
 assert(tddPlanner.filePath.endsWith("/assets/subagents/tdd/tdd-planner.md"));
 assert(!packageAgents.some((agent) => agent.name === "skill-expert"), "old pi-orchestrator agents should not be deployable");
 
+const projectScopedPackageAgents = discoverDeployableAgents(tmpdir(), "project");
+const projectScopedTddPlanner = projectScopedPackageAgents.find((agent) => agent.name === "tdd-planner");
+assert(projectScopedTddPlanner, "package-bundled assets/subagents should remain discoverable for project scope");
+assert(projectScopedTddPlanner.filePath.endsWith("/assets/subagents/tdd/tdd-planner.md"));
+assert.equal(findDeployableAgent(tmpdir(), "tdd-planner", "project")?.filePath, projectScopedTddPlanner.filePath);
+
 const planner = packageAgents.find((agent) => agent.name === "planner");
 assert(planner, "plan/planner subagent should be discoverable");
 assert(planner.filePath.endsWith("/assets/subagents/plan/planner.md"));
