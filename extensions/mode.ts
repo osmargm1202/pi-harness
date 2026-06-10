@@ -113,8 +113,8 @@ function normalizedRel(path: string): string {
 }
 
 export function isWriteAllowedInMode(mode: OrgmModeName, path: string): boolean {
-	if (mode === "pi" || mode === "build") return true;
-	if (mode === "ask" || mode === "sdd" || mode === "tdd") return false;
+	if (mode === "pi" || mode === "build" || mode === "sdd" || mode === "tdd") return true;
+	if (mode === "ask") return false;
 	const rel = normalizedRel(path);
 	return rel.startsWith("docs/") || rel.startsWith("plans/") || /^agents\/(plan|build|ask|sdd|tdd)\.md$/.test(rel);
 }
@@ -170,7 +170,7 @@ function isOptionalTool(name: string): boolean {
 function activeToolsForMode(pi: ExtensionAPI, mode: OrgmModeName): string[] {
 	const available = toolNames(pi);
 	if (mode === "pi") return [];
-	if (mode === "build") return available;
+	if (mode === "build" || mode === "sdd" || mode === "tdd") return available;
 	const allow = new Set(MODE_DETAILS[mode].tools);
 	for (const name of available) {
 		if (isOptionalTool(name)) allow.add(name);
@@ -278,7 +278,7 @@ export default function modeExtension(pi: ExtensionAPI, options: { configPath?: 
 	});
 
 	pi.on("tool_call", async (event) => {
-		if (currentMode === "pi" || currentMode === "build") return;
+		if (currentMode === "pi" || currentMode === "build" || currentMode === "sdd" || currentMode === "tdd") return;
 		if (event.toolName === "write" || event.toolName === "edit" || event.toolName === "upload_file") {
 			const path = extractPath(event.input);
 			if (!path || !isWriteAllowedInMode(currentMode, path)) {

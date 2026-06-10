@@ -46,11 +46,11 @@ assert.doesNotMatch(sddPrompt, /quick|narrow|reduced-context|contexto reducido/i
 assert.doesNotMatch(sddPrompt, /long|complex|high-context|largo|complej|mucho contexto/i, "sdd mode should not contrast fast_sdd with normal workers by scope");
 assert.doesNotMatch(sddPrompt, /many fast agents|few fast agents/i, "sdd mode should not manage loops of fast agents");
 assert.doesNotMatch(sddPrompt, /fast_sdd.*only.*(substantial|all)|all.*fast_sdd/i, "sdd mode should not force fast_sdd for all delegation");
-assert.match(sddPrompt, /assets\/subagents\/sdd\//i, "sdd mode should allow only SDD workers");
-assert.doesNotMatch(sddPrompt, /assets\/subagents\/tdd\//i, "sdd mode should not allow TDD workers");
-assert.match(sddPrompt, /inline.*lecturas|inline.*quick reads|lecturas.*rápidas/i, "sdd mode should limit inline work to quick reads");
-assert.match(sddPrompt, /prohibid|forbidden|do not attempt/i, "sdd mode should explicitly say forbidden inline actions must not be attempted");
-assert.match(sddPrompt, /rm|mkdir|pnpm|docker|ssh|git push|git reset/i, "sdd mode should name common blocked command classes");
+assert.match(sddPrompt, /assets\/subagents\/sdd\//i, "sdd mode should still mention preferred SDD workers");
+assert.match(sddPrompt, /any project subagent|any subagent|cualquier subagente/i, "sdd mode should allow broader subagent freedom");
+assert.match(sddPrompt, /direct inline execution|ejecuci[oó]n directa|inline execution/i, "sdd mode should allow direct inline execution when useful");
+assert.match(sddPrompt, /prefer|delegat|subagent/i, "sdd mode should still prefer delegation for substantial work");
+assert.match(sddPrompt, /git push|git reset|migration|install|os\/network|sistema|red/i, "sdd mode should still call out high-risk operations");
 
 const tddPrompt = readFileSync("agents/tdd.md", "utf8");
 assert.match(tddPrompt, /fast_tdd/i, "tdd mode prompt should mention fast_tdd subagent");
@@ -62,13 +62,13 @@ assert.doesNotMatch(tddPrompt, /quick|narrow|reduced-context|contexto reducido/i
 assert.doesNotMatch(tddPrompt, /long|complex|high-context|largo|complej|mucho contexto/i, "tdd mode should not contrast fast_tdd with normal workers by scope");
 assert.doesNotMatch(tddPrompt, /many fast agents|few fast agents/i, "tdd mode should not manage loops of fast agents");
 assert.doesNotMatch(tddPrompt, /fast_tdd.*only.*(substantial|all)|all.*fast_tdd/i, "tdd mode should not force fast_tdd for all delegation");
-assert.match(tddPrompt, /assets\/subagents\/tdd\//i, "tdd mode should allow only TDD workers");
-assert.doesNotMatch(tddPrompt, /assets\/subagents\/sdd\//i, "tdd mode should not allow SDD workers");
-assert.match(tddPrompt, /inline.*lecturas|inline.*quick reads|lecturas.*rápidas/i, "tdd mode should limit inline work to quick reads");
-assert.match(tddPrompt, /prohibid|forbidden|do not attempt/i, "tdd mode should explicitly say forbidden inline actions must not be attempted");
-assert.match(tddPrompt, /rm|mkdir|pnpm|docker|ssh|git push|git reset/i, "tdd mode should name common blocked command classes");
-assert.match(tddPrompt, /always.*deploy_agent|siempre.*deploy_agent|must.*deploy_agent/i, "tdd mode should require deploy_agent for substantial work");
-assert.match(sddPrompt, /always.*deploy_agent|siempre.*deploy_agent|must.*deploy_agent/i, "sdd mode should require deploy_agent for substantial work");
+assert.match(tddPrompt, /assets\/subagents\/tdd\//i, "tdd mode should still mention preferred TDD workers");
+assert.match(tddPrompt, /any project subagent|any subagent|cualquier subagente/i, "tdd mode should allow broader subagent freedom");
+assert.match(tddPrompt, /direct inline execution|ejecuci[oó]n directa|inline execution/i, "tdd mode should allow direct inline execution when useful");
+assert.match(tddPrompt, /prefer|delegat|subagent/i, "tdd mode should still prefer delegation for substantial work");
+assert.match(tddPrompt, /git push|git reset|migration|install|os\/network|sistema|red/i, "tdd mode should still call out high-risk operations");
+assert.match(tddPrompt, /always.*deploy_agent|siempre.*deploy_agent|must.*deploy_agent|prefer.*deploy_agent|prefer.*subagent/i, "tdd mode should strongly steer substantial work through deploy_agent");
+assert.match(sddPrompt, /always.*deploy_agent|siempre.*deploy_agent|must.*deploy_agent|prefer.*deploy_agent|prefer.*subagent/i, "sdd mode should strongly steer substantial work through deploy_agent");
 
 assert.match(planPrompt, /plan first|plan primero|first produce/i, "plan mode should require a concrete plan before switching modes");
 assert.match(planPrompt, /before.*switch|antes.*cambiar|antes.*pedir/i, "plan mode should not ask for a mode switch before producing a plan");

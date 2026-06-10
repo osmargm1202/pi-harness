@@ -8,8 +8,8 @@ assert.equal(
 );
 assert.equal(
 	isAgentAllowedForOrgmMode("sdd", { name: "tdd-planner", filePath: "/repo/assets/subagents/tdd/tdd-planner.md" }),
-	false,
-	"SDD mode should block TDD subagents",
+	true,
+	"SDD mode should allow broader subagent freedom",
 );
 assert.equal(
 	isAgentAllowedForOrgmMode("tdd", { name: "tdd-planner", filePath: "/repo/assets/subagents/tdd/tdd-planner.md" }),
@@ -18,8 +18,8 @@ assert.equal(
 );
 assert.equal(
 	isAgentAllowedForOrgmMode("tdd", { name: "sdd-design", filePath: "/repo/assets/subagents/sdd/sdd-design.md" }),
-	false,
-	"TDD mode should block SDD subagents",
+	true,
+	"TDD mode should allow broader subagent freedom",
 );
 assert.equal(
 	isAgentAllowedForOrgmMode("build", { name: "builder", filePath: "/repo/assets/subagents/build/builder.md" }),

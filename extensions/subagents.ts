@@ -107,6 +107,7 @@ function currentOrgmModeFromEntries(entries: readonly any[] | undefined): Scoped
 
 export function isAgentAllowedForOrgmMode(mode: ScopedOrgmModeName | undefined, agent: Pick<AgentConfig, "filePath">): boolean {
 	if (!mode) return true;
+	if (mode === "sdd" || mode === "tdd") return true;
 	return normalizeAgentPath(agent.filePath).includes(MODE_AGENT_DIRS[mode]);
 }
 
