@@ -18,11 +18,11 @@ import {
 	type TitleStatus,
 } from "./lib/minimal-title.ts";
 import {
-	CAVEMAN_STATE_EVENT,
-	type CavemanLevel,
-	formatCavemanStatus,
-	loadCavemanConfig,
-	resolveInitialCavemanState,
+	PI_CAVEMAN_STATE_EVENT,
+	PI_CAVEMAN_STATE_KEY,
+	formatObservedCavemanStatus,
+	normalizeObservedCavemanState,
+	type ObservedCavemanState,
 } from "./lib/caveman-state.ts";
 import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 import { LIMITS_EVENT, displayModel, normalizeLimitDisplayModel, type LimitColorKind, type LimitDisplayModel } from "./lib/limit-usage.ts";
@@ -119,6 +119,16 @@ function restoreTitleStatus(entries: Array<{ type?: string; customType?: string;
 	return title ? { state: "ready", title } : { state: "idle" };
 }
 
+function restoreObservedCavemanState(entries: Array<{ type?: string; customType?: string; data?: unknown }>): ObservedCavemanState | null {
+	for (let i = entries.length - 1; i >= 0; i -= 1) {
+		const entry = entries[i];
+		if (entry?.type !== "custom" || entry.customType !== PI_CAVEMAN_STATE_KEY) continue;
+		const normalized = normalizeObservedCavemanState(entry.data);
+		if (normalized) return normalized;
+	}
+	return null;
+}
+
 function formatCompactNumber(value: number): string {
 	if (!Number.isFinite(value)) return "0";
 	if (value < 1000) return `${Math.round(value)}`;
@@ -194,8 +204,7 @@ export default function (pi: ExtensionAPI) {
 
 	let currentMode: OrgmModeName = "plan";
 	let currentModeColors = getModeColorCandidates(currentMode);
-	let currentCaveman: CavemanLevel = "off";
-	let showCavemanStatus = loadCavemanConfig().showStatus;
+	let observedCaveman: ObservedCavemanState | null = null;
 	let showSkillsStatus = loadMinimalSkillsConfig().enabled;
 	let titleStatus: TitleStatus = { state: "idle" };
 	let currentLimits: LimitDisplayModel = displayModel(undefined);
@@ -249,8 +258,7 @@ export default function (pi: ExtensionAPI) {
 	const installFooter = (ctx: ExtensionContext) => {
 		currentMode = restoreModeState(ctx.sessionManager.getEntries(), "plan");
 		currentModeColors = getModeColorCandidates(currentMode);
-		currentCaveman = resolveInitialCavemanState(ctx.sessionManager.getEntries()).level;
-		showCavemanStatus = loadCavemanConfig().showStatus;
+		observedCaveman = restoreObservedCavemanState(ctx.sessionManager.getEntries());
 		showSkillsStatus = loadMinimalSkillsConfig().enabled;
 		titleStatus = restoreTitleStatus(ctx.sessionManager.getEntries());
 
@@ -297,10 +305,10 @@ export default function (pi: ExtensionAPI) {
 					});
 					const modeLabel = formatMinimalModeLabel(currentMode);
 					const timerStatusStyled = timerLabel ? theme.fg("borderAccent", ` · ${timerLabel}`) : "";
-					const cavemanStatus = formatCavemanStatus(currentCaveman);
-					const cavemanStyled = currentCaveman === "off"
-						? theme.fg("text", cavemanStatus)
-						: theme.fg("accent", cavemanStatus);
+					const cavemanStatus = observedCaveman ? formatObservedCavemanStatus(observedCaveman) : "";
+					const cavemanStyled = observedCaveman
+						? theme.fg(observedCaveman.enabled ? "accent" : "text", cavemanStatus)
+						: "";
 
 					const footerSeparator = theme.fg("borderAccent", " · ");
 					const leftParts = [
@@ -311,7 +319,7 @@ export default function (pi: ExtensionAPI) {
 					const left = leftParts.join(footerSeparator);
 					const centerRaw = "";
 					const rightParts = [
-						showCavemanStatus ? cavemanStyled : "",
+						cavemanStyled,
 						theme.fg("borderAccent", tokenSummary),
 						theme.fg("warning", formatCurrency(totalCost)),
 					].filter(Boolean);
@@ -334,10 +342,10 @@ export default function (pi: ExtensionAPI) {
 						firstLine = left + padBefore + center + padAfter + right;
 					} else {
 						const timerStatus = timerLabel ? ` · ${timerLabel}` : "";
-						const compact = showCavemanStatus
+						const compact = observedCaveman
 							? `${contextText} ${modelName} · ${thinking}${timerStatus} · ${cavemanStatus} · ${tokenSummary} ${formatCurrency(totalCost)}`
 							: `${contextText} ${modelName} · ${thinking}${timerStatus} · ${tokenSummary} ${formatCurrency(totalCost)}`;
-						const styledCompact = showCavemanStatus
+						const styledCompact = observedCaveman
 							? theme.fg("accent", `${contextText} `) +
 								theme.fg("text", modelName) +
 								theme.fg("borderAccent", ` · ${thinking}`) +
@@ -357,7 +365,7 @@ export default function (pi: ExtensionAPI) {
 							firstLine = styledCompact;
 						} else {
 							const compactBar = theme.fg("accent", `${contextText} `);
-							const compactTail = showCavemanStatus
+							const compactTail = observedCaveman
 								? theme.fg("text", modelName) +
 									theme.fg("borderAccent", ` · ${thinking}`) +
 									timerStatusStyled +
@@ -393,9 +401,10 @@ export default function (pi: ExtensionAPI) {
 		requestRender();
 	});
 
-	pi.events.on(CAVEMAN_STATE_EVENT, (data: { level?: CavemanLevel }) => {
-		if (data?.level) currentCaveman = data.level;
-		showCavemanStatus = loadCavemanConfig().showStatus;
+	pi.events.on(PI_CAVEMAN_STATE_EVENT, (data: unknown) => {
+		const normalized = normalizeObservedCavemanState(data);
+		if (!normalized) return;
+		observedCaveman = normalized;
 		requestRender();
 	});
 

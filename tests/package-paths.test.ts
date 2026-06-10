@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
 	findInstalledSkillPath,
@@ -32,13 +32,15 @@ assert(subagentsDir.endsWith("/assets/subagents"), "subagents dir should be asse
 assert(existsSync(`${subagentsDir}/tdd/tdd-planner.md`), "assets subagents should contain TDD workers under tdd/");
 assert(existsSync(`${subagentsDir}/sdd/sdd-apply.md`), "assets subagents should contain SDD workers under sdd/");
 
-const packageSkill = join(packageRoot, "skills", "caveman", "SKILL.md");
-assert(existsSync(packageSkill), "current package should bundle caveman skill");
+const removedCavemanSkill = join(packageRoot, "skills", "caveman", "SKILL.md");
+assert(!existsSync(removedCavemanSkill), "current package should not bundle caveman skill runtime");
+assert(!existsSync(join(packageRoot, "extensions", "caveman.ts")), "current package should not bundle caveman runtime extension");
 
 const manifest = JSON.parse(await import("node:fs/promises").then((fs) => fs.readFile(join(packageRoot, "package.json"), "utf8")));
-assert(manifest.files.includes("skills"), "package files should include bundled skills");
-assert(manifest.pi.skills.includes("./skills"), "pi manifest should expose bundled skills");
+assert(manifest.files.includes("skills"), "package files should still include non-caveman bundled skills");
+assert(manifest.pi.skills.includes("./skills"), "pi manifest should still expose non-caveman bundled skills");
+assert(!JSON.stringify(manifest.pi).includes("extensions/caveman.ts"), "pi manifest should not expose harness caveman extension");
 
-const cavemanSkill = findInstalledSkillPath("caveman");
-assert.equal(cavemanSkill, packageSkill, "current package skill should be preferred over external installs");
-assert(existsSync(cavemanSkill), "resolved caveman skill should exist");
+const packagePathsSource = readFileSync(join(packageRoot, "extensions", "lib", "package-paths.ts"), "utf8");
+assert(!packagePathsSource.includes("caveman"), "package path helpers should not contain caveman-specific runtime preference");
+assert.equal(findInstalledSkillPath("__pi_harness_missing_skill__"), null, "generic missing skill lookup should stay safe");

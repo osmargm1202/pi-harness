@@ -1,0 +1,18 @@
+project:
+  name: pi-harness
+  package: "@osmargm1202/pi-harness"
+  type: pi package
+
+sdd:
+  strict_tdd: true
+  review_workload:
+    line_budget: 400
+    default_delivery: single-pr
+  phase_rules:
+    apply_requires_tasks_review_gate: true
+    verify_requires_evidence: true
+
+testing:
+  runner: bun test
+  focused_command: "bun test <test-file>"
+  test_directory: tests

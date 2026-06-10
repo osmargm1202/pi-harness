@@ -1,11 +1,5 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { DynamicBorder } from "@earendil-works/pi-coding-agent";
-import {
-	CAVEMAN_STATE_EVENT,
-	formatCavemanStatus,
-	resolveInitialCavemanState,
-	type CavemanLevel,
-} from "./lib/caveman-state.ts";
 import { Container, SelectList, Text, type SelectItem, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import {
 	type AgentStatusConfig,
@@ -212,7 +206,6 @@ function buildWidgetLines(
 	deployments: DeploymentState[],
 	runtimes: RuntimeSnapshot[],
 	config: AgentStatusConfig,
-	cavemanLevel: CavemanLevel,
 	currentSessionFile?: string | null,
 ): string[] {
 	const view = getWidgetViewModel(deployments, runtimes, currentSessionFile);
@@ -250,7 +243,6 @@ function buildWidgetLines(
 		const titleWidth = Math.max(0, innerWidth - visibleWidth(titleText));
 		const usageTokens = isIdle || isPaused || isWaiting ? `ctx ${formatTokens(deployment.contextTokens)}` : `↑${formatTokens(deployment.usage.input)} ↓${formatTokens(deployment.usage.output)}`;
 		const usageCost = isIdle || isPaused || isWaiting ? `reuse ${deployment.reusedRuntime ? "yes" : "new"}` : `$${deployment.usage.cost.toFixed(3)}`;
-		const cavemanLabel = shortenMiddle(formatCavemanStatus(cavemanLevel), Math.max(10, innerWidth - 5));
 		const borderColor = deployment.status === "error" || isPaused ? "error" : isActive ? "borderAccent" : isWaiting || isIdle ? "warning" : "borderMuted";
 		const lines = [
 			theme.fg(borderColor, `╭${titleText}${"─".repeat(titleWidth)}╮`),
@@ -261,10 +253,6 @@ function buildWidgetLines(
 			lines.push(theme.fg(borderColor, "│") + theme.fg("accent", padCell(` ${activityLabel}`, innerWidth)) + theme.fg(borderColor, "│"));
 			lines.push(theme.fg(borderColor, "│") + theme.fg("muted", padCell(` ${runtimeLabel}`, innerWidth)) + theme.fg(borderColor, "│"));
 			lines.push(theme.fg(borderColor, "│") + theme.fg("dim", padCell(` ${backendLabel}`, innerWidth)) + theme.fg(borderColor, "│"));
-		}
-		if (config.showCaveman) {
-			const cavemanColor = cavemanLevel === "off" ? "muted" : "accent";
-			lines.push(theme.fg(borderColor, "│") + theme.fg(cavemanColor, padCell(` ${cavemanLabel}`, innerWidth)) + theme.fg(borderColor, "│"));
 		}
 		lines.push(theme.fg(borderColor, "│") + theme.fg("accent", padCell(` ${formatBar(percent)}`, innerWidth)) + theme.fg(borderColor, "│"));
 		if (config.showTokens) lines.push(theme.fg(borderColor, "│") + theme.fg("muted", padCell(` ${usageTokens}`, innerWidth)) + theme.fg(borderColor, "│"));
@@ -303,7 +291,6 @@ function buildConfigOptions(config: AgentStatusConfig): Array<{ key: keyof Agent
 		{ key: "showPersistence", title: `${mark(config.showPersistence)} Show memory persistence` },
 		{ key: "showSummary", title: `${mark(config.showSummary)} Show summary` },
 		{ key: "showActivity", title: `${mark(config.showActivity)} Show current activity` },
-		{ key: "showCaveman", title: `${mark(config.showCaveman)} Show caveman state` },
 		{ key: "close", title: "Done" },
 	];
 }
@@ -519,7 +506,6 @@ async function openTranscriptViewer(
 export default function (pi: ExtensionAPI) {
 	if (!isOrgmExtensionEnabled("agent-status")) return;
 
-	let currentCaveman: CavemanLevel = "off";
 	let currentCtx: ExtensionContext | null = null;
 	let deployments: DeploymentState[] = [];
 	let runtimes: RuntimeSnapshot[] = [];
@@ -534,7 +520,6 @@ export default function (pi: ExtensionAPI) {
 		if (!ctx.hasUI) return;
 		const nextSignature = JSON.stringify({
 			config,
-			caveman: currentCaveman,
 			sessionFile: ctx.sessionManager.getSessionFile() ?? null,
 			deployments,
 			runtimes,
@@ -559,7 +544,7 @@ export default function (pi: ExtensionAPI) {
 					widgetHandle = { requestRender: () => tui.requestRender() };
 					return {
 						render(width: number): string[] {
-							return buildWidgetLines(theme, width, deployments, runtimes, config, currentCaveman, currentCtx?.sessionManager.getSessionFile());
+							return buildWidgetLines(theme, width, deployments, runtimes, config, currentCtx?.sessionManager.getSessionFile());
 						},
 						invalidate() {},
 					};
@@ -605,18 +590,12 @@ export default function (pi: ExtensionAPI) {
 		widgetHandle = null;
 		widgetMounted = false;
 		lastWidgetStateSignature = "";
-		currentCaveman = resolveInitialCavemanState(ctx.sessionManager.getEntries()).level;
 		if (ctx.hasUI) syncWidget(ctx);
 	});
 
 	pi.on("model_select", async (_event, ctx) => {
 		currentCtx = ctx;
 		if (!ctx.hasUI) return;
-		rerenderWidget();
-	});
-
-	pi.events.on(CAVEMAN_STATE_EVENT, (data: { level?: CavemanLevel }) => {
-		currentCaveman = data?.level ?? "off";
 		rerenderWidget();
 	});
 

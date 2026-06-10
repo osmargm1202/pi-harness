@@ -8,7 +8,6 @@ export interface AgentStatusConfig {
 	showPersistence: boolean;
 	showSummary: boolean;
 	showActivity: boolean;
-	showCaveman: boolean;
 }
 
 export const AGENT_STATUS_CONFIG_DEFAULTS: AgentStatusConfig = {
@@ -19,7 +18,6 @@ export const AGENT_STATUS_CONFIG_DEFAULTS: AgentStatusConfig = {
 	showPersistence: true,
 	showSummary: true,
 	showActivity: true,
-	showCaveman: true,
 };
 
 export function getAgentStatusConfigPath(): string {

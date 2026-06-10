@@ -1,14 +1,7 @@
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-import { getAgentDir, parseFrontmatter } from "@earendil-works/pi-coding-agent";
-import { loadOrgmConfigSlice, orgmConfigPath, saveOrgmConfigSlice } from "./orgm-config.ts";
-import { findInstalledSkillPath } from "./package-paths.ts";
+export const PI_CAVEMAN_STATE_KEY = "pi-caveman:state";
+export const PI_CAVEMAN_STATE_EVENT = "pi-caveman:state";
 
-export const CAVEMAN_STATE_ENTRY = "caveman-level";
-export const CAVEMAN_STATE_EVENT = "caveman:state-changed";
-
-export const CAVEMAN_LEVELS = [
-	"off",
+export const OBSERVED_CAVEMAN_LEVELS = [
 	"lite",
 	"full",
 	"ultra",
@@ -17,151 +10,55 @@ export const CAVEMAN_LEVELS = [
 	"wenyan-ultra",
 ] as const;
 
-export type CavemanLevel = (typeof CAVEMAN_LEVELS)[number];
+export type ObservedCavemanLevel = (typeof OBSERVED_CAVEMAN_LEVELS)[number];
 
-export interface CavemanConfig {
-	defaultLevel: CavemanLevel;
-	showStatus: boolean;
-	skillPath: string;
-}
-
-export interface CavemanState {
-	level: CavemanLevel;
+export interface ObservedCavemanState {
+	schemaVersion: 1;
+	packageName: "pi-caveman";
 	enabled: boolean;
-	skillPath: string;
-	source: "session" | "config" | "default";
+	level: ObservedCavemanLevel | null;
+	defaultLevel: ObservedCavemanLevel;
+	autoEnable: boolean;
+	source: "startup" | "command" | "input" | "config";
+	updatedAt: number;
 }
 
-export function getDefaultCavemanSkillPath(): string {
-	return findInstalledSkillPath("caveman") ?? join(getAgentDir(), "skills", "caveman", "SKILL.md");
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-export function getDefaultCavemanConfigPath(): string {
-	return orgmConfigPath();
+function isObservedCavemanLevel(value: unknown): value is ObservedCavemanLevel {
+	return typeof value === "string" && (OBSERVED_CAVEMAN_LEVELS as readonly string[]).includes(value);
 }
 
-export function isCavemanLevel(value: unknown): value is CavemanLevel {
-	return typeof value === "string" && (CAVEMAN_LEVELS as readonly string[]).includes(value.trim().toLowerCase());
+function isObservedSource(value: unknown): value is ObservedCavemanState["source"] {
+	return value === "startup" || value === "command" || value === "input" || value === "config";
 }
 
-export function normalizeCavemanLevel(value: unknown): CavemanLevel | undefined {
-	if (typeof value !== "string") return undefined;
-	const normalized = value.trim().toLowerCase();
-	if (normalized === "wenyan") return "wenyan-full";
-	return isCavemanLevel(normalized) ? normalized : undefined;
-}
+export function normalizeObservedCavemanState(value: unknown): ObservedCavemanState | null {
+	if (!isRecord(value)) return null;
+	if (value.schemaVersion !== 1) return null;
+	if (value.packageName !== "pi-caveman") return null;
+	if (typeof value.enabled !== "boolean") return null;
+	if (!isObservedCavemanLevel(value.defaultLevel)) return null;
+	if (typeof value.autoEnable !== "boolean") return null;
+	if (!isObservedSource(value.source)) return null;
+	if (typeof value.updatedAt !== "number" || !Number.isFinite(value.updatedAt)) return null;
 
-export function formatCavemanStatus(level: CavemanLevel): string {
-	return level === "off" ? "caveman:off" : `caveman:${level}`;
-}
-
-export function loadCavemanConfig(configPath?: string): CavemanConfig {
-	const defaults: CavemanConfig = {
-		defaultLevel: "off",
-		showStatus: true,
-		skillPath: getDefaultCavemanSkillPath(),
-	};
-	const config = loadOrgmConfigSlice("caveman", configPath);
-	return {
-		defaultLevel: normalizeCavemanLevel(config.defaultLevel) ?? defaults.defaultLevel,
-		showStatus: config.showStatus,
-		skillPath: typeof config.skillPath === "string" && config.skillPath.trim()
-			? config.skillPath.trim()
-			: defaults.skillPath,
-	};
-}
-
-export function saveCavemanConfig(config: Partial<CavemanConfig>, configPath?: string): void {
-	const current = loadCavemanConfig(configPath);
-	saveOrgmConfigSlice("caveman", { ...current, ...config }, configPath);
-}
-
-export function resolveInitialCavemanState(entries: readonly any[]): CavemanState {
-	const config = loadCavemanConfig();
-
-	for (let i = entries.length - 1; i >= 0; i -= 1) {
-		const entry = entries[i];
-		if (entry.type !== "custom" || entry.customType !== CAVEMAN_STATE_ENTRY) continue;
-		const level = normalizeCavemanLevel(entry.data?.level);
-		if (!level) continue;
-		return {
-			level,
-			enabled: level !== "off",
-			skillPath: config.skillPath,
-			source: "session",
-		};
-	}
-
-	if (config.defaultLevel !== "off") {
-		return {
-			level: config.defaultLevel,
-			enabled: true,
-			skillPath: config.skillPath,
-			source: "config",
-		};
-	}
+	if (value.level !== null && !isObservedCavemanLevel(value.level)) return null;
 
 	return {
-		level: "off",
-		enabled: false,
-		skillPath: config.skillPath,
-		source: "default",
+		schemaVersion: 1,
+		packageName: "pi-caveman",
+		enabled: value.enabled,
+		level: value.level,
+		defaultLevel: value.defaultLevel,
+		autoEnable: value.autoEnable,
+		source: value.source,
+		updatedAt: value.updatedAt,
 	};
 }
 
-function extractLevelSection(body: string, heading: string): string | undefined {
-	const escapedHeading = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-	const regex = new RegExp(`^## ${escapedHeading}\\s*\\n([\\s\\S]*?)(?=^## )`, "m");
-	const match = body.match(regex);
-	return match?.[1]?.trim();
-}
-
-export function readCavemanSkillBody(skillPath: string, level: CavemanLevel): { body?: string; error?: string } {
-	try {
-		if (!existsSync(skillPath)) {
-			return { error: `Missing caveman skill file: ${skillPath}` };
-		}
-		const raw = readFileSync(skillPath, "utf8");
-		const { body } = parseFrontmatter<Record<string, string>>(raw);
-		const trimmed = body.trim();
-		if (!trimmed) {
-			return { error: `Empty caveman skill body: ${skillPath}` };
-		}
-		if (level === "off") return { body: "" };
-		const shared = extractLevelSection(trimmed, "Shared Rules");
-		const persistence = extractLevelSection(trimmed, "Persistence");
-		const autoClarity = extractLevelSection(trimmed, "Auto-Clarity");
-		const boundaries = extractLevelSection(trimmed, "Boundaries");
-		const levelSection = extractLevelSection(trimmed, `Level: ${level}`);
-		if (!shared || !persistence || !autoClarity || !boundaries || !levelSection) {
-			return { error: `Missing required caveman sections in ${skillPath} for level ${level}` };
-		}
-		return {
-			body: [
-				"Respond terse like smart caveman. All technical substance stay. Only fluff die.",
-				"",
-				"## Shared Rules",
-				shared,
-				"",
-				"## Persistence",
-				persistence,
-				"",
-				"## Active Level",
-				`Selected level: ${level}`,
-				levelSection,
-				"",
-				"## Auto-Clarity",
-				autoClarity,
-				"",
-				"## Boundaries",
-				boundaries,
-			].join("\n"),
-		};
-	} catch (error) {
-		return {
-			error: error instanceof Error
-				? `Failed reading caveman skill file ${skillPath}: ${error.message}`
-				: `Failed reading caveman skill file ${skillPath}`,
-		};
-	}
+export function formatObservedCavemanStatus(state: ObservedCavemanState): string {
+	return state.enabled && state.level ? `caveman:${state.level}` : "caveman:off";
 }

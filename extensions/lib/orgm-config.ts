@@ -20,12 +20,6 @@ export interface OrgmTitleConfig {
 	autoGenerate: boolean;
 }
 
-export interface OrgmCavemanConfig {
-	defaultLevel: string;
-	showStatus: boolean;
-	skillPath?: string;
-}
-
 export interface OrgmMinimalSkillsConfig {
 	enabled: boolean;
 }
@@ -38,7 +32,6 @@ export interface OrgmAgentStatusConfig {
 	showPersistence: boolean;
 	showSummary: boolean;
 	showActivity: boolean;
-	showCaveman: boolean;
 }
 
 export type OrgmExtensionFeatureConfig = { enabled: boolean };
@@ -53,7 +46,6 @@ export interface OrgmHostConfig {
 	mode: OrgmModeConfig;
 	git: OrgmGitConfig;
 	title: OrgmTitleConfig;
-	caveman: OrgmCavemanConfig;
 	minimalSkills: OrgmMinimalSkillsConfig;
 	agentStatus: OrgmAgentStatusConfig;
 	extensions: OrgmExtensionsConfig;
@@ -76,10 +68,6 @@ export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
 	title: {
 		autoGenerate: true,
 	},
-	caveman: {
-		defaultLevel: "off",
-		showStatus: true,
-	},
 	minimalSkills: {
 		enabled: true,
 	},
@@ -91,7 +79,6 @@ export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
 		showPersistence: true,
 		showSummary: true,
 		showActivity: true,
-		showCaveman: true,
 	},
 	extensions: {
 		mode: { enabled: true, features: {} },
@@ -155,17 +142,6 @@ function mergeTitleConfig(value: unknown): OrgmTitleConfig {
 	};
 }
 
-export function mergeCavemanConfig(value: unknown): OrgmCavemanConfig {
-	const raw = isRecord(value) ? value : {};
-	return {
-		defaultLevel: typeof raw.defaultLevel === "string" && raw.defaultLevel.trim()
-			? raw.defaultLevel.trim()
-			: DEFAULT_ORGM_CONFIG.caveman.defaultLevel,
-		showStatus: typeof raw.showStatus === "boolean" ? raw.showStatus : DEFAULT_ORGM_CONFIG.caveman.showStatus,
-		...(typeof raw.skillPath === "string" && raw.skillPath.trim() ? { skillPath: raw.skillPath.trim() } : {}),
-	};
-}
-
 export function mergeMinimalSkillsConfig(value: unknown): OrgmMinimalSkillsConfig {
 	const raw = isRecord(value) ? value : {};
 	return {
@@ -183,7 +159,6 @@ export function mergeAgentStatusConfig(value: unknown): OrgmAgentStatusConfig {
 		showPersistence: typeof raw.showPersistence === "boolean" ? raw.showPersistence : DEFAULT_ORGM_CONFIG.agentStatus.showPersistence,
 		showSummary: typeof raw.showSummary === "boolean" ? raw.showSummary : DEFAULT_ORGM_CONFIG.agentStatus.showSummary,
 		showActivity: typeof raw.showActivity === "boolean" ? raw.showActivity : DEFAULT_ORGM_CONFIG.agentStatus.showActivity,
-		showCaveman: typeof raw.showCaveman === "boolean" ? raw.showCaveman : DEFAULT_ORGM_CONFIG.agentStatus.showCaveman,
 	};
 }
 
@@ -238,14 +213,13 @@ const KNOWN_ORGM_CONFIG_KEYS = [
 	"mode",
 	"git",
 	"title",
-	"caveman",
 	"minimalSkills",
 	"agentStatus",
 	"extensions",
 	"agentModels",
 ] as const;
 
-const REMOVED_ORGM_CONFIG_KEYS = new Set(["defaultPrimaryAgent", "flows", "primaryAuto", "repoTree"]);
+const REMOVED_ORGM_CONFIG_KEYS = new Set(["caveman", "defaultPrimaryAgent", "flows", "primaryAuto", "repoTree"]);
 
 function preserveUnknownTopLevelValues(raw: Record<string, unknown>): Record<string, unknown> {
 	const next: Record<string, unknown> = { ...raw };
@@ -261,7 +235,6 @@ function mergeOrgmConfig(raw: Record<string, unknown>): OrgmHostConfig {
 		mode: mergeModeConfig(raw.mode),
 		git: mergeGitConfig(raw.git),
 		title: mergeTitleConfig(raw.title),
-		caveman: mergeCavemanConfig(raw.caveman),
 		minimalSkills: mergeMinimalSkillsConfig(raw.minimalSkills),
 		agentStatus: mergeAgentStatusConfig(raw.agentStatus),
 		extensions: mergeExtensionsConfig(raw.extensions),
@@ -300,7 +273,7 @@ export function orgmConfigPath(home = process.env.HOME ?? homedir()): string {
 }
 
 export type OrgmConfigSliceKey = keyof OrgmHostConfig;
-export type WritableOrgmConfigSliceKey = keyof Pick<OrgmHostConfig, "mode" | "caveman" | "minimalSkills" | "agentStatus" | "extensions" | "agentModels" | "title">;
+export type WritableOrgmConfigSliceKey = keyof Pick<OrgmHostConfig, "mode" | "minimalSkills" | "agentStatus" | "extensions" | "agentModels" | "title">;
 
 export function loadOrgmConfig(configPath = orgmConfigPath()): OrgmHostConfig {
 	if (!existsSync(configPath)) return structuredClone(DEFAULT_ORGM_CONFIG);

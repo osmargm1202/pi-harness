@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { AGENT_STATUS_CONFIG_DEFAULTS } from "../extensions/lib/agent-status-config.ts";
 import { shouldShowAgentStatusWidget } from "../extensions/agent-status.ts";
 
@@ -39,3 +40,19 @@ assert.equal(
 	false,
 	"empty state should not render the widget",
 );
+
+const agentStatusSource = readFileSync(new URL("../extensions/agent-status.ts", import.meta.url), "utf8");
+const agentStatusConfigSource = readFileSync(new URL("../extensions/lib/agent-status-config.ts", import.meta.url), "utf8");
+assert(!("showCaveman" in AGENT_STATUS_CONFIG_DEFAULTS), "agent-status defaults should not expose showCaveman");
+for (const forbidden of [
+	"caveman-state",
+	"CAVEMAN_STATE_EVENT",
+	"formatCavemanStatus",
+	"resolveInitialCavemanState",
+	"CavemanLevel",
+	"showCaveman",
+	"caveman:",
+]) {
+	assert(!agentStatusSource.includes(forbidden), `agent-status should not contain caveman term ${forbidden}`);
+	assert(!agentStatusConfigSource.includes(forbidden), `agent-status config should not contain caveman term ${forbidden}`);
+}

@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { renderSkillChipRows } from "../extensions/lib/minimal-skill.ts";
 import { renderLimitsContextLine, visibleWidth } from "../extensions/lib/minimal-title.ts";
 import { displayModel, normalizeLimitDisplayModel, type LimitDisplayModel } from "../extensions/lib/limit-usage.ts";
+import { formatObservedCavemanStatus, normalizeObservedCavemanState } from "../extensions/lib/caveman-state.ts";
 import { formatMinimalModeLabel, formatMinimalTokenSummary } from "../extensions/minimal.ts";
 
 const style = (_kind: string, text: string) => text;
@@ -54,6 +55,36 @@ assert(!minimalSource.includes("if (titleStatus.state !== \"idle\" || titleStatu
 assert(minimalSource.includes("LIMITS_EVENT"), "minimal footer should listen for limits event");
 assert(minimalSource.includes("renderLimitsContextLine"), "minimal footer should render new limits context line");
 assert(minimalSource.includes("currentLimits"), "minimal footer should keep latest limit display model");
+assert(minimalSource.includes("PI_CAVEMAN_STATE_EVENT"), "minimal footer should observe pi-caveman shared event");
+assert(minimalSource.includes("PI_CAVEMAN_STATE_KEY"), "minimal footer should inspect pi-caveman shared session entry");
+assert(minimalSource.includes("normalizeObservedCavemanState"), "minimal footer should validate observed caveman payloads");
+for (const forbidden of [
+	"loadCavemanConfig",
+	"resolveInitialCavemanState",
+	"saveCavemanConfig",
+	"caveman-level",
+	"caveman:state-changed",
+	"ctx.sessionManager.appendEntry(PI_CAVEMAN_STATE_KEY",
+	"pi.events.emit(PI_CAVEMAN_STATE_EVENT",
+]) {
+	assert(!minimalSource.includes(forbidden), `minimal footer should not own caveman runtime term ${forbidden}`);
+}
+assert(!minimalSource.includes("showCavemanStatus"), "minimal footer should not load harness caveman visibility config");
+assert(!minimalSource.includes("caveman:off") || minimalSource.includes("observedCaveman"), "minimal footer should show caveman:off only after valid observed state");
+const observedEnabled = normalizeObservedCavemanState({
+	schemaVersion: 1,
+	packageName: "pi-caveman",
+	enabled: true,
+	level: "full",
+	defaultLevel: "full",
+	autoEnable: true,
+	source: "startup",
+	updatedAt: Date.now(),
+});
+assert(observedEnabled, "valid observed caveman payload should normalize");
+assert.equal(formatObservedCavemanStatus(observedEnabled), "caveman:full", "valid enabled state should render caveman level");
+assert.equal(normalizeObservedCavemanState(undefined), null, "missing observed state should stay silent/no UI");
+assert.equal(normalizeObservedCavemanState({ enabled: true, level: "full" }), null, "invalid observed state should stay silent/no UI");
 
 const fullLimitRows = [
 	"Codex  5H [########--]82% 8:26PM | S [######----]61% Jun 10, 2026 8:26PM",

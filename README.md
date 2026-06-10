@@ -4,7 +4,7 @@ Public Pi harness package containing ORGM Pi extensions, mode prompts, deployabl
 
 ## Contents
 
-- `extensions/` — Pi extensions, including mode switching, subagent deployment, agent status, awareness, orgm, caveman, and footer/widget helpers.
+- `extensions/` — Pi extensions, including mode switching, subagent deployment, agent status, awareness, orgm, and footer/widget helpers. Minimal footer can passively observe `pi-caveman:state` when separate `pi-caveman` package is installed.
 - `agents/` — primary mode prompts only: `plan.md`, `build.md`, `ask.md`, `sdd.md`, and `tdd.md`.
 - `assets/subagents/plan/` — deployable Plan Mode worker prompts used by `deploy_agent`.
 - `assets/subagents/ask/` — deployable Ask Mode worker prompts used by `deploy_agent`.
