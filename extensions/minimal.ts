@@ -202,7 +202,7 @@ function buildMinimalSkillsUsage(): string {
 export default function (pi: ExtensionAPI) {
 	if (!isOrgmExtensionEnabled("minimal")) return;
 
-	let currentMode: OrgmModeName = "plan";
+	let currentMode: OrgmModeName = "pi";
 	let currentModeColors = getModeColorCandidates(currentMode);
 	let observedCaveman: ObservedCavemanState | null = null;
 	let showSkillsStatus = loadMinimalSkillsConfig().enabled;
@@ -256,7 +256,7 @@ export default function (pi: ExtensionAPI) {
 	};
 
 	const installFooter = (ctx: ExtensionContext) => {
-		currentMode = restoreModeState(ctx.sessionManager.getEntries(), "plan");
+		currentMode = restoreModeState(ctx.sessionManager.getEntries(), "pi");
 		currentModeColors = getModeColorCandidates(currentMode);
 		observedCaveman = restoreObservedCavemanState(ctx.sessionManager.getEntries());
 		showSkillsStatus = loadMinimalSkillsConfig().enabled;

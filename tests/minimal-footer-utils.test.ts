@@ -35,6 +35,7 @@ const minimalSource = readFileSync(new URL("../extensions/minimal.ts", import.me
 assert(!minimalSource.includes("theme.fg(\"muted\""), "minimal footer should avoid muted theme token because light themes can render it too pale");
 assert(!minimalSource.includes("theme.fg(\"dim\""), "minimal footer should avoid dim theme token because light themes can render it too pale");
 
+assert.equal(formatMinimalModeLabel("pi"), "PI", "minimal footer should render default Pi mode label");
 assert.equal(formatMinimalModeLabel("plan"), "PLAN", "minimal footer should render active mode label");
 assert.equal(formatMinimalModeLabel("tdd"), "TDD", "minimal footer should render TDD mode label");
 assert.equal(

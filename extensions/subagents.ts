@@ -76,9 +76,9 @@ export {
 	getDeployAgentInlineStatusText,
 } from "./lib/subagent-runtime-model.ts";
 
-type OrgmModeName = "plan" | "build" | "ask" | "sdd" | "tdd";
+type ScopedOrgmModeName = "plan" | "build" | "ask" | "sdd" | "tdd";
 const MODE_STATE_ENTRY = "orgm-mode";
-const MODE_AGENT_DIRS: Record<OrgmModeName, string> = {
+const MODE_AGENT_DIRS: Record<ScopedOrgmModeName, string> = {
 	plan: "/assets/subagents/plan/",
 	build: "/assets/subagents/build/",
 	ask: "/assets/subagents/ask/",
@@ -90,11 +90,11 @@ function normalizeAgentPath(path: string): string {
 	return path.replace(/\\/g, "/");
 }
 
-function isOrgmModeName(value: unknown): value is OrgmModeName {
+function isOrgmModeName(value: unknown): value is ScopedOrgmModeName {
 	return typeof value === "string" && value in MODE_AGENT_DIRS;
 }
 
-function currentOrgmModeFromEntries(entries: readonly any[] | undefined): OrgmModeName | undefined {
+function currentOrgmModeFromEntries(entries: readonly any[] | undefined): ScopedOrgmModeName | undefined {
 	if (!entries) return undefined;
 	for (let index = entries.length - 1; index >= 0; index -= 1) {
 		const entry = entries[index];
@@ -105,12 +105,12 @@ function currentOrgmModeFromEntries(entries: readonly any[] | undefined): OrgmMo
 	return undefined;
 }
 
-export function isAgentAllowedForOrgmMode(mode: OrgmModeName | undefined, agent: Pick<AgentConfig, "filePath">): boolean {
+export function isAgentAllowedForOrgmMode(mode: ScopedOrgmModeName | undefined, agent: Pick<AgentConfig, "filePath">): boolean {
 	if (!mode) return true;
 	return normalizeAgentPath(agent.filePath).includes(MODE_AGENT_DIRS[mode]);
 }
 
-function buildModeAgentScopeError(mode: OrgmModeName, agent: AgentConfig): string {
+function buildModeAgentScopeError(mode: ScopedOrgmModeName, agent: AgentConfig): string {
 	return `${mode.toUpperCase()} mode can only deploy agents from ${MODE_AGENT_DIRS[mode].slice(1)}. Requested ${agent.name} from ${normalizeAgentPath(agent.filePath)}.`;
 }
 

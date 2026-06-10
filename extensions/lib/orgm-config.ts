@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
 
-export type OrgmModeName = "plan" | "build" | "ask" | "sdd" | "tdd" | string;
+export type OrgmModeName = "pi" | "plan" | "build" | "ask" | "sdd" | "tdd" | string;
 
 export interface OrgmModeConfig {
 	defaultMode: OrgmModeName;
@@ -52,11 +52,11 @@ export interface OrgmHostConfig {
 	agentModels: OrgmAgentModelsConfig;
 }
 
-export const DEFAULT_MODE_ORDER = ["plan", "build", "ask", "sdd", "tdd"] as const;
+export const DEFAULT_MODE_ORDER = ["pi", "plan", "build", "ask", "sdd", "tdd"] as const;
 
 export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
 	mode: {
-		defaultMode: "plan",
+		defaultMode: "pi",
 		allowedModes: [...DEFAULT_MODE_ORDER],
 	},
 	git: {

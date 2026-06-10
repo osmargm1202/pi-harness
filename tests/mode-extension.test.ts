@@ -11,15 +11,17 @@ delete process.env.PI_SUBAGENT_RUNTIME_ID;
 delete process.env.PI_SUBAGENT_DEPLOYMENT_ID;
 delete process.env.PI_PDD_SUBAGENT;
 
+assert.equal(getNextMode("pi"), "plan");
 assert.equal(getNextMode("plan"), "build");
 assert.equal(getNextMode("build"), "ask");
 assert.equal(getNextMode("ask"), "sdd");
 assert.equal(getNextMode("sdd"), "tdd");
-assert.equal(getNextMode("tdd"), "plan");
-assert.equal(restoreModeState([], "plan"), "plan");
-assert.equal(restoreModeState([{ type: "custom", customType: MODE_STATE_ENTRY, data: { mode: "build" } }], "plan"), "build");
-assert.equal(restoreModeState([{ type: "custom", customType: MODE_STATE_ENTRY, data: { mode: "bad" } }], "plan"), "plan");
+assert.equal(getNextMode("tdd"), "pi");
+assert.equal(restoreModeState([], "pi"), "pi");
+assert.equal(restoreModeState([{ type: "custom", customType: MODE_STATE_ENTRY, data: { mode: "build" } }], "pi"), "build");
+assert.equal(restoreModeState([{ type: "custom", customType: MODE_STATE_ENTRY, data: { mode: "bad" } }], "pi"), "pi");
 
+assert.equal(isWriteAllowedInMode("pi", "src/app.ts"), true);
 assert.equal(isWriteAllowedInMode("build", "src/app.ts"), true);
 assert.equal(isWriteAllowedInMode("plan", "docs/superpowers/plans/x.md"), true);
 assert.equal(isWriteAllowedInMode("plan", "agents/plan.md"), true);
@@ -29,7 +31,7 @@ assert.equal(isWriteAllowedInMode("ask", "docs/notes.md"), false);
 const tempHome = mkdtempSync(join(tmpdir(), "mode-extension-home-"));
 const configPath = join(tempHome, ".pi", "agent", "orgm.json");
 mkdirSync(join(tempHome, ".pi", "agent"), { recursive: true });
-writeFileSync(configPath, JSON.stringify({ mode: { defaultMode: "plan", allowedModes: ["plan", "build", "ask", "sdd", "tdd"] } }), { encoding: "utf8", flag: "w" });
+writeFileSync(configPath, JSON.stringify({ mode: { defaultMode: "pi", allowedModes: ["pi", "plan", "build", "ask", "sdd", "tdd"] } }), { encoding: "utf8", flag: "w" });
 
 const commands = new Map<string, any>();
 const shortcuts = new Map<string, any>();
@@ -87,6 +89,16 @@ const ctx = {
 };
 
 for (const handler of handlers.get("session_start") ?? []) await handler({ reason: "new" }, ctx);
+assert.equal(status, "PI");
+assert.deepEqual(activeTools, [], "PI should leave Pi's active tools untouched");
+const beforeHandlers = handlers.get("before_agent_start") ?? [];
+const piPromptResult = await beforeHandlers[0]({ systemPrompt: "base" }, ctx);
+assert.equal(piPromptResult.systemPrompt, "base", "PI should not inject a mode prompt");
+const toolHandlers = handlers.get("tool_call") ?? [];
+assert.equal(await toolHandlers[0]({ toolName: "bash", input: { command: "rm -rf tmp" } }), undefined, "PI should not block tools");
+assert.equal(await toolHandlers[0]({ toolName: "write", input: { path: "src/app.ts" } }, ctx), undefined, "PI should not block writes");
+
+await shortcuts.get("alt+1").handler(ctx);
 assert.equal(status, "PLAN");
 assert(activeTools.includes("read"));
 assert(activeTools.includes("deploy_agent"), "PLAN should keep deploy_agent active for orchestration");
@@ -95,7 +107,6 @@ assert(activeTools.includes("engram_mem_search"), "PLAN should keep Engram memor
 assert(activeTools.includes("exa_search"), "PLAN should expose available exa tools");
 assert(activeTools.includes("chrome-devtools_capture"), "PLAN should expose available chrome-devtools tools");
 assert(activeTools.includes("obsidian_note"), "PLAN should expose available obsidian tools");
-const toolHandlers = handlers.get("tool_call") ?? [];
 assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git status --short" } }))?.block, undefined, "PLAN should allow safe git review");
 assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git add src/app.ts" } }))?.block, undefined, "PLAN should allow git add for commit workflow");
 assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git commit -m 'wip'" } }))?.block, undefined, "PLAN should allow git commit for commit workflow");
@@ -113,7 +124,6 @@ await shortcuts.get("alt+1").handler(ctx);
 assert.equal(status, "ASK");
 assert.equal(statusColor, "cyan");
 
-const beforeHandlers = handlers.get("before_agent_start") ?? [];
 const result = await beforeHandlers[0]({ systemPrompt: "base" }, ctx);
 assert.match(result.systemPrompt, /## ORGM Mode: ask/);
 assert.match(result.systemPrompt, /Ask Mode/);
@@ -157,6 +167,7 @@ assert.equal((await toolHandlers[0]({ toolName: "bash", input: { command: "git b
 assert.equal((await toolHandlers[0]({ toolName: "edit", input: { path: "src/app.ts" } })).block, true, "TDD should block inline edits");
 
 supportedThemeColors.delete("purple");
+await shortcuts.get("alt+1").handler(ctx);
 await shortcuts.get("alt+1").handler(ctx);
 await shortcuts.get("alt+1").handler(ctx);
 await shortcuts.get("alt+1").handler(ctx);

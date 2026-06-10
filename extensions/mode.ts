@@ -6,7 +6,7 @@ import { DEFAULT_MODE_ORDER, loadOrgmConfig, type OrgmModeName as ConfigModeName
 import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 import { SUBAGENT_ENV_FLAG } from "./lib/subagent-runtime-model.ts";
 
-export type OrgmModeName = "plan" | "build" | "ask" | "sdd" | "tdd";
+export type OrgmModeName = "pi" | "plan" | "build" | "ask" | "sdd" | "tdd";
 
 export const MODE_STATE_ENTRY = "orgm-mode";
 export const MODE_STATE_EVENT = "orgm:mode-changed";
@@ -14,6 +14,7 @@ export const MODE_STATE_EVENT = "orgm:mode-changed";
 const PACKAGE_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const MODE_PROMPTS_DIR = join(PACKAGE_ROOT, "agents");
 const MODE_DETAILS: Record<OrgmModeName, { label: string; colors: string[]; tools: string[] }> = {
+	pi: { label: "PI", colors: ["success"], tools: [] },
 	plan: { label: "PLAN", colors: ["warning"], tools: [
 		"read",
 		"bash",
@@ -82,7 +83,7 @@ const SHELL_COMPOSITE_OPERATOR = /(?:&&|\|\||;|\n|\|)/;
 
 
 function isModeName(value: string): value is OrgmModeName {
-	return ["plan", "build", "ask", "sdd", "tdd"].includes(value);
+	return ["pi", "plan", "build", "ask", "sdd", "tdd"].includes(value);
 }
 
 function normalizeMode(value: unknown, fallback: OrgmModeName): OrgmModeName {
@@ -95,7 +96,7 @@ export function getNextMode(mode: OrgmModeName, order: readonly ConfigModeName[]
 	const modes = order.filter((item): item is OrgmModeName => typeof item === "string" && isModeName(item));
 	const cycle = modes.length > 0 ? modes : DEFAULT_MODE_ORDER;
 	const index = cycle.indexOf(mode);
-	return cycle[(index + 1) % cycle.length] ?? "plan";
+	return cycle[(index + 1) % cycle.length] ?? "pi";
 }
 
 export function restoreModeState(entries: readonly any[], fallback: OrgmModeName): OrgmModeName {
@@ -112,7 +113,7 @@ function normalizedRel(path: string): string {
 }
 
 export function isWriteAllowedInMode(mode: OrgmModeName, path: string): boolean {
-	if (mode === "build") return true;
+	if (mode === "pi" || mode === "build") return true;
 	if (mode === "ask" || mode === "sdd" || mode === "tdd") return false;
 	const rel = normalizedRel(path);
 	return rel.startsWith("docs/") || rel.startsWith("plans/") || /^agents\/(plan|build|ask|sdd|tdd)\.md$/.test(rel);
@@ -168,6 +169,7 @@ function isOptionalTool(name: string): boolean {
 
 function activeToolsForMode(pi: ExtensionAPI, mode: OrgmModeName): string[] {
 	const available = toolNames(pi);
+	if (mode === "pi") return [];
 	if (mode === "build") return available;
 	const allow = new Set(MODE_DETAILS[mode].tools);
 	for (const name of available) {
@@ -177,6 +179,7 @@ function activeToolsForMode(pi: ExtensionAPI, mode: OrgmModeName): string[] {
 }
 
 function setModeTools(pi: ExtensionAPI, mode: OrgmModeName): void {
+	if (mode === "pi") return;
 	const names = activeToolsForMode(pi, mode);
 	if (names.length > 0) pi.setActiveTools?.(names);
 }
@@ -223,7 +226,7 @@ export default function modeExtension(pi: ExtensionAPI, options: { configPath?: 
 	if (isSubagentRuntime()) return;
 
 	let config = loadOrgmConfig(options.configPath);
-	let currentMode = normalizeMode(config.mode.defaultMode, "plan");
+	let currentMode = normalizeMode(config.mode.defaultMode, "pi");
 
 	const applyMode = (ctx: ExtensionContext, mode: OrgmModeName, notify = false) => {
 		currentMode = mode;
@@ -235,7 +238,7 @@ export default function modeExtension(pi: ExtensionAPI, options: { configPath?: 
 	};
 
 	pi.registerCommand("mode", {
-		description: "Switch ORGM mode: /mode [plan|build|ask|sdd|tdd]",
+		description: "Switch ORGM mode: /mode [pi|plan|build|ask|sdd|tdd]",
 		getArgumentCompletions: (prefix: string) => DEFAULT_MODE_ORDER.filter((mode) => mode.startsWith(prefix.trim().toLowerCase())).map((mode) => ({ value: mode, label: mode })),
 		handler: async (args: string, ctx: ExtensionContext) => {
 			const requested = args.trim().toLowerCase();
@@ -245,7 +248,7 @@ export default function modeExtension(pi: ExtensionAPI, options: { configPath?: 
 			}
 			const next = normalizeMode(requested, currentMode);
 			if (next !== requested) {
-				ctx.ui.notify("Usage: /mode [plan|build|ask|sdd|tdd]", "warning");
+				ctx.ui.notify("Usage: /mode [pi|plan|build|ask|sdd|tdd]", "warning");
 				return;
 			}
 			applyMode(ctx, next, true);
@@ -259,7 +262,7 @@ export default function modeExtension(pi: ExtensionAPI, options: { configPath?: 
 
 	pi.on("session_start", async (_event, ctx) => {
 		config = loadOrgmConfig(options.configPath);
-		const fallback = normalizeMode(config.mode.defaultMode, "plan");
+		const fallback = normalizeMode(config.mode.defaultMode, "pi");
 		currentMode = restoreModeState(ctx.sessionManager?.getEntries?.() ?? [], fallback);
 		setModeTools(pi, currentMode);
 		pi.events?.emit?.(MODE_STATE_EVENT, { mode: currentMode, label: formatModeLabel(currentMode), colors: getModeColorCandidates(currentMode) });
@@ -267,6 +270,7 @@ export default function modeExtension(pi: ExtensionAPI, options: { configPath?: 
 	});
 
 	pi.on("before_agent_start", async (event) => {
+		if (currentMode === "pi") return { systemPrompt: event.systemPrompt };
 		const prompt = readModePrompt(currentMode);
 		return {
 			systemPrompt: `${event.systemPrompt}\n\n## ORGM Mode: ${currentMode}\n${prompt}`,
@@ -274,7 +278,7 @@ export default function modeExtension(pi: ExtensionAPI, options: { configPath?: 
 	});
 
 	pi.on("tool_call", async (event) => {
-		if (currentMode === "build") return;
+		if (currentMode === "pi" || currentMode === "build") return;
 		if (event.toolName === "write" || event.toolName === "edit" || event.toolName === "upload_file") {
 			const path = extractPath(event.input);
 			if (!path || !isWriteAllowedInMode(currentMode, path)) {

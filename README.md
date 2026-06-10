@@ -5,7 +5,7 @@ Public Pi harness package containing ORGM Pi extensions, mode prompts, deployabl
 ## Contents
 
 - `extensions/` — Pi extensions, including mode switching, subagent deployment, agent status, awareness, orgm, and footer/widget helpers. Minimal footer can passively observe `pi-caveman:state` when separate `pi-caveman` package is installed.
-- `agents/` — primary mode prompts only: `plan.md`, `build.md`, `ask.md`, `sdd.md`, and `tdd.md`.
+- `agents/` — injected mode prompts only: `plan.md`, `build.md`, `ask.md`, `sdd.md`, and `tdd.md`. Default `pi` mode has no prompt file because it leaves Pi normal behavior untouched.
 - `assets/subagents/plan/` — deployable Plan Mode worker prompts used by `deploy_agent`.
 - `assets/subagents/ask/` — deployable Ask Mode worker prompts used by `deploy_agent`.
 - `assets/subagents/build/` — deployable Build Mode worker prompts used by `deploy_agent`.
@@ -20,18 +20,19 @@ Public Pi harness package containing ORGM Pi extensions, mode prompts, deployabl
 
 `extensions/mode.ts` controls the main ORGM runtime mode.
 
-Default mode on startup: `plan`.
+Default mode on startup: `pi`.
 
 Shortcut cycle:
 
 ```text
-alt+1: plan → build → ask → sdd → tdd → plan
+alt+1: pi → plan → build → ask → sdd → tdd → pi
 ```
 
 Commands:
 
 ```text
 /mode
+/mode pi
 /mode plan
 /mode build
 /mode ask
@@ -41,6 +42,7 @@ Commands:
 
 Mode behavior:
 
+- `pi` — default plain Pi mode. No ORGM prompt injection, no active-tool override, and no tool blocking.
 - `plan` — research, read, inspect, and write planning artifacts only. Can deploy `planner` for focused planning.
 - `ask` — talk/explain; no writes. Can deploy `investigator` for read-only investigation.
 - `build` — full implementation mode. Can deploy `builder` for normal builds or `fast_builder` for aplicaciones rápidas with contexto reducido (`openai-codex/gpt-5.3-codex-spark`).

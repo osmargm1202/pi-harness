@@ -50,7 +50,7 @@ try {
 
 	const saved = JSON.parse(readFileSync(configPath, "utf8"));
 	assert.deepEqual(saved.unknownFutureKey, { keep: true }, "/orgm-init should preserve unknown top-level keys");
-	assert.deepEqual(saved.mode, { defaultMode: "plan", allowedModes: ["plan", "build", "ask", "sdd", "tdd"] }, "/orgm-init should materialize mode defaults");
+	assert.deepEqual(saved.mode, { defaultMode: "pi", allowedModes: ["pi", "plan", "build", "ask", "sdd", "tdd"] }, "/orgm-init should materialize mode defaults");
 	assert.equal(saved.defaultPrimaryAgent, undefined, "/orgm-init should remove primary defaults");
 	assert.equal(saved.repoTree, undefined, "/orgm-init should remove repo tree defaults");
 	assert.equal(saved.primaryAuto, undefined, "/orgm-init should remove primary auto defaults");
