@@ -245,9 +245,43 @@ export class ZentuiEditorFrame implements EditorComponentWithFocus {
 	}
 }
 
+function isPrototypeMethod(object: object, property: string | symbol): boolean {
+	let prototype = Object.getPrototypeOf(object);
+	while (prototype && prototype !== Object.prototype) {
+		const descriptor = Object.getOwnPropertyDescriptor(prototype, property);
+		if (typeof descriptor?.value === "function") return true;
+		prototype = Object.getPrototypeOf(prototype);
+	}
+	return false;
+}
+
+function createDelegatingEditorFrame(base: EditorComponentWithFocus, frame: ZentuiEditorFrame): EditorComponentWithFocus {
+	const baseRecord = base as Record<PropertyKey, unknown>;
+	return new Proxy(frame, {
+		get(target, property, receiver) {
+			if (property in target) return Reflect.get(target, property, receiver);
+			const value = Reflect.get(baseRecord, property, baseRecord);
+			return typeof value === "function" && isPrototypeMethod(base, property) ? value.bind(base) : value;
+		},
+		set(target, property, value, receiver) {
+			if (property in target) return Reflect.set(target, property, value, receiver);
+			return Reflect.set(baseRecord, property, value, baseRecord);
+		},
+		has(target, property) {
+			return property in target || property in baseRecord;
+		},
+		getOwnPropertyDescriptor(target, property) {
+			const targetDescriptor = Reflect.getOwnPropertyDescriptor(target, property);
+			if (targetDescriptor) return targetDescriptor;
+			const baseDescriptor = Reflect.getOwnPropertyDescriptor(baseRecord, property);
+			return baseDescriptor ? { ...baseDescriptor, configurable: true } : undefined;
+		},
+	}) as EditorComponentWithFocus;
+}
+
 export function createZentuiEditorFactory(getMeta: ZentuiEditorMetaGetter, previous?: ZentuiEditorFactory): ZentuiEditorFactory {
 	return (tui: TUI, theme: EditorTheme, keybindings: KeybindingsManager) => {
 		const base = previous ? previous(tui, theme, keybindings) : createDefaultEditor(tui, theme, keybindings);
-		return new ZentuiEditorFrame(base, theme, getMeta);
+		return createDelegatingEditorFrame(base, new ZentuiEditorFrame(base, theme, getMeta));
 	};
 }

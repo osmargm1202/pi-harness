@@ -43,6 +43,9 @@ const baseEditor = {
 	focused: false,
 	onSubmit: undefined as ((text: string) => void) | undefined,
 	onChange: undefined as ((text: string) => void) | undefined,
+	actionHandlers: undefined as unknown,
+	onEscape: undefined as unknown,
+	onCtrlD: "base ctrl-d handler" as unknown,
 	borderColor: (text: string) => text,
 	render(width: number): string[] {
 		calls.push(["render", width]);
@@ -126,6 +129,14 @@ wrapped.onSubmit = onSubmit;
 wrapped.onChange = onChange;
 assert.equal(baseEditor.onSubmit, onSubmit, "wrapper should delegate onSubmit property to base editor");
 assert.equal(baseEditor.onChange, onChange, "wrapper should delegate onChange property to base editor");
+const actionHandlers = { submit: () => {} };
+const onEscape = () => {};
+(wrapped as { actionHandlers?: unknown }).actionHandlers = actionHandlers;
+(wrapped as { onEscape?: unknown }).onEscape = onEscape;
+assert.equal(baseEditor.actionHandlers, actionHandlers, "wrapper should store unknown actionHandlers property on base editor");
+assert.equal(baseEditor.onEscape, onEscape, "wrapper should store unknown onEscape property on base editor");
+assert.equal((wrapped as { actionHandlers?: unknown }).actionHandlers, actionHandlers, "wrapper should read unknown actionHandlers property from base editor");
+assert.equal((wrapped as { onCtrlD?: unknown }).onCtrlD, baseEditor.onCtrlD, "wrapper should read unknown handler properties from base editor");
 wrapped.focused = true;
 assert.equal(baseEditor.focused, true, "wrapper should delegate focus state to base editor");
 
