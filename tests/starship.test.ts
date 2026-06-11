@@ -12,7 +12,8 @@ const porcelain = [
 	"# branch.head main",
 	"# branch.upstream origin/main",
 	"# branch.ab +2 -1",
-	"1 M. N... 100644 100644 100644 a b file.ts",
+	"1 .M N... 100644 100644 100644 a b modified.ts",
+	"1 M. N... 100644 100644 100644 a b staged-modified.ts",
 	"1 .D N... 100644 100644 000000 a b deleted.ts",
 	"1 A. N... 000000 100644 100644 a b added.ts",
 	"2 R. N... 100644 100644 100644 a b R100 old.ts\tnew.ts",
@@ -24,9 +25,9 @@ const status = parseGitStatusPorcelain(porcelain, true);
 assert.equal(status.branch, "main", "branch should parse from porcelain v2 header");
 assert.equal(status.ahead, 2, "ahead count should parse");
 assert.equal(status.behind, 1, "behind count should parse");
-assert.equal(status.modified, 1, "modified worktree count should parse");
+assert.equal(status.modified, 1, "modified worktree count should parse from Y status");
 assert.equal(status.deleted, 1, "deleted count should parse");
-assert.equal(status.staged, 1, "staged count should parse");
+assert.equal(status.staged, 2, "staged count should include index additions and modifications");
 assert.equal(status.renamed, 1, "renamed count should parse");
 assert.equal(status.untracked, 1, "untracked count should parse");
 assert.equal(status.conflicted, 1, "conflicted count should parse");

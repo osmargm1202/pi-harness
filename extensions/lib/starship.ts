@@ -112,7 +112,6 @@ export function parseGitStatusPorcelain(stdoutText: string, hasStash: boolean): 
 		if (x === "R") status.renamed += 1;
 		else if (x === "D") status.deleted += 1;
 		else if (x === "T") status.typechanged += 1;
-		else if (x === "M") status.modified += 1;
 		else if (x !== "." && x !== " ") status.staged += 1;
 		if (y === "M") status.modified += 1;
 		else if (y === "D") status.deleted += 1;
