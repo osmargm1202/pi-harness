@@ -21,6 +21,9 @@ export function renderInlineLimitRows(model: LimitDisplayModel): string[] {
 	if (model.fullRows.some((row) => /missing-auth|auth/i.test(row)) || model.fullText.includes("missing-auth") || model.error === "missing-auth") {
 		return ["ChatGPT limits · no auth"];
 	}
+	if (model.error === "fetch-failed") {
+		return ["ChatGPT limits · fetch failed"];
+	}
 	const rows = model.compactRows.length > 0 ? model.compactRows : model.fullRows;
 	if (rows.length === 0) return ["ChatGPT limits · no disponible"];
 	return [`ChatGPT limits · ${rows.join(" · ")}`];

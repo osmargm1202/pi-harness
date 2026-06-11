@@ -25,3 +25,6 @@ assert(rows[0]?.includes("C  5H"), "inline limits should use compact rows");
 
 const missing = renderInlineLimitRows(displayModel(undefined, false, "missing-auth"));
 assert.deepEqual(missing, ["ChatGPT limits · no auth"], "missing auth should render inline message");
+
+const fetchFailed = renderInlineLimitRows(displayModel(undefined, false, "fetch-failed"));
+assert.deepEqual(fetchFailed, ["ChatGPT limits · fetch failed"], "fetch failures should render clear inline message");
