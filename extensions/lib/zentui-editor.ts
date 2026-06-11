@@ -84,7 +84,7 @@ export function formatProviderLabel(provider: string | undefined): string {
 }
 
 export function formatThinkingLabel(level: string | undefined): string {
-	return `thinking ${level || "off"}`;
+	return level || "off";
 }
 
 export function composeEditorMetaLine(input: EditorMetaInput): string {
@@ -103,6 +103,17 @@ function colorText(theme: EditorTheme, kind: EditorMetaStyleKind, text: string):
 		return maybePiTheme.fg(kind === "text" ? "accent" : "borderMuted", text);
 	}
 	return text;
+}
+
+function backgroundText(theme: EditorTheme, text: string): string {
+	const maybePiTheme = theme as EditorTheme & { bg?: (kind: string, text: string) => string };
+	if (maybePiTheme.bg) return maybePiTheme.bg("customMessageBg", text);
+	return text;
+}
+
+function isHorizontalEditorBorder(line: string): boolean {
+	const plain = line.replace(ANSI_PATTERN, "").trim();
+	return plain.length > 0 && /^[─━\-╭╮╰╯┌┐└┘]+$/.test(plain);
 }
 
 function createDefaultEditor(tui: TUI, theme: EditorTheme, keybindings: KeybindingsManager): EditorComponentWithFocus {
@@ -159,21 +170,23 @@ export class ZentuiEditorFrame implements EditorComponentWithFocus {
 	}
 
 	render(width: number): string[] {
-		const innerWidth = Math.max(1, width - 2);
-		const borderColor = this.borderColor ?? ((text: string) => text);
-		const baseLines = this.base.render(innerWidth).map((line) => tuiTruncateToWidth(line, innerWidth, ""));
+		const contentWidth = Math.max(1, width - 2);
+		const rail = colorText(this.theme, "border", "|");
+		const baseLines = this.base
+			.render(contentWidth)
+			.filter((line) => !isHorizontalEditorBorder(line))
+			.map((line) => tuiTruncateToWidth(line, contentWidth, ""));
+		const body = baseLines.length > 0 ? baseLines : [""];
 		const meta = composeEditorMetaLine({
 			...this.getMeta(),
-			width: Math.max(1, innerWidth - 2),
+			width: contentWidth,
 			style: (kind, text) => colorText(this.theme, kind, text),
 		});
-		const topLabel = ` ${meta} `;
-		const topRest = "─".repeat(Math.max(0, innerWidth - visibleWidth(topLabel)));
-		const top = borderColor(`╭${topRest}`) + topLabel + borderColor("╮");
-		const body = baseLines.length > 0 ? baseLines : [""];
-		const boxedBody = body.map((line) => borderColor("│") + fillLine(line, innerWidth) + borderColor("│"));
-		const bottom = borderColor(`╰${"─".repeat(innerWidth)}╯`);
-		return [top, ...boxedBody, bottom].map((line) => tuiTruncateToWidth(line, width, ""));
+		const rows = [...body, meta];
+		return rows.map((line) => {
+			const content = backgroundText(this.theme, fillLine(line, contentWidth));
+			return tuiTruncateToWidth(`${rail} ${content}`, width, "");
+		});
 	}
 
 	handleInput(data: string): void {

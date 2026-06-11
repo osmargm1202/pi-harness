@@ -13,25 +13,25 @@ assert.equal(formatProviderLabel("anthropic"), "Anthropic", "Anthropic provider 
 assert.equal(formatProviderLabel("minimax-cn"), "Minimax Cn", "unknown providers should title-case words");
 assert.equal(formatProviderLabel(undefined), "Unknown", "missing provider should display Unknown");
 
-assert.equal(formatThinkingLabel("off"), "thinking off", "off thinking should be explicit");
-assert.equal(formatThinkingLabel("xhigh"), "thinking xhigh", "xhigh thinking should display level");
+assert.equal(formatThinkingLabel("off"), "off", "off thinking should render only the level");
+assert.equal(formatThinkingLabel("xhigh"), "xhigh", "xhigh thinking should render only the level");
 
 const meta = composeEditorMetaLine({
 	modelLabel: "gpt-5.3-codex",
 	providerLabel: "OpenAI",
-	thinkingLabel: "thinking high",
+	thinkingLabel: "high",
 	width: 80,
 	style: (_kind, text) => text,
 });
 assert(meta.includes("gpt-5.3-codex"), "meta should include model");
 assert(meta.includes("OpenAI"), "meta should include provider");
-assert(meta.includes("thinking high"), "meta should include thinking");
+assert(meta.includes("high"), "meta should include thinking level");
 assert(visibleWidth(meta) <= 80, "meta should fit width");
 
 const narrow = composeEditorMetaLine({
 	modelLabel: "very-long-model-name-that-does-not-fit",
 	providerLabel: "OpenAI",
-	thinkingLabel: "thinking xhigh",
+	thinkingLabel: "xhigh",
 	width: 24,
 	style: (_kind, text) => text,
 });
@@ -49,7 +49,7 @@ const baseEditor = {
 	borderColor: (text: string) => text,
 	render(width: number): string[] {
 		calls.push(["render", width]);
-		return ["base input"];
+		return ["────────────────", "base input", "────────────────"];
 	},
 	handleInput(data: string): void {
 		calls.push(["handleInput", data]);
@@ -87,10 +87,10 @@ const previousFactory = (...args: unknown[]) => {
 	return baseEditor;
 };
 const tui = { id: "tui", terminal: { rows: 24, cols: 80 }, requestRender() {} };
-const editorTheme = { borderColor: (text: string) => text, selectList: {} };
+const editorTheme = { borderColor: (text: string) => text, selectList: {}, fg: (_kind: string, text: string) => text, bg: (_kind: string, text: string) => `\u001b[48;5;240m${text}\u001b[0m` };
 const keybindings = { id: "keybindings", matches: () => false };
 const wrapped = createZentuiEditorFactory(
-	() => ({ modelLabel: "gpt-5", providerLabel: "OpenAI", thinkingLabel: "thinking high" }),
+	() => ({ modelLabel: "gpt-5", providerLabel: "OpenAI", thinkingLabel: "high" }),
 	previousFactory,
 )(tui as never, editorTheme as never, keybindings as never);
 
@@ -98,10 +98,14 @@ assert.equal(previousArgs.length, 1, "zentui factory should create the previous 
 assert.deepEqual(previousArgs[0], [tui, editorTheme, keybindings], "previous editor factory should receive original Pi factory args");
 assert.notEqual(wrapped, baseEditor, "zentui factory should wrap the previous editor component");
 
-const rendered = wrapped.render(20);
-assert.deepEqual(calls.shift(), ["render", 18], "wrapper should render base editor with inner width");
-assert(rendered.some((line) => line.includes("base input")), "wrapper should render base editor output inside frame");
-assert(rendered[0]?.includes("gpt-5"), "wrapper should render meta line in frame");
+const rendered = wrapped.render(40);
+assert.deepEqual(calls.shift(), ["render", 38], "wrapper should render base editor with inner width");
+assert(rendered.every((line) => line.startsWith("|")), "wrapper should render a simple left rail on every editor line");
+assert(rendered.every((line) => !/[╭╮╰╯]/.test(line)), "wrapper should not render a full box around the editor");
+assert(!rendered.some((line) => line.includes("────────────────")), "wrapper should remove internal horizontal editor border lines");
+assert(rendered.some((line) => line.includes("base input")), "wrapper should render base editor output after the rail");
+assert(rendered.at(-1)?.includes("gpt-5 · OpenAI · high"), "wrapper should render model/provider/thinking metadata on the bottom rail line");
+assert(rendered.some((line) => line.includes("\u001b[48;5;240m")), "wrapper should apply themed input background");
 
 wrapped.handleInput("x");
 assert.deepEqual(calls.shift(), ["handleInput", "x"], "wrapper should delegate handleInput to base editor");
@@ -143,7 +147,7 @@ assert.equal(baseEditor.focused, true, "wrapper should delegate focus state to b
 const fallbackWrapped = createZentuiEditorFactory(() => ({
 	modelLabel: "fallback",
 	providerLabel: "Unknown",
-	thinkingLabel: "thinking off",
+	thinkingLabel: "off",
 }))(tui as never, editorTheme as never, keybindings as never);
 assert.equal(typeof fallbackWrapped.handleInput, "function", "fallback editor should expose handleInput");
 fallbackWrapped.handleInput("a");
