@@ -19,6 +19,13 @@ import {
 	setOrgmExtensionFeature,
 } from "./lib/orgm-extension-config.ts";
 import { countActiveExtensions } from "./lib/orgm-extensions.ts";
+import {
+	materialPiMemContextIndexKey,
+	normalizePiMemContextIndexEvent,
+	PI_MEM_CONTEXT_INDEX_EVENT,
+	renderPiMemContextIndexWidget,
+	type PiMemContextIndexPayload,
+} from "./lib/pi-mem-context-index.ts";
 
 const execAsync = promisify(exec);
 const EXTENSIONS_DIR = dirname(fileURLToPath(import.meta.url));
@@ -284,6 +291,8 @@ export default function (pi: ExtensionAPI) {
 		skillsCount: 0,
 		customToolsCount: 0,
 	};
+	let piMemContextPayload: PiMemContextIndexPayload | undefined;
+	let piMemContextKey = "";
 
 	const stopAnimation = () => {
 		if (animationTimer) clearInterval(animationTimer);
@@ -299,6 +308,8 @@ export default function (pi: ExtensionAPI) {
 		}, FRAME_MS);
 	};
 
+	const requestHeaderRender = () => headerHandle?.requestRender();
+
 	const installHeader = (ctx: ExtensionContext) => {
 		stats = { ...stats, cwd: ctx.cwd };
 		startAnimation();
@@ -310,11 +321,16 @@ export default function (pi: ExtensionAPI) {
 				},
 				invalidate() {},
 				render(width: number): string[] {
-					return renderHeader(theme, width, startedAt, activeGradient, stats);
+					const lines = renderHeader(theme, width, startedAt, activeGradient, stats);
+					if (piMemContextPayload && getVisibleLineCount(startedAt) >= LOGO_LINES.length) {
+						lines.push("");
+						lines.push(...renderPiMemContextIndexWidget(piMemContextPayload, width, (kind, text) => theme.fg(kind, text)));
+					}
+					return lines;
 				},
 			};
 		});
-		void refreshStats(ctx, pi, stats, () => headerHandle?.requestRender());
+		void refreshStats(ctx, pi, stats, requestHeaderRender);
 	};
 
 	pi.on("session_start", async (_event: unknown, ctx: ExtensionContext) => {
@@ -330,6 +346,16 @@ export default function (pi: ExtensionAPI) {
 	pi.on("session_shutdown", async () => {
 		stopAnimation();
 		headerHandle = null;
+	});
+
+	pi.events.on(PI_MEM_CONTEXT_INDEX_EVENT, (data: unknown) => {
+		const next = normalizePiMemContextIndexEvent(data);
+		if (!next) return;
+		const nextKey = materialPiMemContextIndexKey(next);
+		if (nextKey === piMemContextKey) return;
+		piMemContextPayload = next;
+		piMemContextKey = nextKey;
+		requestHeaderRender();
 	});
 
 	pi.registerCommand("orgm-init", {
