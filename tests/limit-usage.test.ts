@@ -308,6 +308,8 @@ try {
 
 const limitExtensionSource = readFileSync(new URL("../extensions/limit.ts", import.meta.url), "utf8");
 assert(limitExtensionSource.includes("isOrgmExtensionEnabled(\"limit\")"), "limit extension should be gated by orgm extension config");
-assert(limitExtensionSource.includes("LIMITS_EVENT"), "limit extension should emit limits event");
-assert(limitExtensionSource.includes("setInterval"), "limit extension should refresh on an interval");
-assert(limitExtensionSource.includes("session_shutdown"), "limit extension should cleanup timer on shutdown");
+assert(limitExtensionSource.includes("registerMessageRenderer"), "limit extension should render command output inline");
+assert(limitExtensionSource.includes("pi.sendMessage"), "limit extension should send an inline command message");
+assert(!limitExtensionSource.includes("setInterval"), "limit extension should not refresh on an interval");
+assert(!limitExtensionSource.includes("session_start"), "limit extension should not refresh on session start");
+assert(!limitExtensionSource.includes("model_select"), "limit extension should not refresh on model select");
