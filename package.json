@@ -2,20 +2,45 @@
   "name": "@osmargm1202/pi-harness",
   "version": "0.1.0",
   "private": false,
-  "description": "ORGM Pi base/compat extensions and commands; installs alongside pi-mem, pi-caveman, and pi-footer.",
-  "keywords": ["pi-package", "pi", "extensions", "orgm", "pi-mem", "pi-caveman", "pi-footer"],
+  "description": "ORGM Pi bundle/meta-package.",
+  "keywords": [
+    "pi-package",
+    "pi",
+    "extensions",
+    "orgm",
+    "pi-mem",
+    "pi-caveman",
+    "pi-footer"
+  ],
   "license": "MIT",
   "files": [
     "extensions",
-    "archive",
     "prompts",
-    "themes",
     "README.md"
   ],
   "pi": {
-    "extensions": ["./extensions"],
-    "prompts": ["./prompts"],
-    "themes": ["./themes"]
+    "extensions": [
+      "./extensions",
+      "node_modules/pi-mem/extensions",
+      "node_modules/pi-caveman/extensions",
+      "node_modules/pi-footer/extensions",
+      "node_modules/pi-subagents/extensions",
+      "node_modules/pi-awareness/extensions",
+      "node_modules/pi-notify/extensions",
+      "node_modules/pi-session/extensions",
+      "node_modules/pi-clear/extensions",
+      "node_modules/pi-title/extensions",
+      "node_modules/pi-ask/extensions",
+      "node_modules/pi-todo/extensions",
+      "node_modules/pi-banner/extensions"
+    ],
+    "prompts": [
+      "./prompts",
+      "node_modules/pi-subagents/agents"
+    ],
+    "themes": [
+      "node_modules/pi-themes/themes"
+    ]
   },
   "peerDependencies": {
     "@earendil-works/pi-agent-core": "*",
@@ -25,10 +50,38 @@
     "typebox": "*"
   },
   "peerDependenciesMeta": {
-    "@earendil-works/pi-agent-core": { "optional": true },
-    "@earendil-works/pi-ai": { "optional": true },
-    "@earendil-works/pi-coding-agent": { "optional": true },
-    "@earendil-works/pi-tui": { "optional": true },
-    "typebox": { "optional": true }
+    "@earendil-works/pi-agent-core": {
+      "optional": true
+    },
+    "@earendil-works/pi-ai": {
+      "optional": true
+    },
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    },
+    "@earendil-works/pi-tui": {
+      "optional": true
+    },
+    "typebox": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "pi-mem": "github:osmargm1202/pi-mem",
+    "pi-caveman": "github:osmargm1202/pi-caveman",
+    "pi-footer": "github:osmargm1202/pi-footer",
+    "pi-themes": "github:osmargm1202/pi-themes",
+    "pi-subagents": "github:osmargm1202/pi-subagents",
+    "pi-awareness": "github:osmargm1202/pi-awareness",
+    "pi-notify": "github:osmargm1202/pi-notify",
+    "pi-session": "github:osmargm1202/pi-session",
+    "pi-clear": "github:osmargm1202/pi-clear",
+    "pi-title": "github:osmargm1202/pi-title",
+    "pi-ask": "github:osmargm1202/pi-ask",
+    "pi-todo": "github:osmargm1202/pi-todo",
+    "pi-banner": "github:osmargm1202/pi-banner"
+  },
+  "scripts": {
+    "pack:check": "npm pack --dry-run"
   }
 }

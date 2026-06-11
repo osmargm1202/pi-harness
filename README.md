@@ -1,142 +1,89 @@
 # pi-harness
 
-Public ORGM Pi base/compat package containing ORGM commands, prompt templates, themes, assets, and helper libraries used by osmargm1202. Editor/footer UI belongs in the coupled `pi-footer` package.
+ORGM Pi bundle/meta-package. Install this one package to load the full ORGM Pi stack.
 
-## Contents
+## What this is now
 
-- `extensions/` — Pi extensions for ORGM commands, TODOs, ask helpers, notifications, title state, agent status, awareness, sessions, git helpers, and subagent deployment. Editor/footer UI is intentionally delegated to `pi-footer`.
-- `extensions/mode.ts.disabled` — archived mode extension. It is intentionally not loadable.
-- `archive/subagents/` — archived bundled subagent prompts kept for reference, not exposed as package workers.
-- `prompts/` — reusable prompt templates.
-- `themes/` — Pi theme JSON files.
-- `lib/` — shared helper libraries for extensions when needed.
+`pi-harness` is no longer the owner of large features. It is the ORGM distro package:
 
-## Default behavior
-
-This harness now starts in normal Pi behavior. There is no bundled `/mode` runtime, no mode prompt injection, and no packaged skills.
-
-Skills should be installed directly into the user/project agent environment instead of being bundled by this package.
-
-## TODOs
-
-The TODO extension is enabled by default.
-
-Visible TODO lists are intentionally small:
-
-- Maximum collapsed list size: 5.
-- Unfinished tasks appear first, ordered by task number.
-- Completed tasks appear last, ordered by task number.
-- Deleted tasks only appear when explicitly included, and then stay at the end.
-
-## Subagents
-
-Bundled subagents are archived, not active package assets.
-
-`deploy_agent` can still use local project/user subagents from:
-
-```text
-.pi/assets/subagents/
-.pi/agent/assets/subagents/
-~/.pi/agent/assets/subagents/
-```
-
-`teams.yaml` and `query_team` are intentionally removed. Subagent use is direct and explicit through `deploy_agent`.
-
-## Removed legacy flow
-
-This simplified harness removes the previous active primary-agent selector, automatic primary routing, repo tree injection, spec viewer, SDD init/preflight extension, teams, VoltAgent agent folders, mode runtime, packaged subagents, and bundled skills.
-
-Removed or disabled active pieces include:
-
-- `extensions/mode.ts` → `extensions/mode.ts.disabled`
-- `assets/subagents/` → `archive/subagents/`
-- `skills/`
-- `extensions/agent-selector.ts`
-- `extensions/spec-dis.ts`
-- `extensions/repo-index.ts`
-- `extensions/sdd-init.ts`
-- `extensions/lib/primary-auto.ts`
-- `extensions/lib/repo-tree.ts`
-- `lib/sdd-preflight.ts`
-- `agents/teams.yaml`
-- `agents/01-*` through `agents/10-*`
-- `agents/pi-orchestrator/`
-- `agents/sdd-orchestrator/`
+- pins compatible ORGM packages as dependencies
+- loads their Pi resources from `node_modules/...`
+- keeps stack-level prompt templates in `prompts/`
+- documents package boundaries and migration notes
 
 ## Install
 
-Review the repository contents before installing. Pi packages can install executable extensions and prompt/theme configuration, so only install code you trust.
-
-Standalone install:
+One-command ORGM stack install:
 
 ```bash
 pi install git:github.com/osmargm1202/pi-harness
 ```
 
-Recommended ORGM stack install:
+Selective install remains possible for individual packages:
 
 ```bash
-for pkg in pi-mem pi-caveman pi-harness pi-footer; do
-  pi install git:github.com/osmargm1202/$pkg
-done
+pi install git:github.com/osmargm1202/pi-footer
+pi install git:github.com/osmargm1202/pi-themes
+pi install git:github.com/osmargm1202/pi-subagents
 ```
 
-Future npm form:
+## Bundled packages
 
-```bash
-for pkg in pi-mem pi-caveman pi-harness pi-footer; do
-  pi install npm:@osmargm1202/$pkg
-done
-```
-
-Pi package discovery loads package `extensions/`, `prompts`, and `themes` through `package.json`.
-
-## ORGM Pi stack
-
-This package is part of the ORGM Pi extension stack.
-
-Packages:
+`pi-harness` depends on and loads:
 
 - `pi-mem`: local memory/context index provider.
 - `pi-caveman`: caveman runtime and shared state events.
-- `pi-harness`: ORGM commands, config, title, ask/todo/banner bridge.
-- `pi-footer`: Zentui-based editor/footer UI that displays ORGM status.
+- `pi-footer`: Zentui-based editor/footer UI.
+- `pi-themes`: ORGM themes.
+- `pi-subagents`: ORGM subagent prompts and deployment extension.
+- `pi-awareness`: awareness banner/status behavior.
+- `pi-notify`: desktop/system notification behavior.
+- `pi-session`: session switching/listing helpers.
+- `pi-clear`: clear/reset helper commands.
+- `pi-title`: title state/generation package.
+- `pi-ask`: ask/wrap command package.
+- `pi-todo`: TODO command/state package.
+- `pi-banner`: ORGM banner/header package.
 
-## Coupled integrations
+## Local resources kept here
 
-Produces:
+- `prompts/`: small stack-level prompt templates (`gcl`, `gis`, `gpr`, `gwr`).
+- `docs/`: design, split, and migration notes.
 
-- ORGM config commands and defaults.
-- Title state events/session entries consumed by `pi-footer`.
-- Ask/todo/banner bridge behavior until these packages are split out.
+Everything else should live in focused packages.
 
-Consumes:
+## Package boundaries
 
-- `pi-mem` context payloads for ORGM banner/header integrations.
-- `pi-caveman` state where ORGM UI/status integrations need caveman runtime state.
-- `pi-footer` is expected to own editor/footer rendering.
+`pi-harness` does not own:
 
-Hard dependencies:
+- editor/footer rendering → `pi-footer`
+- themes → `pi-themes`
+- subagents → `pi-subagents`
+- awareness → `pi-awareness`
+- notifications → `pi-notify`
+- sessions → `pi-session`
+- clear helpers → `pi-clear`
+- titles → `pi-title`
+- ask/wrap → `pi-ask`
+- TODOs → `pi-todo`
+- banner/header → `pi-banner`
+- memory → `pi-mem`
+- caveman runtime → `pi-caveman`
 
-- None. `pi-harness` can load alone.
+## Development
 
-Soft dependencies:
+```bash
+npm install
+npm run pack:check
+```
 
-- `pi-mem` improves memory/context banner data.
-- `pi-caveman` provides caveman runtime state.
-- `pi-footer` provides the primary Zentui-style editor/footer UI.
+Smoke bundle install:
 
-## Package split roadmap
-
-Future independent packages:
-
-- `pi-ask`
-- `pi-todo`
-- `pi-banner`
-- `pi-title` if title grows beyond shared state/bridge responsibilities
-
-`pi-harness` should become a smaller ORGM base/compat layer as those packages split out.
+```bash
+pi install git:github.com/osmargm1202/pi-harness
+pi list
+```
 
 ## Security note
 
-This package is intended to be public, but it should still be reviewed before publication or installation to ensure it contains no secrets, local-only credentials, private host paths that should not be shared, or unsafe extension behavior.
+Pi packages run executable extension code. Review package sources before installing, especially this bundle because it installs multiple ORGM packages.
