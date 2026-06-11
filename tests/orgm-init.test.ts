@@ -16,6 +16,7 @@ orgmExtension({
 		commands.set(name, command);
 	},
 	on() {},
+	events: { on() {}, emit() {} },
 	getCommands() { return []; },
 	getAllTools() { return []; },
 } as any);
