@@ -2,8 +2,8 @@
   "name": "@osmargm1202/pi-harness",
   "version": "0.1.0",
   "private": false,
-  "description": "Pi harness extensions, prompts, themes, and widgets used by osmargm1202.",
-  "keywords": ["pi-package", "pi", "extensions", "widgets"],
+  "description": "ORGM Pi base/compat extensions and commands; installs alongside pi-mem, pi-caveman, and pi-footer.",
+  "keywords": ["pi-package", "pi", "extensions", "orgm", "pi-mem", "pi-caveman", "pi-footer"],
   "license": "MIT",
   "files": [
     "extensions",

@@ -10,7 +10,6 @@ import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import { loadOrgmConfigSlice, saveOrgmConfigSlice } from "./lib/orgm-config.ts";
 import { renderSkillChipRows, type ChipStyleKind, type SkillStatus } from "./lib/minimal-skill.ts";
 import {
-	renderLimitsContextLine,
 	renderTitleContextLine,
 	sanitizeTitle,
 	SESSION_TITLE_ENTRY_TYPE,
@@ -25,7 +24,6 @@ import {
 	type ObservedCavemanState,
 } from "./lib/caveman-state.ts";
 import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
-import { LIMITS_EVENT, displayModel, normalizeLimitDisplayModel, type LimitColorKind, type LimitDisplayModel } from "./lib/limit-usage.ts";
 type OrgmModeName = string;
 type MinimalSkillsAction = "on" | "off" | "toggle" | "clear";
 
@@ -87,19 +85,6 @@ function renderTitleStatusLine(
 		if (kind === "mode") return theme.fg("accent", text);
 		return theme.fg("accent", text);
 	});
-}
-
-function renderLimitText(theme: Theme, kind: LimitColorKind, text: string): string {
-	if (kind === "error") return theme.fg("error", text);
-	if (kind === "warning") return theme.fg("warning", text);
-	if (kind === "success") return theme.fg("success", text);
-	try {
-		const styled = (theme.fg as (color: string, value: string) => string)("toolOutput", text);
-		if (typeof styled === "string") return styled;
-	} catch {
-		// Fall through to text color when theme does not expose toolOutput.
-	}
-	return theme.fg("text", text);
 }
 
 function restoreTitleStatus(entries: Array<{ type?: string; customType?: string; data?: { title?: string } }>): TitleStatus {
@@ -197,7 +182,6 @@ export default function (pi: ExtensionAPI) {
 	let observedCaveman: ObservedCavemanState | null = null;
 	let showSkillsStatus = loadMinimalSkillsConfig().enabled;
 	let titleStatus: TitleStatus = { state: "idle" };
-	let currentLimits: LimitDisplayModel = displayModel(undefined);
 	let timerStartedAt = 0;
 	let timerLabel = "";
 	let timerHasError = false;
@@ -371,7 +355,6 @@ export default function (pi: ExtensionAPI) {
 					const lines = [
 						firstLine,
 						renderTitleStatusLine(theme, titleStatus, width, folderLabel, modeLabel),
-						...renderLimitsContextLine(width, currentLimits.fullRows, currentLimits.compactRows, (kind, text) => renderLimitText(theme, kind, text)),
 					];
 					if (showSkillsStatus && loadedSkills.size > 0) {
 						lines.push(...renderSkillsRows(theme, width, loadedSkills));
@@ -393,11 +376,6 @@ export default function (pi: ExtensionAPI) {
 
 	pi.events.on(TITLE_STATE_EVENT, (data: TitleStatus) => {
 		titleStatus = data?.state ? data : { state: "idle" };
-		requestRender();
-	});
-
-	pi.events.on(LIMITS_EVENT, (data: LimitDisplayModel) => {
-		currentLimits = normalizeLimitDisplayModel(data);
 		requestRender();
 	});
 

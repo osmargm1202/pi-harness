@@ -137,6 +137,7 @@ Revert the experimental Zentui visual implementation from `pi-harness`:
 - Remove Starship/editor integration from `extensions/minimal.ts`.
 - Restore `minimal.ts` to its pre-Zentui behavior.
 - Remove tests that only cover the experimental visual attempt.
+- Preserve command-only ChatGPT/Codex limits in `extensions/limit.ts`; limits must not return to the persistent minimal footer.
 - Keep unrelated useful changes only when they are explicitly not part of the visual attempt.
 
 `pi-harness` should document that footer/editor UI lives in `pi-footer` going forward.

@@ -2,7 +2,6 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-export const LIMITS_EVENT = "orgm:limits-changed";
 export const CODEX_USAGE_URL = "https://chatgpt.com/backend-api/wham/usage";
 export const CODEX_REFRESH_URL = "https://auth.openai.com/oauth/token";
 export const MINIMAX_USAGE_URL = "https://api.minimax.io/v1/api/openplatform/coding_plan/remains";
