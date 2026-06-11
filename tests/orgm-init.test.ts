@@ -67,6 +67,15 @@ try {
 	await extensionCommand?.handler("ask permissions off", ctx);
 	updated = JSON.parse(readFileSync(configPath, "utf8"));
 	assert.equal(updated.extensions.ask.features.permissions.enabled, false, "/orgm-extension ask permissions off should persist feature flag");
+
+	const todoCommand = commands.get("orgm-todo");
+	assert(todoCommand, "/orgm-todo command should register as a todo extension toggle alias");
+	await todoCommand?.handler("off", ctx);
+	updated = JSON.parse(readFileSync(configPath, "utf8"));
+	assert.equal(updated.extensions.todo.enabled, false, "/orgm-todo off should persist todo enabled flag");
+	await todoCommand?.handler("on", ctx);
+	updated = JSON.parse(readFileSync(configPath, "utf8"));
+	assert.equal(updated.extensions.todo.enabled, true, "/orgm-todo on should persist todo enabled flag");
 } finally {
 	if (previousHome === undefined) delete process.env.HOME;
 	else process.env.HOME = previousHome;

@@ -341,31 +341,39 @@ export default function (pi: ExtensionAPI) {
 		},
 	});
 
+	const handleExtensionCommand = async (args: string, ctx: ExtensionContext, usage: string) => {
+		const command = parseOrgmExtensionCommand(args);
+		if (!command?.extension) {
+			ctx.ui.notify(usage, "info");
+			return;
+		}
+		if (command.error) {
+			ctx.ui.notify(command.error, "error");
+			return;
+		}
+		if (command.action === "status") {
+			ctx.ui.notify(describeOrgmExtensionStatus(command.extension), "info");
+			return;
+		}
+		const current = loadOrgmConfig();
+		const currentEnabled = command.feature
+			? current.extensions[command.extension]?.features?.[command.feature]?.enabled ?? true
+			: current.extensions[command.extension]?.enabled ?? true;
+		const enabled = command.action === "toggle" ? !currentEnabled : command.action === "on";
+		setOrgmExtensionFeature(command.extension, command.feature, enabled);
+		ctx.ui.notify(`${command.extension}${command.feature ? ` ${command.feature}` : ""}: ${enabled ? "on" : "off"}. Restart session to apply extension registration changes.`, "success");
+	};
+
 	pi.registerCommand("orgm-extension", {
 		description: "Toggle ORGM extensions: /orgm-extension <extension> [feature] <on|off|toggle|status>",
 		getArgumentCompletions: buildOrgmExtensionCommandCompletions,
-		handler: async (args: string, ctx: ExtensionContext) => {
-			const command = parseOrgmExtensionCommand(args);
-			if (!command?.extension) {
-				ctx.ui.notify("Usage: /orgm-extension <extension> [feature] <on|off|toggle|status>", "info");
-				return;
-			}
-			if (command.error) {
-				ctx.ui.notify(command.error, "error");
-				return;
-			}
-			if (command.action === "status") {
-				ctx.ui.notify(describeOrgmExtensionStatus(command.extension), "info");
-				return;
-			}
-			const current = loadOrgmConfig();
-			const currentEnabled = command.feature
-				? current.extensions[command.extension]?.features?.[command.feature]?.enabled ?? true
-				: current.extensions[command.extension]?.enabled ?? command.extension !== "todo";
-			const enabled = command.action === "toggle" ? !currentEnabled : command.action === "on";
-			setOrgmExtensionFeature(command.extension, command.feature, enabled);
-			ctx.ui.notify(`${command.extension}${command.feature ? ` ${command.feature}` : ""}: ${enabled ? "on" : "off"}. Restart session to apply extension registration changes.`, "success");
-		},
+		handler: async (args: string, ctx: ExtensionContext) => handleExtensionCommand(args, ctx, "Usage: /orgm-extension <extension> [feature] <on|off|toggle|status>"),
+	});
+
+	pi.registerCommand("orgm-todo", {
+		description: "Toggle TODO extension: /orgm-todo <on|off|toggle|status>",
+		getArgumentCompletions: (prefix: string) => ["on", "off", "toggle", "status"].filter((value) => value.startsWith(prefix.trim().toLowerCase())).map((value) => ({ value, label: value })),
+		handler: async (args: string, ctx: ExtensionContext) => handleExtensionCommand(`todo ${args}`.trim(), ctx, "Usage: /orgm-todo <on|off|toggle|status>"),
 	});
 
 	pi.registerCommand("orgm-header", {
