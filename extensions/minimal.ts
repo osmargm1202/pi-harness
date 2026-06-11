@@ -10,7 +10,6 @@ import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import { loadOrgmConfigSlice, saveOrgmConfigSlice } from "./lib/orgm-config.ts";
 import { renderSkillChipRows, type ChipStyleKind, type SkillStatus } from "./lib/minimal-skill.ts";
 import {
-	renderLimitsContextLine,
 	renderTitleContextLine,
 	sanitizeTitle,
 	SESSION_TITLE_ENTRY_TYPE,
@@ -25,7 +24,13 @@ import {
 	type ObservedCavemanState,
 } from "./lib/caveman-state.ts";
 import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
-import { LIMITS_EVENT, displayModel, normalizeLimitDisplayModel, type LimitColorKind, type LimitDisplayModel } from "./lib/limit-usage.ts";
+import {
+	buildStarshipLine,
+	readStarshipProjectState,
+	type StarshipGitStatus,
+	type StarshipRuntime,
+} from "./lib/starship.ts";
+import { createZentuiEditorFactory, formatProviderLabel, formatThinkingLabel } from "./lib/zentui-editor.ts";
 type OrgmModeName = string;
 type MinimalSkillsAction = "on" | "off" | "toggle" | "clear";
 
@@ -87,19 +92,6 @@ function renderTitleStatusLine(
 		if (kind === "mode") return theme.fg("accent", text);
 		return theme.fg("accent", text);
 	});
-}
-
-function renderLimitText(theme: Theme, kind: LimitColorKind, text: string): string {
-	if (kind === "error") return theme.fg("error", text);
-	if (kind === "warning") return theme.fg("warning", text);
-	if (kind === "success") return theme.fg("success", text);
-	try {
-		const styled = (theme.fg as (color: string, value: string) => string)("toolOutput", text);
-		if (typeof styled === "string") return styled;
-	} catch {
-		// Fall through to text color when theme does not expose toolOutput.
-	}
-	return theme.fg("text", text);
 }
 
 function restoreTitleStatus(entries: Array<{ type?: string; customType?: string; data?: { title?: string } }>): TitleStatus {
@@ -178,6 +170,25 @@ function formatDuration(ms: number): string {
 	return `${seconds}s`;
 }
 
+function renderMinimalExtraLine(
+	theme: Theme,
+	width: number,
+	status: TitleStatus,
+	timerLabel: string,
+	observedCaveman: ObservedCavemanState | null,
+): string {
+	const parts: string[] = [];
+	if (status.state === "ready" && status.title) parts.push(theme.fg("accent", status.title));
+	else if (status.state === "generating") parts.push(theme.fg("warning", `${status.frame ?? "⠋"} Generando título…`));
+	else if (status.state === "error") {
+		parts.push(theme.fg("error", status.title ? `⚠ ${status.title} · /orgm-title regen` : "⚠ Error generando título · /orgm-title regen"));
+	}
+	if (timerLabel) parts.push(theme.fg("borderAccent", timerLabel));
+	if (observedCaveman) parts.push(theme.fg(observedCaveman.enabled ? "accent" : "text", formatObservedCavemanStatus(observedCaveman)));
+	const line = parts.join(theme.fg("borderAccent", " · "));
+	return truncateToWidth(line || theme.fg("text", ""), width);
+}
+
 function normalizeMinimalSkillsAction(value: string): MinimalSkillsAction | undefined {
 	const normalized = value.trim().toLowerCase();
 	if (normalized === "on" || normalized === "off" || normalized === "toggle" || normalized === "clear") {
@@ -197,7 +208,9 @@ export default function (pi: ExtensionAPI) {
 	let observedCaveman: ObservedCavemanState | null = null;
 	let showSkillsStatus = loadMinimalSkillsConfig().enabled;
 	let titleStatus: TitleStatus = { state: "idle" };
-	let currentLimits: LimitDisplayModel = displayModel(undefined);
+	let starshipGit: StarshipGitStatus | undefined;
+	let starshipRuntime: StarshipRuntime | undefined;
+	let activeCtx: ExtensionContext | undefined;
 	let timerStartedAt = 0;
 	let timerLabel = "";
 	let timerHasError = false;
@@ -246,14 +259,34 @@ export default function (pi: ExtensionAPI) {
 	};
 
 	const installFooter = (ctx: ExtensionContext) => {
+		activeCtx = ctx;
 		observedCaveman = restoreObservedCavemanState(ctx.sessionManager.getEntries());
 		showSkillsStatus = loadMinimalSkillsConfig().enabled;
 		titleStatus = restoreTitleStatus(ctx.sessionManager.getEntries());
 
+		const uiWithEditor = ctx.ui as typeof ctx.ui & { getEditorComponent?: () => Parameters<typeof createZentuiEditorFactory>[1] };
+		const previousEditor = uiWithEditor.getEditorComponent?.();
+		ctx.ui.setEditorComponent(createZentuiEditorFactory(() => ({
+			modelLabel: ctx.model?.name || ctx.model?.id || "no-model",
+			providerLabel: formatProviderLabel(typeof ctx.model?.provider === "string" ? ctx.model.provider : undefined),
+			thinkingLabel: formatThinkingLabel(pi.getThinkingLevel()),
+		}), previousEditor));
+
+		void readStarshipProjectState(ctx.cwd).then((state) => {
+			starshipGit = state.git;
+			starshipRuntime = state.runtime;
+			requestRender();
+		}).catch(() => {});
+
 		ctx.ui.setFooter((tui, theme, footerData) => {
 			footerHandle = tui;
-			const folderLabel = getFolderLabel(ctx.cwd);
-			const unsubscribeBranch = footerData.onBranchChange(() => tui.requestRender());
+			const unsubscribeBranch = footerData.onBranchChange(() => {
+				void readStarshipProjectState(ctx.cwd).then((state) => {
+					starshipGit = state.git;
+					starshipRuntime = state.runtime;
+					tui.requestRender();
+				}).catch(() => tui.requestRender());
+			});
 
 			return {
 				dispose: () => {
@@ -263,8 +296,8 @@ export default function (pi: ExtensionAPI) {
 				invalidate() {},
 				render(width: number): string[] {
 					const usage = ctx.getContextUsage();
-					const percent = usage?.percent ?? 0;
-					const contextText = buildContextBar(percent);
+					const contextWindow = ctx.model?.contextWindow ?? usage?.contextWindow;
+					const contextLabel = usage && contextWindow ? `${Math.round(usage.percent ?? 0)}%/${formatCompactNumber(contextWindow)}` : "--";
 
 					let inputTokens = 0;
 					let outputTokens = 0;
@@ -283,95 +316,35 @@ export default function (pi: ExtensionAPI) {
 						}
 					}
 
-					const modelName = ctx.model?.name || ctx.model?.id || "no-model";
-					const thinking = pi.getThinkingLevel();
 					const tokenSummary = formatMinimalTokenSummary({
 						input: inputTokens,
 						output: outputTokens,
 						cacheRead: cacheReadTokens,
 						cacheWrite: cacheWriteTokens,
 					});
-					const modeLabel = formatMinimalModeLabel(currentMode);
-					const timerStatusStyled = timerLabel ? theme.fg("borderAccent", ` · ${timerLabel}`) : "";
-					const cavemanStatus = observedCaveman ? formatObservedCavemanStatus(observedCaveman) : "";
-					const cavemanStyled = observedCaveman
-						? theme.fg(observedCaveman.enabled ? "accent" : "text", cavemanStatus)
-						: "";
-
-					const footerSeparator = theme.fg("borderAccent", " · ");
-					const leftParts = [
-						theme.fg("accent", contextText),
-						theme.fg("text", modelName),
-						theme.fg("borderAccent", thinking) + timerStatusStyled,
-					];
-					const left = leftParts.join(footerSeparator);
-					const centerRaw = "";
-					const rightParts = [
-						cavemanStyled,
-						theme.fg("borderAccent", tokenSummary),
-						theme.fg("warning", formatCurrency(totalCost)),
-					].filter(Boolean);
-					const right = rightParts.join(footerSeparator);
-
-					const minSpaces = 2;
-					const leftWidth = visibleWidth(left);
-					const rightWidth = visibleWidth(right);
-					const reservedWidth = leftWidth + rightWidth + minSpaces * 2;
-					const centerAvailable = width - reservedWidth;
-					let firstLine: string;
-
-					if (centerAvailable >= 1) {
-						const centerText = truncateToWidth(centerRaw, centerAvailable);
-						const centerWidth = visibleWidth(centerText);
-						const extra = centerAvailable - centerWidth;
-						const padBefore = " ".repeat(minSpaces + Math.floor(extra / 2));
-						const padAfter = " ".repeat(minSpaces + Math.ceil(extra / 2));
-						const center = theme.fg("text", centerText);
-						firstLine = left + padBefore + center + padAfter + right;
-					} else {
-						const timerStatus = timerLabel ? ` · ${timerLabel}` : "";
-						const compact = observedCaveman
-							? `${contextText} ${modelName} · ${thinking}${timerStatus} · ${cavemanStatus} · ${tokenSummary} ${formatCurrency(totalCost)}`
-							: `${contextText} ${modelName} · ${thinking}${timerStatus} · ${tokenSummary} ${formatCurrency(totalCost)}`;
-						const styledCompact = observedCaveman
-							? theme.fg("accent", `${contextText} `) +
-								theme.fg("text", modelName) +
-								theme.fg("borderAccent", ` · ${thinking}`) +
-								timerStatusStyled +
-								footerSeparator +
-								cavemanStyled +
-								theme.fg("borderAccent", ` · ${tokenSummary} `) +
-								theme.fg("warning", formatCurrency(totalCost))
-							: theme.fg("accent", `${contextText} `) +
-								theme.fg("text", modelName) +
-								theme.fg("borderAccent", ` · ${thinking}`) +
-								timerStatusStyled +
-								theme.fg("borderAccent", ` · ${tokenSummary} `) +
-								theme.fg("warning", formatCurrency(totalCost));
-
-						if (visibleWidth(compact) <= width) {
-							firstLine = styledCompact;
-						} else {
-							const compactBar = theme.fg("accent", `${contextText} `);
-							const compactTail = observedCaveman
-								? theme.fg("text", modelName) +
-									theme.fg("borderAccent", ` · ${thinking}`) +
-									timerStatusStyled +
-									footerSeparator +
-									cavemanStyled
-								: theme.fg("text", modelName) +
-									theme.fg("borderAccent", ` · ${thinking}`) +
-									timerStatusStyled;
-
-							const availableTailWidth = Math.max(0, width - visibleWidth(compactBar));
-							firstLine = compactBar + truncateToWidth(compactTail, availableTailWidth);
-						}
-					}
+					const firstLine = buildStarshipLine({
+						cwd: ctx.cwd,
+						git: starshipGit,
+						runtime: starshipRuntime,
+						extensionStatuses: footerData.getExtensionStatuses?.(),
+						contextLabel,
+						tokenLabel: tokenSummary,
+						costLabel: formatCurrency(totalCost),
+						width,
+						style: (kind, text) => {
+							if (kind === "cwd") return theme.fg("accent", text);
+							if (kind === "git" || kind === "runtime") return theme.fg("text", text);
+							if (kind === "gitStatus") return theme.fg("warning", text);
+							if (kind === "context") return theme.fg("accent", text);
+							if (kind === "cost") return theme.fg("warning", text);
+							if (kind === "separator" || kind === "tokens" || kind === "status" || kind === "runtimePrefix") return theme.fg("borderAccent", text);
+							return theme.fg("text", text);
+						},
+					});
 
 					const lines = [
 						firstLine,
-						renderTitleStatusLine(theme, titleStatus, width, folderLabel, modeLabel),
-						...renderLimitsContextLine(width, currentLimits.fullRows, currentLimits.compactRows, (kind, text) => renderLimitText(theme, kind, text)),
+						renderMinimalExtraLine(theme, width, titleStatus, timerLabel, observedCaveman),
 					];
 					if (showSkillsStatus && loadedSkills.size > 0) {
 						lines.push(...renderSkillsRows(theme, width, loadedSkills));
@@ -393,11 +366,6 @@ export default function (pi: ExtensionAPI) {
 
 	pi.events.on(TITLE_STATE_EVENT, (data: TitleStatus) => {
 		titleStatus = data?.state ? data : { state: "idle" };
-		requestRender();
-	});
-
-	pi.events.on(LIMITS_EVENT, (data: LimitDisplayModel) => {
-		currentLimits = normalizeLimitDisplayModel(data);
 		requestRender();
 	});
 
@@ -469,6 +437,8 @@ export default function (pi: ExtensionAPI) {
 
 	pi.on("session_shutdown", async () => {
 		stopTimer();
+		activeCtx?.ui.setEditorComponent(undefined);
+		activeCtx = undefined;
 		footerHandle = null;
 		pendingSkillReads.clear();
 	});

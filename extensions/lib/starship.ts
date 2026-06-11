@@ -1,4 +1,10 @@
+import { execFile } from "node:child_process";
+import { readdir } from "node:fs/promises";
 import { basename } from "node:path";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
+const GIT_COMMAND_TIMEOUT_MS = 2_000;
 
 const ANSI_PATTERN = /\u001b\[[0-9;]*m/g;
 
@@ -144,6 +150,23 @@ export function detectRuntimeFromEntries(entries: string[], env: { nodeVersion?:
 	if (entries.includes("Cargo.toml")) return { name: "rust", symbol: "" };
 	if (entries.includes("pyproject.toml") || entries.includes("requirements.txt")) return { name: "python", symbol: "" };
 	return undefined;
+}
+
+export async function readStarshipProjectState(cwd: string): Promise<{ git?: StarshipGitStatus; runtime?: StarshipRuntime }> {
+	const [entriesResult, gitResult, stashResult] = await Promise.allSettled([
+		readdir(cwd),
+		execFileAsync("git", ["status", "--porcelain=2", "--branch"], { cwd, timeout: GIT_COMMAND_TIMEOUT_MS }),
+		execFileAsync("git", ["rev-parse", "--verify", "--quiet", "refs/stash"], { cwd, timeout: GIT_COMMAND_TIMEOUT_MS }),
+	]);
+	const entries = entriesResult.status === "fulfilled" ? entriesResult.value : [];
+	const runtime = detectRuntimeFromEntries(entries, { nodeVersion: process.version });
+	const git = gitResult.status === "fulfilled"
+		? parseGitStatusPorcelain(
+			String(gitResult.value.stdout ?? ""),
+			stashResult.status === "fulfilled" && String(stashResult.value.stdout ?? "").trim().length > 0,
+		)
+		: undefined;
+	return { git, runtime };
 }
 
 function formatCwd(cwd: string): string {
