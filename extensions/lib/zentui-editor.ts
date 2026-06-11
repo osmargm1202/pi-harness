@@ -1,5 +1,10 @@
-import { CustomEditor, type KeybindingsManager } from "@earendil-works/pi-coding-agent";
-import { truncateToWidth as tuiTruncateToWidth, type EditorComponent, type EditorTheme, type TUI } from "@earendil-works/pi-tui";
+import { createRequire } from "node:module";
+import type { KeybindingsManager } from "@earendil-works/pi-coding-agent";
+import type { EditorComponent, EditorTheme, TUI } from "@earendil-works/pi-tui";
+
+const require = createRequire(import.meta.url);
+const { CustomEditor } = loadPiCodingAgent();
+const { truncateToWidth: tuiTruncateToWidth } = loadPiTui();
 
 const ANSI_PATTERN = /\u001b\[[0-9;]*m/g;
 
@@ -7,6 +12,8 @@ type EditorComponentWithFocus = EditorComponent & {
 	focused?: boolean;
 	dispose?(): void;
 };
+
+type CustomEditorConstructor = new (tui: TUI, theme: EditorTheme, keybindings: KeybindingsManager) => EditorComponentWithFocus;
 
 export type ZentuiEditorFactory = (tui: TUI, theme: EditorTheme, keybindings: KeybindingsManager) => EditorComponentWithFocus;
 
@@ -26,35 +33,47 @@ export type ZentuiEditorMetaGetter = () => {
 	thinkingLabel: string;
 };
 
-class SimpleTextEditor implements EditorComponentWithFocus {
-	focused = false;
-	onSubmit?: (text: string) => void;
-	onChange?: (text: string) => void;
-	private text = "";
+function loadPiCodingAgent(): { CustomEditor: CustomEditorConstructor } {
+	try {
+		return require("@earendil-works/pi-coding-agent") as { CustomEditor: CustomEditorConstructor };
+	} catch {
+		return {
+			CustomEditor: class CustomEditorFallback implements EditorComponentWithFocus {
+				focused = false;
+				onSubmit?: (text: string) => void;
+				onChange?: (text: string) => void;
+				private text = "";
 
-	render(width: number): string[] {
-		return [truncateToWidth(this.text, width)];
+				constructor(_tui: TUI, _theme: EditorTheme, _keybindings: KeybindingsManager) {}
+
+				render(_width: number): string[] {
+					return [""];
+				}
+
+				handleInput(_data: string): void {}
+
+				getText(): string {
+					return this.text;
+				}
+
+				setText(text: string): void {
+					this.text = text;
+					this.onChange?.(text);
+				}
+			} as CustomEditorConstructor,
+		};
 	}
+}
 
-	handleInput(data: string): void {
-		if (data === "\u007f" || data === "\b") {
-			this.setText(Array.from(this.text).slice(0, -1).join(""));
-			return;
-		}
-		if (data === "\r" || data === "\n") {
-			this.onSubmit?.(this.text);
-			return;
-		}
-		if (data.length === 1 && data >= " ") this.setText(`${this.text}${data}`);
-	}
+function fallbackTuiTruncateToWidth(text: string, width: number, _suffix = "…"): string {
+	return truncateToWidth(text, width);
+}
 
-	getText(): string {
-		return this.text;
-	}
-
-	setText(text: string): void {
-		this.text = text;
-		this.onChange?.(text);
+function loadPiTui(): { truncateToWidth: (text: string, width: number, suffix?: string) => string } {
+	try {
+		return require("@earendil-works/pi-tui") as { truncateToWidth: (text: string, width: number, suffix?: string) => string };
+	} catch {
+		return { truncateToWidth: fallbackTuiTruncateToWidth };
 	}
 }
 
@@ -106,11 +125,20 @@ function colorText(theme: EditorTheme, kind: EditorMetaStyleKind, text: string):
 }
 
 function createDefaultEditor(tui: TUI, theme: EditorTheme, keybindings: KeybindingsManager): EditorComponentWithFocus {
-	try {
-		return new CustomEditor(tui, theme, keybindings) as EditorComponentWithFocus;
-	} catch {
-		return new SimpleTextEditor();
+	if (typeof CustomEditor === "function" && CustomEditor.length >= 3) {
+		try {
+			return new CustomEditor(tui, theme, keybindings);
+		} catch {
+			// Fall through to no-op editor when runtime signature is incompatible.
+		}
 	}
+	return {
+		focused: false,
+		render: () => [""],
+		handleInput: () => {},
+		getText: () => "",
+		setText: () => {},
+	};
 }
 
 export class ZentuiEditorFrame implements EditorComponentWithFocus {
