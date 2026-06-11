@@ -1,6 +1,6 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { DynamicBorder } from "@earendil-works/pi-coding-agent";
-import { Container, SelectList, Text, type SelectItem, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import { Container, Key, matchesKey, SelectList, Text, type SelectItem, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import {
 	type AgentStatusConfig,
 	loadAgentStatusConfig,
@@ -483,14 +483,14 @@ async function openTranscriptViewer(
 			},
 			invalidate() {},
 			handleInput(data: string) {
-				if (data === "\u001b" || data === "q") return close();
+				if (matchesKey(data, Key.escape) || matchesKey(data, Key.ctrl("c")) || data === "q" || data === "Q") return close();
 				const rendered = flattenTranscriptEntries(normalizeTranscriptEntries(getTranscriptLines()), 120, theme);
-				if (data === "k" || data === "\u001b[A") {
+				if (data === "k" || matchesKey(data, Key.up)) {
 					scrollOffset = Math.min(scrollOffset + 1, Math.max(0, rendered.length - WINDOW_LINES));
 					tui.requestRender();
 					return;
 				}
-				if (data === "j" || data === "\u001b[B") {
+				if (data === "j" || matchesKey(data, Key.down)) {
 					scrollOffset = Math.max(0, scrollOffset - 1);
 					tui.requestRender();
 				}

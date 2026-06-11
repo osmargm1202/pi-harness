@@ -56,3 +56,6 @@ for (const forbidden of [
 	assert(!agentStatusSource.includes(forbidden), `agent-status should not contain caveman term ${forbidden}`);
 	assert(!agentStatusConfigSource.includes(forbidden), `agent-status config should not contain caveman term ${forbidden}`);
 }
+
+assert.match(agentStatusSource, /matchesKey\(data, Key\.escape\)/, "agent status transcript viewer should close on normalized Escape key events");
+assert.match(agentStatusSource, /matchesKey\(data, Key\.ctrl\("c"\)\)/, "agent status transcript viewer should also close on Ctrl+C");
