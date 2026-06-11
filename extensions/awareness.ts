@@ -92,59 +92,6 @@ else
   echo "No es un repositorio Git"
 fi
 
-section 'SHELLS Y HERRAMIENTAS'
-for c in bash fish zsh git docker podman distrobox toolbox tmux nvim vim code python python3 node npm pnpm bun go rustc cargo distrobox-host-exec flatpak-spawn; do
-  p="$(cmd_path "$c")"
-  [ -n "$p" ] && echo "$c: $p"
-done
-
-section 'CONTENEDORES'
-echo "Contenedor actual: $(virt_container)"
-echo "Distrobox: $(is_distrobox && echo SI || echo NO)"
-echo "Toolbox: $(is_toolbox && echo SI || echo NO)"
-if has_cmd docker; then
-  docker_items="$(docker ps --format '{{.Names}} ({{.Status}})' 2>/dev/null | head -n 5 | paste -sd ',' - | sed 's/,/, /g')"
-  echo "Docker: \${docker_items:-sin contenedores visibles}"
-else
-  echo "Docker: no disponible"
-fi
-if has_cmd podman; then
-  podman_items="$(podman ps --format '{{.Names}} ({{.Status}})' 2>/dev/null | head -n 5 | paste -sd ',' - | sed 's/,/, /g')"
-  echo "Podman: \${podman_items:-sin contenedores visibles}"
-else
-  echo "Podman: no disponible"
-fi
-if has_cmd distrobox; then
-  distrobox_items="$(distrobox list 2>/dev/null | tail -n +2 | awk '{print $1}' | head -n 5 | paste -sd ',' - | sed 's/,/, /g')"
-  echo "Distrobox list: \${distrobox_items:-sin distroboxes visibles}"
-else
-  echo "Distrobox list: no disponible"
-fi
-if has_cmd toolbox; then
-  toolbox_items="$(toolbox list 2>/dev/null | tail -n +2 | awk '{print $2}' | head -n 5 | paste -sd ',' - | sed 's/,/, /g')"
-  echo "Toolbox list: \${toolbox_items:-sin toolboxes visibles}"
-else
-  echo "Toolbox list: no disponible"
-fi
-dbe_path="$(cmd_path distrobox-host-exec)"
-echo "distrobox-host-exec: \${dbe_path:-no disponible}"
-[ -z "$dbe_path" ] && echo "flatpak-spawn: $(cmd_path flatpak-spawn || echo 'no disponible')"
-
-section 'SISTEMA OPERATIVO'
-echo "OS/container: $(os_pretty)"
-echo "ID/container: $(os_id)"
-echo "Version ID/container: $(os_version_id)"
-echo "Kernel/container: $(uname -srmo)"
-echo "Arquitectura: $(uname -m)"
-echo "Init/container: $(ps -p 1 -o comm= 2>/dev/null || echo 'N/A')"
-echo "Hostname/container: $(hostname)"
-echo "Contenedor: $(virt_container)"
-echo "Virtualización: $(virt_any)"
-echo "WSL: $(grep -qi microsoft /proc/version 2>/dev/null && echo SI || echo NO)"
-echo "Sesión: \${XDG_SESSION_TYPE:-N/A}"
-echo "Desktop: \${XDG_CURRENT_DESKTOP:-N/A}"
-echo "Wayland: \${WAYLAND_DISPLAY:-NO}"
-echo "Display X11: \${DISPLAY:-NO}"
 `.replaceAll("\\${", "${");
 
 async function runAwarenessShell(cwd: string): Promise<string> {
