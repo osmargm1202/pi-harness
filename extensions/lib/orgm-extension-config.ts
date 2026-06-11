@@ -77,11 +77,19 @@ function normalizeFeature(value: string | undefined): string | undefined {
 
 export function resolveOrgmExtensionConfig(config: OrgmHostConfig | undefined, extensionName: string, featureName?: string): { enabled: boolean } {
 	const extension = config?.extensions?.[extensionName];
+	if (extensionName === "ask") {
+		const askFeatureEnabled = (name: string): boolean => {
+			const normalized = normalizeFeature(name) ?? name;
+			const defaultFeatureEnabled = normalized === "permissions" ? false : true;
+			return extension?.features?.[normalized]?.enabled ?? defaultFeatureEnabled;
+		};
+		if (featureName) return { enabled: askFeatureEnabled(featureName) };
+		return { enabled: askFeatureEnabled("questions") || askFeatureEnabled("permissions") };
+	}
 	const extensionEnabled = extension?.enabled ?? true;
 	if (!featureName) return { enabled: extensionEnabled };
 	const feature = extension?.features?.[normalizeFeature(featureName) ?? featureName];
-	const defaultFeatureEnabled = extensionName === "ask" && normalizeFeature(featureName) === "permissions" ? false : true;
-	return { enabled: extensionEnabled && (feature?.enabled ?? defaultFeatureEnabled) };
+	return { enabled: extensionEnabled && (feature?.enabled ?? true) };
 }
 
 export function isOrgmExtensionEnabled(extensionName: string, config?: OrgmHostConfig, featureName?: string): boolean {
@@ -100,8 +108,14 @@ function cloneExtensionConfig(input: OrgmExtensionConfig | undefined, extensionN
 export function setOrgmExtensionFeature(extensionName: string, featureName: string | undefined, enabled: boolean, configPath?: string): OrgmExtensionsConfig {
 	const current = loadOrgmConfigSlice("extensions", configPath);
 	const extension = cloneExtensionConfig(current[extensionName], extensionName);
+	if (extensionName === "ask") extension.enabled = true;
 	if (!featureName) {
-		extension.enabled = enabled;
+		if (extensionName === "ask") {
+			const featureNames = new Set(["questions", "permissions", ...Object.keys(extension.features)]);
+			extension.features = Object.fromEntries(Array.from(featureNames).map((name) => [name, { enabled }]));
+		} else {
+			extension.enabled = enabled;
+		}
 	} else {
 		const normalizedFeature = normalizeFeature(featureName) ?? featureName;
 		extension.features = { ...extension.features, [normalizedFeature]: { enabled } };

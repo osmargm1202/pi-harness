@@ -15,6 +15,7 @@ import { initializeOrgmConfig, loadOrgmConfig, orgmConfigPath } from "./lib/orgm
 import {
 	buildOrgmExtensionCommandCompletions,
 	describeOrgmExtensionStatus,
+	isOrgmExtensionEnabled,
 	parseOrgmExtensionCommand,
 	setOrgmExtensionFeature,
 } from "./lib/orgm-extension-config.ts";
@@ -382,9 +383,11 @@ export default function (pi: ExtensionAPI) {
 			return;
 		}
 		const current = loadOrgmConfig();
-		const currentEnabled = command.feature
-			? current.extensions[command.extension]?.features?.[command.feature]?.enabled ?? true
-			: current.extensions[command.extension]?.enabled ?? true;
+		const currentEnabled = command.extension === "ask" && !command.feature
+			? isOrgmExtensionEnabled("ask", current)
+			: command.feature
+				? current.extensions[command.extension]?.features?.[command.feature]?.enabled ?? true
+				: current.extensions[command.extension]?.enabled ?? true;
 		const enabled = command.action === "toggle" ? !currentEnabled : command.action === "on";
 		setOrgmExtensionFeature(command.extension, command.feature, enabled);
 		ctx.ui.notify(`${command.extension}${command.feature ? ` ${command.feature}` : ""}: ${enabled ? "on" : "off"}. Restart session to apply extension registration changes.`, "success");
