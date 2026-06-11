@@ -77,8 +77,8 @@ export function cloneState(input: TaskState): TaskState {
 }
 
 function taskStatusRank(status: TaskStatus): number {
-	if (status === "pending") return 0;
-	if (status === "in_progress") return 1;
+	if (status === "in_progress") return 0;
+	if (status === "pending") return 1;
 	if (status === "completed") return 2;
 	return 3;
 }
@@ -297,8 +297,8 @@ function taskSummary(task: Task): string {
 
 function groupTasksByStatus(tasks: Task[]): string {
 	const sections: Array<[TaskStatus, string]> = [
-		["pending", "Pending"],
 		["in_progress", "In Progress"],
+		["pending", "Pending"],
 		["completed", "Completed"],
 	];
 	const lines: string[] = [];
