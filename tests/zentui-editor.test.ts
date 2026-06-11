@@ -86,9 +86,9 @@ const previousFactory = (...args: unknown[]) => {
 	previousArgs.push(args);
 	return baseEditor;
 };
-const tui = { id: "tui" };
+const tui = { id: "tui", terminal: { rows: 24, cols: 80 }, requestRender() {} };
 const editorTheme = { borderColor: (text: string) => text, selectList: {} };
-const keybindings = { id: "keybindings" };
+const keybindings = { id: "keybindings", matches: () => false };
 const wrapped = createZentuiEditorFactory(
 	() => ({ modelLabel: "gpt-5", providerLabel: "OpenAI", thinkingLabel: "thinking high" }),
 	previousFactory,
@@ -146,6 +146,8 @@ const fallbackWrapped = createZentuiEditorFactory(() => ({
 	thinkingLabel: "thinking off",
 }))(tui as never, editorTheme as never, keybindings as never);
 assert.equal(typeof fallbackWrapped.handleInput, "function", "fallback editor should expose handleInput");
+fallbackWrapped.handleInput("a");
+assert.equal(fallbackWrapped.getText(), "a", "fallback editor should accept typed input when no previous editor is installed");
 assert(Array.isArray(fallbackWrapped.render(10)), "fallback editor should render safely");
 
 const source = readFileSync(new URL("../extensions/lib/zentui-editor.ts", import.meta.url), "utf8");
