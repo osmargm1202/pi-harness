@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
-import type { KeybindingsManager, Theme } from "@earendil-works/pi-coding-agent";
+import type { KeybindingsManager } from "@earendil-works/pi-coding-agent";
+import type { EditorComponent, EditorTheme, TUI } from "@earendil-works/pi-tui";
 
 const require = createRequire(import.meta.url);
 const { CustomEditor } = loadPiCodingAgent();
@@ -7,9 +8,14 @@ const { truncateToWidth: tuiTruncateToWidth } = loadPiTui();
 
 const ANSI_PATTERN = /\u001b\[[0-9;]*m/g;
 
-type CustomEditorConstructor = new (theme: Theme, keybindings: KeybindingsManager) => {
-	render(width: number): string[];
+type EditorComponentWithFocus = EditorComponent & {
+	focused?: boolean;
+	dispose?(): void;
 };
+
+type CustomEditorConstructor = new (tui: TUI, theme: EditorTheme, keybindings: KeybindingsManager) => EditorComponentWithFocus;
+
+export type ZentuiEditorFactory = (tui: TUI, theme: EditorTheme, keybindings: KeybindingsManager) => EditorComponentWithFocus;
 
 export type EditorMetaStyleKind = "border" | "model" | "provider" | "thinking" | "text";
 
@@ -32,10 +38,27 @@ function loadPiCodingAgent(): { CustomEditor: CustomEditorConstructor } {
 		return require("@earendil-works/pi-coding-agent") as { CustomEditor: CustomEditorConstructor };
 	} catch {
 		return {
-			CustomEditor: class CustomEditorFallback {
-				constructor(_theme: Theme, _keybindings: KeybindingsManager) {}
+			CustomEditor: class CustomEditorFallback implements EditorComponentWithFocus {
+				focused = false;
+				onSubmit?: (text: string) => void;
+				onChange?: (text: string) => void;
+				private text = "";
+
+				constructor(_tui: TUI, _theme: EditorTheme, _keybindings: KeybindingsManager) {}
+
 				render(_width: number): string[] {
 					return [""];
+				}
+
+				handleInput(_data: string): void {}
+
+				getText(): string {
+					return this.text;
+				}
+
+				setText(text: string): void {
+					this.text = text;
+					this.onChange?.(text);
 				}
 			} as CustomEditorConstructor,
 		};
@@ -93,37 +116,138 @@ function fillLine(content: string, width: number): string {
 	return `${clipped}${" ".repeat(Math.max(0, width - visibleWidth(clipped)))}`;
 }
 
-export class ZentuiEditor extends CustomEditor {
-	private readonly theme: Theme;
-	private readonly getMeta: ZentuiEditorMetaGetter;
+function colorText(theme: EditorTheme, kind: EditorMetaStyleKind, text: string): string {
+	const maybePiTheme = theme as EditorTheme & { fg?: (kind: string, text: string) => string };
+	if (maybePiTheme.fg) {
+		return maybePiTheme.fg(kind === "text" ? "accent" : "borderMuted", text);
+	}
+	return text;
+}
 
-	constructor(theme: Theme, keybindings: KeybindingsManager, getMeta: ZentuiEditorMetaGetter) {
-		super(theme, keybindings);
+function createDefaultEditor(tui: TUI, theme: EditorTheme, keybindings: KeybindingsManager): EditorComponentWithFocus {
+	if (typeof CustomEditor === "function" && CustomEditor.length >= 3) {
+		try {
+			return new CustomEditor(tui, theme, keybindings);
+		} catch {
+			// Fall through to no-op editor when runtime signature is incompatible.
+		}
+	}
+	return {
+		focused: false,
+		render: () => [""],
+		handleInput: () => {},
+		getText: () => "",
+		setText: () => {},
+	};
+}
+
+export class ZentuiEditorFrame implements EditorComponentWithFocus {
+	private readonly base: EditorComponentWithFocus;
+	private readonly theme: EditorTheme;
+	private readonly getMeta: ZentuiEditorMetaGetter;
+	private storedBorderColor?: (text: string) => string;
+
+	constructor(base: EditorComponentWithFocus, theme: EditorTheme, getMeta: ZentuiEditorMetaGetter) {
+		this.base = base;
 		this.theme = theme;
 		this.getMeta = getMeta;
 	}
 
+	get focused(): boolean {
+		return this.base.focused ?? false;
+	}
+
+	set focused(value: boolean) {
+		this.base.focused = value;
+	}
+
+	get onSubmit(): ((text: string) => void) | undefined {
+		return this.base.onSubmit;
+	}
+
+	set onSubmit(handler: ((text: string) => void) | undefined) {
+		this.base.onSubmit = handler;
+	}
+
+	get onChange(): ((text: string) => void) | undefined {
+		return this.base.onChange;
+	}
+
+	set onChange(handler: ((text: string) => void) | undefined) {
+		this.base.onChange = handler;
+	}
+
+	get borderColor(): ((str: string) => string) | undefined {
+		return this.base.borderColor ?? this.storedBorderColor ?? this.theme.borderColor;
+	}
+
+	set borderColor(color: ((str: string) => string) | undefined) {
+		this.storedBorderColor = color;
+		this.base.borderColor = color;
+	}
+
 	render(width: number): string[] {
 		const innerWidth = Math.max(1, width - 2);
-		const baseLines = super.render(innerWidth).map((line) => tuiTruncateToWidth(line, innerWidth, ""));
+		const borderColor = this.borderColor ?? ((text: string) => text);
+		const baseLines = this.base.render(innerWidth).map((line) => tuiTruncateToWidth(line, innerWidth, ""));
 		const meta = composeEditorMetaLine({
 			...this.getMeta(),
 			width: Math.max(1, innerWidth - 2),
-			style: (kind, text) => {
-				if (kind === "text") return this.theme.fg("accent", text);
-				return text;
-			},
+			style: (kind, text) => colorText(this.theme, kind, text),
 		});
 		const topLabel = ` ${meta} `;
 		const topRest = "─".repeat(Math.max(0, innerWidth - visibleWidth(topLabel)));
-		const top = this.theme.fg("borderMuted", `╭${topRest}`) + topLabel + this.theme.fg("borderMuted", "╮");
+		const top = borderColor(`╭${topRest}`) + topLabel + borderColor("╮");
 		const body = baseLines.length > 0 ? baseLines : [""];
-		const boxedBody = body.map((line) => this.theme.fg("borderMuted", "│") + fillLine(line, innerWidth) + this.theme.fg("borderMuted", "│"));
-		const bottom = this.theme.fg("borderMuted", `╰${"─".repeat(innerWidth)}╯`);
+		const boxedBody = body.map((line) => borderColor("│") + fillLine(line, innerWidth) + borderColor("│"));
+		const bottom = borderColor(`╰${"─".repeat(innerWidth)}╯`);
 		return [top, ...boxedBody, bottom].map((line) => tuiTruncateToWidth(line, width, ""));
+	}
+
+	handleInput(data: string): void {
+		this.base.handleInput(data);
+	}
+
+	getText(): string {
+		return this.base.getText();
+	}
+
+	setText(text: string): void {
+		this.base.setText(text);
+	}
+
+	addToHistory(text: string): void {
+		this.base.addToHistory?.(text);
+	}
+
+	insertTextAtCursor(text: string): void {
+		this.base.insertTextAtCursor?.(text);
+	}
+
+	getExpandedText(): string {
+		return this.base.getExpandedText?.() ?? this.base.getText();
+	}
+
+	setAutocompleteProvider(provider: Parameters<NonNullable<EditorComponent["setAutocompleteProvider"]>>[0]): void {
+		this.base.setAutocompleteProvider?.(provider);
+	}
+
+	setPaddingX(padding: number): void {
+		this.base.setPaddingX?.(padding);
+	}
+
+	setAutocompleteMaxVisible(maxVisible: number): void {
+		this.base.setAutocompleteMaxVisible?.(maxVisible);
+	}
+
+	dispose(): void {
+		this.base.dispose?.();
 	}
 }
 
-export function createZentuiEditorFactory(getMeta: ZentuiEditorMetaGetter) {
-	return (_tui: unknown, theme: Theme, keybindings: KeybindingsManager) => new ZentuiEditor(theme, keybindings, getMeta);
+export function createZentuiEditorFactory(getMeta: ZentuiEditorMetaGetter, previous?: ZentuiEditorFactory): ZentuiEditorFactory {
+	return (tui: TUI, theme: EditorTheme, keybindings: KeybindingsManager) => {
+		const base = previous ? previous(tui, theme, keybindings) : createDefaultEditor(tui, theme, keybindings);
+		return new ZentuiEditorFrame(base, theme, getMeta);
+	};
 }
