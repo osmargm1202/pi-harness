@@ -29,6 +29,7 @@
       "node_modules/pi-notify/extensions",
       "node_modules/pi-session/extensions",
       "node_modules/pi-clear/extensions",
+      "node_modules/pi-limit/extensions",
       "node_modules/pi-title/extensions",
       "node_modules/pi-ask/extensions",
       "node_modules/pi-todo/extensions",
@@ -79,7 +80,8 @@
     "pi-title": "github:osmargm1202/pi-title",
     "pi-ask": "github:osmargm1202/pi-ask",
     "pi-todo": "github:osmargm1202/pi-todo",
-    "pi-banner": "github:osmargm1202/pi-banner"
+    "pi-banner": "github:osmargm1202/pi-banner",
+    "pi-limit": "github:osmargm1202/pi-limit"
   },
   "scripts": {
     "pack:check": "npm pack --dry-run"

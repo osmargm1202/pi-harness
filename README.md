@@ -40,6 +40,7 @@ pi install git:github.com/osmargm1202/pi-subagents
 - `pi-notify`: desktop/system notification behavior.
 - `pi-session`: session switching/listing helpers.
 - `pi-clear`: clear/reset helper commands.
+- `pi-limit`: `/orgm-limits` scaffold; command stays in harness until extraction.
 - `pi-title`: title state/generation package.
 - `pi-ask`: ask/wrap command package.
 - `pi-todo`: TODO command/state package.
@@ -69,6 +70,7 @@ Everything else should live in focused packages.
 - banner/header → `pi-banner`
 - memory → `pi-mem`
 - caveman runtime → `pi-caveman`
+- limits → `pi-limit` after extraction; current `/orgm-limits` remains local compatibility shim
 
 ## Development
 
