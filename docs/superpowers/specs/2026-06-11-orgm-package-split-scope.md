@@ -128,6 +128,35 @@ Rule:
 - `pi-banner` must not own editor/footer rendering.
 - `pi-footer` remains footer owner.
 
+## Final `pi-harness` scope after splits
+
+After `pi-title`, `pi-ask`, `pi-todo`, and `pi-banner` are extracted and smoke-tested, `pi-harness` should keep only base/compat responsibilities:
+
+Keeps:
+
+- ORGM package metadata and install compatibility.
+- Shared ORGM constants/types that have not moved into a dedicated package yet.
+- Prompt templates, themes, and assets that are truly stack-level.
+- Thin compatibility shims that warn or delegate to split packages for one release cycle.
+- Stack documentation and migration notes.
+- Safety/diagnostic commands that do not belong to a focused split package.
+
+Stops owning:
+
+- Editor/footer rendering: owned by `pi-footer`.
+- Title generation/state: owned by `pi-title`.
+- Ask/wrap command behavior: owned by `pi-ask`.
+- TODO state/commands: owned by `pi-todo`.
+- Banner/header/widget presentation: owned by `pi-banner`.
+- Memory storage/context retrieval: owned by `pi-mem`.
+- Caveman runtime/style state: owned by `pi-caveman`.
+
+Target shape:
+
+- `pi-harness` becomes ORGM base/compat glue, not feature owner.
+- New feature code should prefer a focused package first.
+- Existing `pi-harness` modules should be removed only after their replacement package is installed, tested, and documented.
+
 ## Migration order
 
 1. Create repos with README/package skeletons only.
