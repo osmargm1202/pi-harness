@@ -1,7 +1,7 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
-import { Text } from "@earendil-works/pi-tui";
 import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 import {
+	LIMITS_EVENT,
 	MINIMAX_CN_USAGE_URL,
 	displayModel,
 	fetchMinimaxUsageSnapshot,
@@ -11,70 +11,112 @@ import {
 	readCodexAuth,
 	readMinimaxApiKey,
 	unsupportedLimitsDisplayModel,
-	type LimitDisplayModel,
 	type LimitSnapshot,
 } from "./lib/limit-usage.ts";
 
-const LIMITS_MESSAGE_TYPE = "orgm-limits";
-
-export function renderInlineLimitRows(model: LimitDisplayModel): string[] {
-	if (model.fullRows.some((row) => /missing-auth|auth/i.test(row)) || model.fullText.includes("missing-auth") || model.error === "missing-auth") {
-		return ["ChatGPT limits · no auth"];
-	}
-	if (model.error === "fetch-failed") {
-		return ["ChatGPT limits · fetch failed"];
-	}
-	const rows = model.compactRows.length > 0 ? model.compactRows : model.fullRows;
-	if (rows.length === 0) return ["ChatGPT limits · no disponible"];
-	return [`ChatGPT limits · ${rows.join(" · ")}`];
-}
-
-async function refreshOnce(ctx: ExtensionContext): Promise<LimitDisplayModel> {
-	const kind = providerLimitKind(ctx.model);
-	if (kind === "unsupported") {
-		return unsupportedLimitsDisplayModel(typeof ctx.model?.provider === "string" ? ctx.model.provider : undefined);
-	}
-	if (kind === "minimax") {
-		const apiKey = readMinimaxApiKey();
-		if (!apiKey) return displayModel(undefined, false, "missing-auth");
-		try {
-			const url = ctx.model?.provider === "minimax-cn" ? MINIMAX_CN_USAGE_URL : undefined;
-			const snapshot = await fetchMinimaxUsageSnapshot(apiKey, fetch, url);
-			if (snapshot.planType === "unlimited") return noLimitsDisplayModel("minimax");
-			return displayModel(snapshot, false);
-		} catch {
-			return displayModel(undefined, false, "fetch-failed");
-		}
-	}
-	const auth = readCodexAuth();
-	if (!auth) return displayModel(undefined, false, "missing-auth");
-	try {
-		const snapshot: LimitSnapshot = await fetchUsageSnapshot(auth);
-		return displayModel(snapshot, false);
-	} catch {
-		return displayModel(undefined, false, "fetch-failed");
-	}
-}
+const REFRESH_INTERVAL_MS = 120_000;
 
 export default function (pi: ExtensionAPI) {
 	if (!isOrgmExtensionEnabled("limit")) return;
 
-	pi.registerMessageRenderer(LIMITS_MESSAGE_TYPE, (message, _options, theme) => {
-		const rows = Array.isArray(message.details?.rows) ? message.details.rows.map(String) : [String(message.content ?? "")];
-		return new Text(rows.map((row) => theme.fg("accent", row)).join("\n"), 0, 0);
+	let timer: ReturnType<typeof setInterval> | undefined;
+	let lastSnapshot: LimitSnapshot | undefined;
+	let warnedAuth = false;
+	let currentCtx: ExtensionContext | undefined;
+
+	const emit = (ctx: ExtensionContext, stale = false, error?: string) => {
+		pi.events.emit(LIMITS_EVENT, displayModel(lastSnapshot, stale, error));
+		if (ctx.hasUI) ctx.ui.setStatus("orgm-limit", undefined);
+	};
+
+	const refresh = async (ctx: ExtensionContext) => {
+		currentCtx = ctx;
+		const kind = providerLimitKind(ctx.model);
+		if (kind === "unsupported") {
+			lastSnapshot = undefined;
+			pi.events.emit(LIMITS_EVENT, unsupportedLimitsDisplayModel(typeof ctx.model?.provider === "string" ? ctx.model.provider : undefined));
+			if (ctx.hasUI) ctx.ui.setStatus("orgm-limit", undefined);
+			return;
+		}
+		if (kind === "minimax") {
+			const apiKey = readMinimaxApiKey();
+			if (!apiKey) {
+				lastSnapshot = undefined;
+				pi.events.emit(LIMITS_EVENT, unsupportedLimitsDisplayModel("minimax"));
+				if (!warnedAuth && ctx.hasUI) {
+					warnedAuth = true;
+					ctx.ui.notify("MiniMax auth not found; limits unavailable", "warning");
+				}
+				return;
+			}
+			try {
+				const url = ctx.model?.provider === "minimax-cn" ? MINIMAX_CN_USAGE_URL : undefined;
+				lastSnapshot = await fetchMinimaxUsageSnapshot(apiKey, fetch, url);
+				if (lastSnapshot.planType === "unlimited") {
+					pi.events.emit(LIMITS_EVENT, noLimitsDisplayModel("minimax"));
+					return;
+				}
+				emit(ctx, false);
+			} catch {
+				if (lastSnapshot) emit(ctx, true, "fetch-failed");
+				else pi.events.emit(LIMITS_EVENT, unsupportedLimitsDisplayModel("minimax"));
+			}
+			return;
+		}
+
+		const auth = readCodexAuth();
+		if (!auth) {
+			emit(ctx, false, "missing-auth");
+			if (!warnedAuth && ctx.hasUI) {
+				warnedAuth = true;
+				ctx.ui.notify("Codex auth not found; limits unavailable", "warning");
+			}
+			return;
+		}
+		try {
+			lastSnapshot = await fetchUsageSnapshot(auth);
+			emit(ctx, false);
+		} catch {
+			emit(ctx, Boolean(lastSnapshot), "fetch-failed");
+		}
+	};
+
+	const stopTimer = () => {
+		if (timer) clearInterval(timer);
+		timer = undefined;
+	};
+
+	const startTimer = (ctx: ExtensionContext) => {
+		stopTimer();
+		timer = setInterval(() => {
+			void refresh(ctx);
+		}, REFRESH_INTERVAL_MS);
+	};
+
+	pi.on("session_start", async (_event, ctx) => {
+		if (!ctx.hasUI) return;
+		currentCtx = ctx;
+		emit(ctx, false);
+		await refresh(ctx);
+		startTimer(ctx);
+	});
+
+	pi.on("model_select", async (_event, ctx) => {
+		if (!ctx.hasUI) return;
+		await refresh(ctx);
+	});
+
+	pi.on("session_shutdown", async () => {
+		stopTimer();
+		currentCtx = undefined;
 	});
 
 	pi.registerCommand("orgm-limits", {
-		description: "Show active provider usage limits inline",
+		description: "Refresh active provider usage limit display",
 		handler: async (_args, ctx) => {
-			const model = await refreshOnce(ctx);
-			const rows = renderInlineLimitRows(model);
-			pi.sendMessage({
-				customType: LIMITS_MESSAGE_TYPE,
-				content: rows.join("\n"),
-				display: true,
-				details: { rows },
-			});
+			if (!ctx.hasUI) return;
+			await refresh(ctx);
+			ctx.ui.notify("Limits refreshed", "success");
 		},
 	});
 }

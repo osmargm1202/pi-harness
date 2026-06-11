@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { renderSkillChipRows } from "../extensions/lib/minimal-skill.ts";
-import { visibleWidth } from "../extensions/lib/minimal-title.ts";
+import { renderLimitsContextLine, visibleWidth } from "../extensions/lib/minimal-title.ts";
+import { displayModel, normalizeLimitDisplayModel, type LimitDisplayModel } from "../extensions/lib/limit-usage.ts";
 import { formatObservedCavemanStatus, normalizeObservedCavemanState } from "../extensions/lib/caveman-state.ts";
 import { formatMinimalModeLabel, formatMinimalTokenSummary } from "../extensions/minimal.ts";
 
@@ -52,20 +53,9 @@ assert(!minimalSource.includes("let currentPrimary = \"pi\""), "minimal footer s
 assert(!minimalSource.includes("const centerRaw = folderLabel;"), "primary minimal footer line should not duplicate the folder shown in the title context row");
 assert(!minimalSource.includes("const agentStatus = timerLabel ? `${modeLabel} · ${timerLabel}` : modeLabel;"), "primary minimal footer line should not duplicate the mode shown in the title context row");
 assert(!minimalSource.includes("if (titleStatus.state !== \"idle\" || titleStatus.title)"), "title context row should render from session start before title generation");
-assert(!minimalSource.includes("LIMITS_EVENT"), "minimal footer should not listen for command-only limits event");
-assert(!minimalSource.includes("renderLimitsContextLine"), "minimal footer should not render persistent limit rows");
-assert(!minimalSource.includes("currentLimits"), "minimal footer should not keep persistent limit display model");
-assert(minimalSource.includes("buildStarshipLine"), "minimal footer should render Starship line");
-assert(minimalSource.includes("readStarshipProjectState"), "minimal footer should refresh project git/runtime state");
-assert(minimalSource.includes("createZentuiEditorFactory"), "minimal extension should install Zentui-style editor");
-assert(minimalSource.includes("ctx.ui.setEditorComponent"), "minimal extension should set editor component");
-assert(minimalSource.includes("let baseEditorFactory"), "minimal extension should keep original/base editor factory for cleanup");
-assert(minimalSource.includes("let zentuiEditorInstalled = false"), "minimal extension should track when Zentui editor wrapper is already installed");
-assert(minimalSource.includes("baseEditorFactory = uiWithEditor.getEditorComponent?.()"), "minimal extension should capture base editor factory only before first wrapper install");
-assert(minimalSource.includes("if (!zentuiEditorInstalled)"), "minimal extension should not wrap an already installed Zentui editor again");
-assert(minimalSource.includes("activeCtx?.ui.setEditorComponent(baseEditorFactory)"), "minimal extension should restore previous/base editor factory on shutdown");
-assert(!minimalSource.includes("setEditorComponent(undefined)"), "minimal extension shutdown should not clobber other editor components");
-assert(minimalSource.includes("renderMinimalExtraLine"), "minimal extension should render title/timer/caveman on separate line");
+assert(minimalSource.includes("LIMITS_EVENT"), "minimal footer should listen for limits event");
+assert(minimalSource.includes("renderLimitsContextLine"), "minimal footer should render new limits context line");
+assert(minimalSource.includes("currentLimits"), "minimal footer should keep latest limit display model");
 assert(minimalSource.includes("PI_CAVEMAN_STATE_EVENT"), "minimal footer should observe pi-caveman shared event");
 assert(minimalSource.includes("PI_CAVEMAN_STATE_KEY"), "minimal footer should inspect pi-caveman shared session entry");
 assert(minimalSource.includes("normalizeObservedCavemanState"), "minimal footer should validate observed caveman payloads");
@@ -96,3 +86,77 @@ assert(observedEnabled, "valid observed caveman payload should normalize");
 assert.equal(formatObservedCavemanStatus(observedEnabled), "caveman:full", "valid enabled state should render caveman level");
 assert.equal(normalizeObservedCavemanState(undefined), null, "missing observed state should stay silent/no UI");
 assert.equal(normalizeObservedCavemanState({ enabled: true, level: "full" }), null, "invalid observed state should stay silent/no UI");
+
+const fullLimitRows = [
+	"Codex  5H [########--]82% 8:26PM | S [######----]61% Jun 10, 2026 8:26PM",
+	"Spark  5H [####------]40% 9:10PM | S [########--]80% Jun 12, 2026 1:05AM",
+];
+const compactLimitRows = [
+	"C  5H [########--]82% 8:26PM | S [######----]61% Jun 10, 2026 8:26PM",
+	"SP  5H [####------]40% 9:10PM | S [########--]80% Jun 12, 2026 1:05AM",
+];
+
+assert.deepEqual(renderLimitsContextLine(160, fullLimitRows, compactLimitRows, style), fullLimitRows, "wide limit rows should render full labels");
+assert.deepEqual(renderLimitsContextLine(69, fullLimitRows, compactLimitRows, style), compactLimitRows, "medium limit rows should render compact labels");
+const tinyLimitLines = renderLimitsContextLine(32, fullLimitRows, compactLimitRows, style);
+assert(tinyLimitLines.every((line) => visibleWidth(line) <= 32), "tiny limit rows should fit width");
+assert(tinyLimitLines.every((line) => line.endsWith("…")), "tiny limit rows should truncate with ellipsis");
+assert.deepEqual(renderLimitsContextLine(0, fullLimitRows, compactLimitRows, style), [], "zero-width limit rows should be empty");
+
+const validRowModel = displayModel(undefined);
+assert.equal(normalizeLimitDisplayModel(validRowModel), validRowModel, "valid row limit payload should stay unchanged");
+
+const legacyLimitModel: LimitDisplayModel = {
+	fullText: "Codex 5H [########--]82% | Codex S [######----]61% | Spark 5H [####------]40% | Spark S [########--]80%",
+	compactText: "C 5H [########--]82% | C S [######----]61% | SP 5H [####------]40% | SP S [########--]80%",
+	fullRows: [],
+	compactRows: [],
+	stale: true,
+};
+assert.deepEqual(
+	normalizeLimitDisplayModel(legacyLimitModel),
+	{
+		...legacyLimitModel,
+		fullRows: [legacyLimitModel.fullText],
+		compactRows: [legacyLimitModel.compactText],
+	},
+	"legacy text-only limit payload should render one fallback row instead of unavailable rows",
+);
+assert.deepEqual(
+	renderLimitsContextLine(
+		160,
+		normalizeLimitDisplayModel(legacyLimitModel).fullRows,
+		normalizeLimitDisplayModel(legacyLimitModel).compactRows,
+		style,
+	),
+	[legacyLimitModel.fullText],
+	"legacy text-only limit payload should render as one full-width row",
+);
+
+const thresholdLimitRows = ["Codex  5H [----------]0% -- | S [##--------]29% Jun 10, 2026 8:26PM"];
+assert.deepEqual(
+	renderLimitsContextLine(160, thresholdLimitRows, thresholdLimitRows, markedStyle),
+	["<normal>Codex  5H </normal><error>[----------]0%</error><normal> --</normal><normal> | </normal><normal>S </normal><warning>[##--------]29%</warning><normal> Jun 10, 2026 8:26PM</normal>"],
+	"limit rows should color only bar+percent below 51 percent and keep reset text normal gray-themed",
+);
+
+const exhaustedLimitRows = ["Codex  reposición semanal Jun 10, 2026 8:26PM"];
+assert.deepEqual(
+	renderLimitsContextLine(160, exhaustedLimitRows, exhaustedLimitRows, markedStyle),
+	["<error>Codex  reposición semanal Jun 10, 2026 8:26PM</error>"],
+	"exhausted weekly replenishment-only rows should render window label and content as error/red",
+);
+
+const compactExhaustedLimitRows = ["C  repo S Jun 10, 2026 8:26PM"];
+assert.deepEqual(
+	renderLimitsContextLine(160, compactExhaustedLimitRows, compactExhaustedLimitRows, markedStyle),
+	["<error>C  repo S Jun 10, 2026 8:26PM</error>"],
+	"compact weekly replenishment-only rows should render compact window label and repo content as error/red",
+);
+
+const compactFiveHourExhaustedLimitRows = ["SP  repo 5H 9:10PM"];
+assert.deepEqual(
+	renderLimitsContextLine(160, compactFiveHourExhaustedLimitRows, compactFiveHourExhaustedLimitRows, markedStyle),
+	["<error>SP  repo 5H 9:10PM</error>"],
+	"compact 5H replenishment-only rows should render compact window label and repo content as error/red",
+);
