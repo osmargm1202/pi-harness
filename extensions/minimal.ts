@@ -216,6 +216,8 @@ export default function (pi: ExtensionAPI) {
 	let timerHasError = false;
 	let timerHandle: ReturnType<typeof setInterval> | undefined;
 	let footerHandle: { requestRender: () => void } | null = null;
+	let baseEditorFactory: Parameters<typeof createZentuiEditorFactory>[1];
+	let zentuiEditorInstalled = false;
 	const loadedSkills = new Map<string, SkillStatus>();
 	const pendingSkillReads = new Map<string, string>();
 
@@ -265,12 +267,15 @@ export default function (pi: ExtensionAPI) {
 		titleStatus = restoreTitleStatus(ctx.sessionManager.getEntries());
 
 		const uiWithEditor = ctx.ui as typeof ctx.ui & { getEditorComponent?: () => Parameters<typeof createZentuiEditorFactory>[1] };
-		const previousEditor = uiWithEditor.getEditorComponent?.();
+		if (!zentuiEditorInstalled) {
+			baseEditorFactory = uiWithEditor.getEditorComponent?.();
+			zentuiEditorInstalled = true;
+		}
 		ctx.ui.setEditorComponent(createZentuiEditorFactory(() => ({
 			modelLabel: ctx.model?.name || ctx.model?.id || "no-model",
 			providerLabel: formatProviderLabel(typeof ctx.model?.provider === "string" ? ctx.model.provider : undefined),
 			thinkingLabel: formatThinkingLabel(pi.getThinkingLevel()),
-		}), previousEditor));
+		}), baseEditorFactory));
 
 		void readStarshipProjectState(ctx.cwd).then((state) => {
 			starshipGit = state.git;
@@ -437,7 +442,9 @@ export default function (pi: ExtensionAPI) {
 
 	pi.on("session_shutdown", async () => {
 		stopTimer();
-		activeCtx?.ui.setEditorComponent(undefined);
+		activeCtx?.ui.setEditorComponent(baseEditorFactory);
+		baseEditorFactory = undefined;
+		zentuiEditorInstalled = false;
 		activeCtx = undefined;
 		footerHandle = null;
 		pendingSkillReads.clear();

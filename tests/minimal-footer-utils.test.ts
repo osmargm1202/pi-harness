@@ -59,6 +59,12 @@ assert(minimalSource.includes("buildStarshipLine"), "minimal footer should rende
 assert(minimalSource.includes("readStarshipProjectState"), "minimal footer should refresh project git/runtime state");
 assert(minimalSource.includes("createZentuiEditorFactory"), "minimal extension should install Zentui-style editor");
 assert(minimalSource.includes("ctx.ui.setEditorComponent"), "minimal extension should set editor component");
+assert(minimalSource.includes("let baseEditorFactory"), "minimal extension should keep original/base editor factory for cleanup");
+assert(minimalSource.includes("let zentuiEditorInstalled = false"), "minimal extension should track when Zentui editor wrapper is already installed");
+assert(minimalSource.includes("baseEditorFactory = uiWithEditor.getEditorComponent?.()"), "minimal extension should capture base editor factory only before first wrapper install");
+assert(minimalSource.includes("if (!zentuiEditorInstalled)"), "minimal extension should not wrap an already installed Zentui editor again");
+assert(minimalSource.includes("activeCtx?.ui.setEditorComponent(baseEditorFactory)"), "minimal extension should restore previous/base editor factory on shutdown");
+assert(!minimalSource.includes("setEditorComponent(undefined)"), "minimal extension shutdown should not clobber other editor components");
 assert(minimalSource.includes("renderMinimalExtraLine"), "minimal extension should render title/timer/caveman on separate line");
 assert(minimalSource.includes("PI_CAVEMAN_STATE_EVENT"), "minimal footer should observe pi-caveman shared event");
 assert(minimalSource.includes("PI_CAVEMAN_STATE_KEY"), "minimal footer should inspect pi-caveman shared session entry");
