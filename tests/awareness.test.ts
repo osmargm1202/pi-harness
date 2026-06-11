@@ -6,10 +6,10 @@ const content = await buildAwarenessText({ cwd: process.cwd() });
 assert(content.includes("===== CONTEXTO GENERAL ====="), "awareness keeps general context");
 assert(content.includes("===== PROYECTO ====="), "awareness keeps project context");
 assert(content.includes("===== GIT ====="), "awareness keeps git context");
-assert(content.includes("===== SHELLS Y HERRAMIENTAS ====="), "awareness keeps tool paths");
-assert(content.includes("===== CONTENEDORES ====="), "awareness keeps container context");
-assert(content.includes("Toolbox"), "container context mentions Toolbox availability");
-assert(content.includes("===== SISTEMA OPERATIVO ====="), "awareness keeps OS context");
+assert(!content.includes("===== SHELLS Y HERRAMIENTAS ====="), "awareness omits tool paths");
+assert(!content.includes("===== CONTENEDORES ====="), "awareness omits container inventory");
+assert(!content.includes("Toolbox"), "awareness omits toolbox detail");
+assert(!content.includes("===== SISTEMA OPERATIVO ====="), "awareness omits OS detail");
 
 for (const removedSection of [
 	"===== VERSIONES =====",
