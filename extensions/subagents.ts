@@ -273,7 +273,7 @@ interface RelayUserResponse {
 
 const DeployAgentParams = Type.Object({
 	agent: Type.String({
-		description: "Agent name from assets/subagents or local .pi/assets/subagents",
+		description: "Agent name from local project/user subagent directories such as .pi/assets/subagents",
 	}),
 	task: Type.String({ description: "Task to delegate to that agent" }),
 	cwd: Type.Optional(
@@ -2505,9 +2505,9 @@ ${finalText}`
 		renderShell: "self",
 		label: "Deploy Agent",
 		description:
-			"Run a named agent from assets/subagents or local .pi/assets/subagents in an isolated pi subprocess and return its result.",
+			"Run a named agent from local project/user subagent directories in an isolated pi subprocess and return its result.",
 		promptSnippet:
-			"Deploy a named agent with isolated context. Use assets/subagents workers only when focused delegation helps.",
+			"Deploy a named local/project agent with isolated context when focused delegation helps.",
 		promptGuidelines: [
 			"Use deploy_agent only after you decide that focused subagent work is useful for implementation, review, verification, SDD, or TDD.",
 			"Defaults to one-shot ephemeral runs. Persistent mode is accepted for compatibility but does not keep reusable runtime state.",

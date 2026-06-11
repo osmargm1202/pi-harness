@@ -2,22 +2,18 @@
   "name": "@osmargm1202/pi-harness",
   "version": "0.1.0",
   "private": false,
-  "description": "Pi harness extensions, agents, prompts, themes, and widgets used by osmargm1202.",
-  "keywords": ["pi-package", "pi", "extensions", "agents", "skills", "widgets"],
+  "description": "Pi harness extensions, prompts, themes, and widgets used by osmargm1202.",
+  "keywords": ["pi-package", "pi", "extensions", "widgets"],
   "license": "MIT",
   "files": [
     "extensions",
-    "agents",
-    "assets",
-    "lib",
+    "archive",
     "prompts",
-    "skills",
     "themes",
     "README.md"
   ],
   "pi": {
     "extensions": ["./extensions"],
-    "skills": ["./skills"],
     "prompts": ["./prompts"],
     "themes": ["./themes"]
   },

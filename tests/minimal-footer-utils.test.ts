@@ -48,7 +48,7 @@ assert.equal(
 	"↑1.0k ↓250",
 	"minimal footer should omit cache hit rate when no cache tokens are present",
 );
-assert(minimalSource.includes("MODE_STATE_EVENT"), "minimal footer should listen for mode changes");
+assert(!minimalSource.includes("MODE_STATE_EVENT"), "minimal footer should not listen for disabled mode changes");
 assert(!minimalSource.includes("let currentPrimary = \"pi\""), "minimal footer should not hard-code pi as the footer mode label");
 assert(!minimalSource.includes("const centerRaw = folderLabel;"), "primary minimal footer line should not duplicate the folder shown in the title context row");
 assert(!minimalSource.includes("const agentStatus = timerLabel ? `${modeLabel} · ${timerLabel}` : modeLabel;"), "primary minimal footer line should not duplicate the mode shown in the title context row");

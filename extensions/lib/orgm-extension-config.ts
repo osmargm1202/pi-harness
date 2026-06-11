@@ -31,7 +31,6 @@ const FEATURE_ALIASES = new Map<string, string>([
 ]);
 
 export const KNOWN_ORGM_EXTENSION_FEATURES: Record<string, string[]> = {
-	mode: [],
 	ask: ["questions", "permissions"],
 	ask_user_question: ["questions"],
 	ask_user_permission: ["permissions"],
@@ -78,8 +77,7 @@ function normalizeFeature(value: string | undefined): string | undefined {
 
 export function resolveOrgmExtensionConfig(config: OrgmHostConfig | undefined, extensionName: string, featureName?: string): { enabled: boolean } {
 	const extension = config?.extensions?.[extensionName];
-	const fallback = extensionName === "todo" ? false : true;
-	const extensionEnabled = extension?.enabled ?? fallback;
+	const extensionEnabled = extension?.enabled ?? true;
 	if (!featureName) return { enabled: extensionEnabled };
 	const feature = extension?.features?.[normalizeFeature(featureName) ?? featureName];
 	const defaultFeatureEnabled = extensionName === "ask" && normalizeFeature(featureName) === "permissions" ? false : true;
@@ -92,7 +90,7 @@ export function isOrgmExtensionEnabled(extensionName: string, config?: OrgmHostC
 
 function cloneExtensionConfig(input: OrgmExtensionConfig | undefined, extensionName: string): OrgmExtensionConfig {
 	return {
-		enabled: input?.enabled ?? (extensionName === "todo" ? false : true),
+		enabled: input?.enabled ?? true,
 		features: Object.fromEntries(
 			Object.entries(input?.features ?? {}).map(([name, feature]) => [name, { enabled: feature.enabled }]),
 		),

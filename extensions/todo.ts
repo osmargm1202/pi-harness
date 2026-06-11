@@ -63,7 +63,7 @@ let overlayCtx: ExtensionContext | null = null;
 let overlayMounted = false;
 let overlayHandle: { requestRender(): void } | null = null;
 const OVERLAY_KEY = "orgm-todos";
-const OVERLAY_TASK_LIMIT = 20;
+const OVERLAY_TASK_LIMIT = 5;
 
 export function cloneState(input: TaskState): TaskState {
 	return {
@@ -76,9 +76,16 @@ export function cloneState(input: TaskState): TaskState {
 	};
 }
 
+function taskStatusRank(status: TaskStatus): number {
+	if (status === "pending") return 0;
+	if (status === "in_progress") return 1;
+	if (status === "completed") return 2;
+	return 3;
+}
+
 export function visibleTasks(input: TaskState, includeDeleted = false): Task[] {
 	const tasks = includeDeleted ? input.tasks : input.tasks.filter((task) => task.status !== "deleted");
-	return cloneState({ tasks, nextId: input.nextId }).tasks;
+	return cloneState({ tasks, nextId: input.nextId }).tasks.sort((a, b) => taskStatusRank(a.status) - taskStatusRank(b.status) || a.id - b.id);
 }
 
 function findTask(tasks: Task[], id: number): Task | undefined {
@@ -498,7 +505,7 @@ export default function (pi: ExtensionAPI) {
 
 			const tasks = details.action === "list" ? visibleTasks({ tasks: details.tasks, nextId: details.nextId }, details.params.includeDeleted === true) : details.tasks;
 			if (tasks.length === 0) return new Text(theme.fg("dim", "No todos"), 0, 0);
-			const text = renderTaskLines(tasks, theme, expanded ? tasks.length : 6);
+			const text = renderTaskLines(tasks, theme, expanded ? tasks.length : 5);
 			return new Text(text, 0, 0);
 		},
 	});

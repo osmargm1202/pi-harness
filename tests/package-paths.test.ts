@@ -19,26 +19,18 @@ const piExamplesDir = getPiExamplesDir();
 assert(existsSync(`${piExamplesDir}/extensions/project-trust.ts`), "Pi examples helper should resolve installed Pi extension examples through public SDK exports");
 
 const agentsDir = getCurrentPackageAgentsDir();
-assert(agentsDir, "current package agents dir should resolve");
-assert(agentsDir.endsWith("/agents"), "agents dir should be the package agents directory");
+assert(agentsDir, "source checkout can still resolve archived mode prompt files for tests/docs");
+assert(agentsDir.endsWith("/agents"), "agents dir should be the source agents directory when present");
 assert(!existsSync(`${agentsDir}/teams.yaml`), "agents dir should not contain teams.yaml");
-assert(existsSync(`${agentsDir}/plan.md`), "agents dir should contain plan mode prompt");
-assert(existsSync(`${agentsDir}/build.md`), "agents dir should contain build mode prompt");
-assert(existsSync(`${agentsDir}/ask.md`), "agents dir should contain ask mode prompt");
 
 const subagentsDir = getCurrentPackageAssetsSubagentsDir();
-assert(subagentsDir, "assets/subagents dir should resolve");
-assert(subagentsDir.endsWith("/assets/subagents"), "subagents dir should be assets/subagents");
-assert(existsSync(`${subagentsDir}/tdd/tdd-planner.md`), "assets subagents should contain TDD workers under tdd/");
-assert(existsSync(`${subagentsDir}/sdd/sdd-apply.md`), "assets subagents should contain SDD workers under sdd/");
+assert.equal(subagentsDir, null, "package assets/subagents should not resolve after archiving bundled subagents");
+assert(existsSync(join(packageRoot, "archive", "subagents", "tdd", "tdd-planner.md")), "archived subagents should remain in source tree");
 
-const removedCavemanSkill = join(packageRoot, "skills", "caveman", "SKILL.md");
-assert(!existsSync(removedCavemanSkill), "current package should not bundle caveman skill runtime");
-assert(!existsSync(join(packageRoot, "extensions", "caveman.ts")), "current package should not bundle caveman runtime extension");
-
-const manifest = JSON.parse(await import("node:fs/promises").then((fs) => fs.readFile(join(packageRoot, "package.json"), "utf8")));
-assert(manifest.files.includes("skills"), "package files should still include non-caveman bundled skills");
-assert(manifest.pi.skills.includes("./skills"), "pi manifest should still expose non-caveman bundled skills");
+const manifest = JSON.parse(readFileSync(join(packageRoot, "package.json"), "utf8"));
+assert(!manifest.files.includes("skills"), "package files should not include bundled skills");
+assert(!manifest.files.includes("agents"), "package files should not include mode prompt agents");
+assert(!manifest.pi.skills, "pi manifest should not expose bundled skills");
 assert(!JSON.stringify(manifest.pi).includes("extensions/caveman.ts"), "pi manifest should not expose harness caveman extension");
 
 const packagePathsSource = readFileSync(join(packageRoot, "extensions", "lib", "package-paths.ts"), "utf8");

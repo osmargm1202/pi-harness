@@ -1,0 +1,16 @@
+import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
+
+assert(!existsSync("extensions/mode.ts"), "mode extension should be disabled by renaming extensions/mode.ts away from .ts");
+assert(existsSync("extensions/mode.ts.disabled"), "disabled mode source should be archived beside extensions as mode.ts.disabled");
+assert(!existsSync("skills"), "package should not bundle skills; install skills directly instead");
+assert(!existsSync("assets/subagents"), "package should not expose bundled subagents by default");
+assert(existsSync("archive/subagents"), "subagents should be archived instead of deleted");
+
+const manifest = JSON.parse(readFileSync("package.json", "utf8"));
+assert(!manifest.files?.includes("skills"), "package files should not include skills");
+assert(!manifest.files?.includes("agents"), "package files should not include mode prompt agents");
+assert(manifest.files?.includes("archive"), "package files should include archive for disabled/reference assets");
+assert(!manifest.files?.includes("lib"), "package files should not include missing lib directory");
+assert(!manifest.pi?.skills, "pi manifest should not expose bundled skills");
+assert(!JSON.stringify(manifest.pi ?? {}).includes("mode"), "pi manifest should not explicitly expose mode extension");

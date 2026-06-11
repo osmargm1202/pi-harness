@@ -18,7 +18,7 @@ try {
 	const defaultConfig = loadOrgmConfig(configPath);
 	assert.equal(isOrgmExtensionEnabled("ask", defaultConfig, "questions"), true, "ask questions should default on");
 	assert.equal(isOrgmExtensionEnabled("ask", defaultConfig, "permissions"), false, "ask permissions should default off");
-	assert.equal(isOrgmExtensionEnabled("todo", defaultConfig), false, "todo extension should default off");
+	assert.equal(isOrgmExtensionEnabled("todo", defaultConfig), true, "todo extension should default on");
 	assert.equal(isOrgmExtensionEnabled("title", defaultConfig), true, "unknown extension should default on");
 	assert.equal(isOrgmExtensionEnabled("limit", defaultConfig), true, "limit extension should default on");
 

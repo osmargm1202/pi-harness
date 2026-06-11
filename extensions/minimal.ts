@@ -26,19 +26,11 @@ import {
 } from "./lib/caveman-state.ts";
 import { isOrgmExtensionEnabled } from "./lib/orgm-extension-config.ts";
 import { LIMITS_EVENT, displayModel, normalizeLimitDisplayModel, type LimitColorKind, type LimitDisplayModel } from "./lib/limit-usage.ts";
-import {
-	MODE_STATE_EVENT,
-	formatModeLabel,
-	getModeColorCandidates,
-	restoreModeState,
-	safeThemeFg,
-	type OrgmModeName,
-} from "./mode.ts";
-
+type OrgmModeName = string;
 type MinimalSkillsAction = "on" | "off" | "toggle" | "clear";
 
 export function formatMinimalModeLabel(mode: OrgmModeName): string {
-	return formatModeLabel(mode);
+	return mode.trim().toUpperCase() || "PI";
 }
 
 export interface MinimalSkillsConfig {
@@ -87,13 +79,12 @@ function renderTitleStatusLine(
 	width: number,
 	folderLabel: string,
 	modeLabel: string,
-	modeColors: string[],
 ): string {
 	return renderTitleContextLine(status, width, folderLabel, modeLabel, (kind, text) => {
 		if (kind === "error") return theme.fg("error", text);
 		if (kind === "warning") return theme.fg("warning", text);
 		if (kind === "dim") return theme.fg("text", text);
-		if (kind === "mode") return safeThemeFg(theme, modeColors, text);
+		if (kind === "mode") return theme.fg("accent", text);
 		return theme.fg("accent", text);
 	});
 }
@@ -202,8 +193,7 @@ function buildMinimalSkillsUsage(): string {
 export default function (pi: ExtensionAPI) {
 	if (!isOrgmExtensionEnabled("minimal")) return;
 
-	let currentMode: OrgmModeName = "pi";
-	let currentModeColors = getModeColorCandidates(currentMode);
+	const currentMode: OrgmModeName = "pi";
 	let observedCaveman: ObservedCavemanState | null = null;
 	let showSkillsStatus = loadMinimalSkillsConfig().enabled;
 	let titleStatus: TitleStatus = { state: "idle" };
@@ -256,8 +246,6 @@ export default function (pi: ExtensionAPI) {
 	};
 
 	const installFooter = (ctx: ExtensionContext) => {
-		currentMode = restoreModeState(ctx.sessionManager.getEntries(), "pi");
-		currentModeColors = getModeColorCandidates(currentMode);
 		observedCaveman = restoreObservedCavemanState(ctx.sessionManager.getEntries());
 		showSkillsStatus = loadMinimalSkillsConfig().enabled;
 		titleStatus = restoreTitleStatus(ctx.sessionManager.getEntries());
@@ -382,7 +370,7 @@ export default function (pi: ExtensionAPI) {
 
 					const lines = [
 						firstLine,
-						renderTitleStatusLine(theme, titleStatus, width, folderLabel, modeLabel, currentModeColors),
+						renderTitleStatusLine(theme, titleStatus, width, folderLabel, modeLabel),
 						...renderLimitsContextLine(width, currentLimits.fullRows, currentLimits.compactRows, (kind, text) => renderLimitText(theme, kind, text)),
 					];
 					if (showSkillsStatus && loadedSkills.size > 0) {
@@ -395,11 +383,6 @@ export default function (pi: ExtensionAPI) {
 	};
 
 
-	pi.events.on(MODE_STATE_EVENT, (data: { mode?: OrgmModeName; colors?: string[] }) => {
-		if (data?.mode) currentMode = data.mode;
-		currentModeColors = data?.colors?.length ? data.colors : getModeColorCandidates(currentMode);
-		requestRender();
-	});
 
 	pi.events.on(PI_CAVEMAN_STATE_EVENT, (data: unknown) => {
 		const normalized = normalizeObservedCavemanState(data);

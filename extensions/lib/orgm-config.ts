@@ -81,7 +81,6 @@ export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
 		showActivity: true,
 	},
 	extensions: {
-		mode: { enabled: true, features: {} },
 		ask: {
 			enabled: true,
 			features: {
@@ -89,7 +88,7 @@ export const DEFAULT_ORGM_CONFIG: OrgmHostConfig = {
 				permissions: { enabled: false },
 			},
 		},
-		todo: { enabled: false, features: {} },
+		todo: { enabled: true, features: {} },
 	},
 	agentModels: {},
 };

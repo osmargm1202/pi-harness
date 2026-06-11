@@ -1,68 +1,38 @@
 # pi-harness
 
-Public Pi harness package containing ORGM Pi extensions, mode prompts, deployable subagents, prompt templates, themes, assets, helper libraries, and widget-related harness pieces used by osmargm1202.
+Public Pi harness package containing ORGM Pi extensions, prompt templates, themes, assets, helper libraries, and widget-related harness pieces used by osmargm1202.
 
 ## Contents
 
-- `extensions/` — Pi extensions, including mode switching, subagent deployment, agent status, awareness, orgm, and footer/widget helpers. Minimal footer can passively observe `pi-caveman:state` when separate `pi-caveman` package is installed.
-- `agents/` — injected mode prompts only: `plan.md`, `build.md`, `ask.md`, `sdd.md`, and `tdd.md`. Default `pi` mode has no prompt file because it leaves Pi normal behavior untouched.
-- `assets/subagents/plan/` — deployable Plan Mode worker prompts used by `deploy_agent`.
-- `assets/subagents/ask/` — deployable Ask Mode worker prompts used by `deploy_agent`.
-- `assets/subagents/build/` — deployable Build Mode worker prompts used by `deploy_agent`.
-- `assets/subagents/sdd/` — deployable SDD worker prompts used by `deploy_agent`.
-- `assets/subagents/tdd/` — deployable TDD worker prompts used by `deploy_agent`.
+- `extensions/` — Pi extensions for ORGM commands, TODOs, ask helpers, notifications, limits, title/footer widgets, agent status, awareness, sessions, git helpers, and subagent deployment.
+- `extensions/mode.ts.disabled` — archived mode extension. It is intentionally not loadable.
+- `archive/subagents/` — archived bundled subagent prompts kept for reference, not exposed as package workers.
 - `prompts/` — reusable prompt templates.
 - `themes/` — Pi theme JSON files.
-- `skills/` — bundled skills.
 - `lib/` — shared helper libraries for extensions when needed.
 
-## Modes
+## Default behavior
 
-`extensions/mode.ts` controls the main ORGM runtime mode.
+This harness now starts in normal Pi behavior. There is no bundled `/mode` runtime, no mode prompt injection, and no packaged skills.
 
-Default mode on startup: `pi`.
+Skills should be installed directly into the user/project agent environment instead of being bundled by this package.
 
-Shortcut cycle:
+## TODOs
 
-```text
-alt+1: pi → plan → build → ask → sdd → tdd → pi
-```
+The TODO extension is enabled by default.
 
-Commands:
+Visible TODO lists are intentionally small:
 
-```text
-/mode
-/mode pi
-/mode plan
-/mode build
-/mode ask
-/mode sdd
-/mode tdd
-```
-
-Mode behavior:
-
-- `pi` — default plain Pi mode. No ORGM prompt injection, no active-tool override, and no tool blocking.
-- `plan` — research, read, inspect, and write planning artifacts only. Can deploy `planner` for focused planning.
-- `ask` — talk/explain; no writes. Can deploy `investigator` for read-only investigation.
-- `build` — full implementation mode. Can deploy `builder` for normal builds or `fast_builder` for aplicaciones rápidas with contexto reducido (`openai-codex/gpt-5.3-codex-spark`).
-- `sdd` — SDD-oriented coordination with `assets/subagents` workers.
-- `tdd` — TDD-oriented coordination with `assets/subagents` workers.
+- Maximum collapsed list size: 5.
+- Unfinished tasks appear first, ordered by task number.
+- Completed tasks appear last, ordered by task number.
+- Deleted tasks only appear when explicitly included, and then stay at the end.
 
 ## Subagents
 
-`deploy_agent` discovers packaged workers from:
+Bundled subagents are archived, not active package assets.
 
-```text
-assets/subagents/
-├── plan/
-├── ask/
-├── build/
-├── sdd/
-└── tdd/
-```
-
-and local project/user overrides from:
+`deploy_agent` can still use local project/user subagents from:
 
 ```text
 .pi/assets/subagents/
@@ -74,10 +44,13 @@ and local project/user overrides from:
 
 ## Removed legacy flow
 
-This simplified harness removes the previous active primary-agent selector, automatic primary routing, repo tree injection, spec viewer, SDD init/preflight extension, teams, and VoltAgent agent folders.
+This simplified harness removes the previous active primary-agent selector, automatic primary routing, repo tree injection, spec viewer, SDD init/preflight extension, teams, VoltAgent agent folders, mode runtime, packaged subagents, and bundled skills.
 
-Removed active pieces include:
+Removed or disabled active pieces include:
 
+- `extensions/mode.ts` → `extensions/mode.ts.disabled`
+- `assets/subagents/` → `archive/subagents/`
+- `skills/`
 - `extensions/agent-selector.ts`
 - `extensions/spec-dis.ts`
 - `extensions/repo-index.ts`
@@ -92,7 +65,7 @@ Removed active pieces include:
 
 ## Install
 
-Review the repository contents before installing. Pi packages can install executable extensions and prompt/agent configuration, so only install code you trust.
+Review the repository contents before installing. Pi packages can install executable extensions and prompt/theme configuration, so only install code you trust.
 
 ```bash
 pi install git:github.com/osmargm1202/pi-harness
@@ -104,7 +77,7 @@ If this repository is later published to npm as `@osmargm1202/pi-harness`, insta
 pi install npm:@osmargm1202/pi-harness
 ```
 
-Pi package discovery loads package `extensions/`, `prompts`, `skills`, and `themes` through `package.json`. The `agents/` and `assets/` directories are included so mode prompts and subagents can be referenced by bundled extensions.
+Pi package discovery loads package `extensions/`, `prompts`, and `themes` through `package.json`.
 
 ## Security note
 
