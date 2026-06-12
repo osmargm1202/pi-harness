@@ -38,7 +38,8 @@ pi install git:github.com/osmargm1202/pi-subagents
 - `pi-subagents`: ORGM subagent prompts, deployment extension, and agent-status widgets.
 - `pi-awareness`: awareness banner/status behavior.
 - `pi-notify`: desktop/system notification behavior.
-- `pi-session`: session switching/listing helpers.
+- `pi-init`: `/orgm-init` config initialization.
+- `pi-resume`: `/orgm-resume` session switch/resume helper.
 - `pi-clear`: clear/reset helper commands.
 - `pi-limit`: `/orgm-limits` command and limit reporting helpers.
 - `pi-title`: title state/generation package and `/orgm-title`.
@@ -62,7 +63,7 @@ Everything else should live in focused packages.
 - subagents and agent-status widgets → `pi-subagents`
 - awareness → `pi-awareness`
 - notifications → `pi-notify`
-- sessions → `pi-session`
+- init/resume → `pi-init`, `pi-resume`
 - clear helpers → `pi-clear`
 - titles → `pi-title`
 - ask/wrap → `pi-ask`
