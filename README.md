@@ -43,7 +43,7 @@ pi install git:github.com/osmargm1202/pi-subagents
 - `pi-limit`: `/orgm-limits` command and limit reporting helpers.
 - `pi-title`: title state/generation package and `/orgm-title`.
 - `pi-ask`: ask/wrap command package and `ask_user_question` tool.
-- `pi-todo`: TODO command/state package.
+- `pi-todo`: TODO command/state package and `todo` tool.
 - `pi-banner`: ORGM banner/header package.
 
 ## Local resources kept here
