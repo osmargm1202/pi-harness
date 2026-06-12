@@ -42,7 +42,7 @@ pi install git:github.com/osmargm1202/pi-subagents
 - `pi-clear`: clear/reset helper commands.
 - `pi-limit`: `/orgm-limits` command and limit reporting helpers.
 - `pi-title`: title state/generation package and `/orgm-title`.
-- `pi-ask`: ask/wrap command package.
+- `pi-ask`: ask/wrap command package and `ask_user_question` tool.
 - `pi-todo`: TODO command/state package.
 - `pi-banner`: ORGM banner/header package.
 
