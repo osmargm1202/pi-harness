@@ -4,7 +4,7 @@ ORGM Pi bundle/meta-package. Install this one package to load the full ORGM Pi s
 
 ## What this is now
 
-`pi-harness` is no longer the owner of large features. It is the ORGM distro package:
+`pi-harness` is no longer the owner of large features. It is the ORGM distro package. It does not ship runtime extensions directly:
 
 - pins compatible ORGM packages as dependencies
 - loads their Pi resources from `node_modules/...`
@@ -44,7 +44,7 @@ pi install git:github.com/osmargm1202/pi-subagents
 - `pi-title`: title state/generation package and `/orgm-title`.
 - `pi-ask`: ask/wrap command package and `ask_user_question` tool.
 - `pi-todo`: TODO command/state package and `todo` tool.
-- `pi-banner`: ORGM banner/header scaffold package.
+- `pi-banner`: ORGM header/control plane (`/orgm-*`) and banner scaffold package.
 
 ## Local resources kept here
 
@@ -67,7 +67,7 @@ Everything else should live in focused packages.
 - titles → `pi-title`
 - ask/wrap → `pi-ask`
 - TODOs → `pi-todo`
-- future banner/header work → `pi-banner`
+- ORGM header/control plane and future banner/header work → `pi-banner`
 - memory → `pi-mem`
 - caveman runtime → `pi-caveman`
 - limits → `pi-limit`

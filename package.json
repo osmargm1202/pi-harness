@@ -14,13 +14,11 @@
   ],
   "license": "MIT",
   "files": [
-    "extensions",
     "prompts",
     "README.md"
   ],
   "pi": {
     "extensions": [
-      "./extensions",
       "node_modules/pi-mem/extensions",
       "node_modules/pi-caveman/extensions",
       "node_modules/pi-footer/extensions",
