@@ -33,7 +33,7 @@ pi install git:github.com/osmargm1202/pi-subagents
 
 - `pi-mem`: local memory/context index provider.
 - `pi-caveman`: caveman runtime and shared state events.
-- `pi-footer`: Zentui-based editor/footer UI.
+- `pi-footer`: Zentui-based editor/footer UI, ORGM title/caveman display, timer and skill hook status.
 - `pi-themes`: ORGM themes.
 - `pi-subagents`: ORGM subagent prompts and deployment extension.
 - `pi-awareness`: awareness banner/status behavior.
@@ -57,7 +57,7 @@ Everything else should live in focused packages.
 
 `pi-harness` does not own:
 
-- editor/footer rendering → `pi-footer`
+- editor/footer rendering, timer status, and skill status hooks → `pi-footer`
 - themes → `pi-themes`
 - subagents → `pi-subagents`
 - awareness → `pi-awareness`
