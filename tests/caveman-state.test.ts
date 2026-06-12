@@ -7,9 +7,8 @@ import {
 	formatObservedCavemanStatus,
 	normalizeObservedCavemanState,
 } from "../extensions/lib/caveman-state.ts";
-import { getCurrentPackageRoot } from "../extensions/lib/package-paths.ts";
 
-const packageRoot = getCurrentPackageRoot();
+const packageRoot = process.cwd();
 
 assert.equal(PI_CAVEMAN_STATE_KEY, "pi-caveman:state", "observer entry key should match pi-caveman contract");
 assert.equal(PI_CAVEMAN_STATE_EVENT, "pi-caveman:state", "observer event should match pi-caveman contract");
