@@ -44,7 +44,7 @@ pi install git:github.com/osmargm1202/pi-subagents
 - `pi-title`: title state/generation package and `/orgm-title`.
 - `pi-ask`: ask/wrap command package and `ask_user_question` tool.
 - `pi-todo`: TODO command/state package and `todo` tool.
-- `pi-banner`: ORGM banner/header package.
+- `pi-banner`: ORGM agent-status banner/widget package.
 
 ## Local resources kept here
 
@@ -67,7 +67,7 @@ Everything else should live in focused packages.
 - titles → `pi-title`
 - ask/wrap → `pi-ask`
 - TODOs → `pi-todo`
-- banner/header → `pi-banner`
+- agent-status banner/widget → `pi-banner`
 - memory → `pi-mem`
 - caveman runtime → `pi-caveman`
 - limits → `pi-limit`
