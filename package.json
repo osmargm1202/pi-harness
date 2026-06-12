@@ -41,9 +41,6 @@
     ],
     "themes": [
       "node_modules/pi-themes/themes"
-    ],
-    "skills": [
-      "node_modules/pi-footer/skills"
     ]
   },
   "peerDependencies": {

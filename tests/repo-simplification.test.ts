@@ -11,5 +11,5 @@ assert(!manifest.files?.includes("skills"), "package files should not include lo
 assert(!manifest.files?.includes("agents"), "package files should not include mode prompt agents");
 assert(!manifest.files?.includes("archive"), "package files should not include removed archive directory");
 assert(!manifest.files?.includes("lib"), "package files should not include missing lib directory");
-assert.deepEqual(manifest.pi?.skills, ["node_modules/pi-footer/skills"], "pi manifest should delegate skills to pi-footer");
+assert(!manifest.pi?.skills, "pi manifest should not expose bundled skills");
 assert(!JSON.stringify(manifest.pi ?? {}).includes("mode"), "pi manifest should not explicitly expose mode extension");
