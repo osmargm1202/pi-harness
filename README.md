@@ -35,7 +35,7 @@ pi install git:github.com/osmargm1202/pi-subagents
 - `pi-caveman`: caveman runtime and shared state events.
 - `pi-footer`: Zentui-based editor/footer UI, ORGM title/caveman display, timer, and skill hook status.
 - `pi-themes`: ORGM themes.
-- `pi-subagents`: ORGM subagent prompts and deployment extension.
+- `pi-subagents`: ORGM subagent prompts, deployment extension, and agent-status widgets.
 - `pi-awareness`: awareness banner/status behavior.
 - `pi-notify`: desktop/system notification behavior.
 - `pi-session`: session switching/listing helpers.
@@ -44,7 +44,7 @@ pi install git:github.com/osmargm1202/pi-subagents
 - `pi-title`: title state/generation package and `/orgm-title`.
 - `pi-ask`: ask/wrap command package and `ask_user_question` tool.
 - `pi-todo`: TODO command/state package and `todo` tool.
-- `pi-banner`: ORGM agent-status banner/widget package.
+- `pi-banner`: ORGM banner/header scaffold package.
 
 ## Local resources kept here
 
@@ -59,7 +59,7 @@ Everything else should live in focused packages.
 
 - editor/footer rendering, timer status, and skill status hooks → `pi-footer`
 - themes → `pi-themes`
-- subagents → `pi-subagents`
+- subagents and agent-status widgets → `pi-subagents`
 - awareness → `pi-awareness`
 - notifications → `pi-notify`
 - sessions → `pi-session`
@@ -67,7 +67,7 @@ Everything else should live in focused packages.
 - titles → `pi-title`
 - ask/wrap → `pi-ask`
 - TODOs → `pi-todo`
-- agent-status banner/widget → `pi-banner`
+- future banner/header work → `pi-banner`
 - memory → `pi-mem`
 - caveman runtime → `pi-caveman`
 - limits → `pi-limit`
