@@ -14,7 +14,6 @@
   ],
   "license": "MIT",
   "files": [
-    "prompts",
     "README.md"
   ],
   "pi": {
@@ -35,7 +34,6 @@
       "node_modules/pi-resume/extensions"
     ],
     "prompts": [
-      "./prompts",
       "node_modules/pi-subagents/agents"
     ],
     "themes": [

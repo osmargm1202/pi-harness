@@ -8,7 +8,7 @@ ORGM Pi bundle/meta-package. Install this one package to load the full ORGM Pi s
 
 - pins compatible ORGM packages as dependencies
 - loads their Pi resources from `node_modules/...`
-- keeps stack-level prompt templates in `prompts/`
+- leaves command/workflow prompts to focused packages
 - documents package boundaries and migration notes
 
 ## Install
@@ -49,10 +49,9 @@ pi install git:github.com/osmargm1202/pi-subagents
 
 ## Local resources kept here
 
-- `prompts/`: small stack-level prompt templates (`gcl`, `gis`, `gpr`, `gwr`).
 - `docs/`: design, split, and migration notes.
 
-Everything else should live in focused packages.
+Runtime resources should live in focused packages.
 
 ## Package boundaries
 
