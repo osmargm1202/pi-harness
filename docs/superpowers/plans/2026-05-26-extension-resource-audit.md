@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ensure pi-harness extensions discover package-bundled resources and package-installed companion skills without extra user configuration.
+**Goal:** Historical audit of package-bundled resources. Note: private skill packages must not be referenced or bundled by `pi-harness`.
 
 **Architecture:** Add a shared package/resource path helper used by extension code instead of hardcoded `~/.pi/agent` assumptions. Cover primary-agent, agents-model, subagents, and caveman with focused Bun tests; keep project/user override precedence.
 
@@ -41,7 +41,7 @@
 - Modify: `extensions/lib/caveman-state.ts`
 - Test: `tests/caveman-state.test.ts`
 
-- [ ] Write failing test proving default caveman skill path resolves installed `pi-skills` package.
+- [ ] Historical/obsolete: do not resolve or bundle private skill packages; keep private skills outside `pi-harness`.
 - [ ] Implement fallback search through package-installed skill directories.
 - [ ] Run caveman test and existing caveman/minimal tests.
 
