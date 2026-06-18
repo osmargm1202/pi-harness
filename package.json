@@ -32,7 +32,8 @@
       "node_modules/pi-banner/extensions",
       "node_modules/pi-init/extensions",
       "node_modules/pi-resume/extensions",
-      "node_modules/pi-rename/extensions"
+      "node_modules/pi-rename/extensions",
+      "node_modules/pi-loop/extensions"
     ],
     "prompts": [
       "node_modules/pi-subagents/agents"
@@ -81,7 +82,8 @@
     "pi-limit": "github:osmargm1202/pi-limit",
     "pi-init": "github:osmargm1202/pi-init",
     "pi-resume": "github:osmargm1202/pi-resume",
-    "pi-rename": "github:osmargm1202/pi-rename"
+    "pi-rename": "github:osmargm1202/pi-rename",
+    "pi-loop": "github:osmargm1202/pi-loop"
   },
   "scripts": {
     "pack:check": "npm pack --dry-run"
