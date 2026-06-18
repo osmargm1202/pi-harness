@@ -42,7 +42,7 @@ const loopMaxIterations = 25; // from orgm.json, default 25
 ```
 
 **Done detection:**  
-Agent must include `[LOOP:DONE]` in its response text. Extension scans `AgentEndEvent.messages` — last assistant message text. If found → stop. If not found and `loopIteration < loopMaxIterations` → continue. If limit hit → warn and stop.
+Agent must include `[LOOP:DONE]` in its response text. Extension scans `AgentEndEvent.messages` in reverse order — finds the first message with `role === "assistant"`, extracts text content, checks for `[LOOP:DONE]`. If found → stop. If not found and `loopIteration < loopMaxIterations` → continue. If limit hit → warn and stop.
 
 **Iteration reset:**  
 On `before_agent_start`: if `loopIsInjecting === false` (user sent a real message), reset `loopIteration = 0`. Set `loopIsInjecting = false` after check.
@@ -51,8 +51,8 @@ On `before_agent_start`: if `loopIsInjecting === false` (user sent a real messag
 
 ### System Prompt Injection
 
-Returned via `before_agent_start` handler as `{ systemPrompt: replacedPrompt }`.  
-Appended block (does not replace, appends to existing):
+Returned via `before_agent_start` handler as `{ systemPrompt: combined }`.  
+Handler reads `event.systemPrompt`, appends the block below, returns combined string:
 
 ```
 ## Loop Mode Active (iteration N/MAX)
