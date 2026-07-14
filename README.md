@@ -31,12 +31,10 @@ pi install git:github.com/osmargm1202/pi-subagents
 
 `pi-harness` depends on and loads:
 
-- `pi-mem`: local memory/context index provider.
 - `pi-caveman`: caveman runtime and shared state events.
 - `pi-footer`: Zentui-based editor/footer UI, ORGM title/caveman display, timer, and skill hook status.
 - `pi-themes`: ORGM themes.
 - `pi-subagents`: ORGM subagent prompts, deployment extension, and agent-status widgets.
-- `pi-awareness`: awareness banner/status behavior.
 - `pi-notify`: desktop/system notification behavior.
 - `pi-init`: `/orgm-init` project context generation and `/orgm-config-init` config initialization.
 - `pi-resume`: `/orgm-resume` handoff generation and `/orgm-session-resume` session switch helper.
@@ -60,7 +58,6 @@ Runtime resources should live in focused packages.
 - editor/footer rendering, timer status, and skill status hooks → `pi-footer`
 - themes → `pi-themes`
 - subagents and agent-status widgets → `pi-subagents`
-- awareness → `pi-awareness`
 - notifications → `pi-notify`
 - init/resume → `pi-init`, `pi-resume`
 - clear helpers → `pi-clear`
@@ -68,7 +65,6 @@ Runtime resources should live in focused packages.
 - ask/wrap → `pi-ask`
 - TODOs → `pi-todo`
 - ORGM header/control plane and future banner/header work → `pi-banner`
-- memory → `pi-mem`
 - caveman runtime → `pi-caveman`
 - limits → `pi-limit`
 
