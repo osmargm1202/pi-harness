@@ -15,7 +15,7 @@ Ahora su único rol es instalar de forma explícita los paquetes `pi-*` que este
 ## Instalación (global)
 
 ```bash
-npm i -g pi-harness
+npm i -g @osmargm1202/pi-harness
 ```
 
 Al instalar en modo global, `postinstall` ejecuta el instalador y hace `pi install ...` por paquete.

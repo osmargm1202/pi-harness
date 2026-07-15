@@ -1,6 +1,6 @@
 {
-  "name": "pi-harness",
-  "version": "0.1.0",
+  "name": "@osmargm1202/pi-harness",
+  "version": "0.1.2",
   "private": false,
   "description": "Instalador standalone para el stack de ORGM (one-shot + instalación por paquetes).",
   "keywords": [
