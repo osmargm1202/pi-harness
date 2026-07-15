@@ -54,6 +54,7 @@ Lista del instalador (ordenada):
 - `npm:@juicesharp/rpiv-todo`
 - `npm:gentle-engram`
 - `npm:pi-intercom`
+- `npm:@hypabolic/pi-hypa`
 - `npm:pi-lens`
 - `npm:pi-mcp-adapter`
 - `npm:pi-subagents-j0k3r`

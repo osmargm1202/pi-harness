@@ -27,9 +27,13 @@ test("scripts de instalacion existen", () => {
 });
 
 test("script incluye catálogo interno de paquetes", () => {
-	const result = spawnSync("node", ["scripts/install-orgm-pi-packages.mjs", "--dry-run"], {
-		encoding: "utf8",
-	});
+	const result = spawnSync(
+		"node",
+		["scripts/install-orgm-pi-packages.mjs", "--dry-run"],
+		{
+			encoding: "utf8",
+		},
+	);
 
 	assert.equal(result.status, 0, result.stderr || "script fallo");
 	const out = `${result.stdout ?? ""}${result.stderr ?? ""}`;
@@ -37,5 +41,6 @@ test("script incluye catálogo interno de paquetes", () => {
 	assert.match(out, /pi install npm:pi-lens/);
 	assert.match(out, /pi install npm:pi-web-access/);
 	assert.match(out, /pi install npm:@juicesharp\/rpiv-ask-user-question/);
+	assert.match(out, /pi install npm:@hypabolic\/pi-hypa/);
 	assert.match(out, /pi install npm:gentle-engram/);
 });
