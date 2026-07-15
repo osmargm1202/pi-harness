@@ -37,7 +37,7 @@ test("script incluye catálogo interno de paquetes", () => {
 
 	assert.equal(result.status, 0, result.stderr || "script fallo");
 	const out = `${result.stdout ?? ""}${result.stderr ?? ""}`;
-	assert.match(out, /pi install git:github\/osmargm1202\/pi-banner/);
+	assert.match(out, /pi install git:github\.com\/osmargm1202\/pi-banner/);
 	assert.match(out, /pi install npm:pi-lens/);
 	assert.match(out, /pi install npm:pi-web-access/);
 	assert.match(out, /pi install npm:@juicesharp\/rpiv-ask-user-question/);

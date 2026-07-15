@@ -52,7 +52,7 @@ const candidates = [...new Set(PACKAGES)]
 	.filter((target) => target.startsWith("github:") || target.startsWith("npm:"))
 	.map((target) => {
 		if (target.startsWith("github:")) {
-			return `git:github/${target.slice("github:".length)}`;
+			return `git:github.com/${target.slice("github:".length)}`;
 		}
 
 		return `npm:${target.slice("npm:".length)}`;
