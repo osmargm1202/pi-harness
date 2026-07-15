@@ -7,16 +7,27 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const packagePath = path.join(ROOT, "..", "package.json");
 
-function isInstallerPackage(name, spec) {
-	if (typeof spec !== "string") return false;
-	if (!spec.startsWith("github:") && !spec.startsWith("npm:")) return false;
-
-	if (name.startsWith("pi-")) return true;
-	if (name.startsWith("@juicesharp/rpiv-")) return true;
-	if (name === "gentle-engram") return true;
-
-	return false;
-}
+// Stack to install: soporte mixto github:* y npm:*
+const PACKAGES = [
+	"github:osmargm1202/pi-banner",
+	"github:osmargm1202/pi-caveman",
+	"github:osmargm1202/pi-clear",
+	"github:osmargm1202/pi-footer",
+	"github:osmargm1202/pi-init",
+	"github:osmargm1202/pi-limit",
+	"github:osmargm1202/pi-notify",
+	"github:osmargm1202/pi-rename",
+	"github:osmargm1202/pi-themes",
+	"github:osmargm1202/pi-title",
+	"npm:@juicesharp/rpiv-ask-user-question",
+	"npm:@juicesharp/rpiv-todo",
+	"npm:gentle-engram",
+	"npm:pi-intercom",
+	"npm:pi-lens",
+	"npm:pi-mcp-adapter",
+	"npm:pi-subagents-j0k3r",
+	"npm:pi-web-access",
+];
 
 let pkg;
 try {
@@ -30,28 +41,23 @@ try {
 const args = new Set(process.argv.slice(2));
 const dryRun = args.has("--dry-run") || args.has("-d");
 const isPostinstall = args.has("--postinstall");
-const forcePostinstall = args.has("--postinstall") && args.has("--force");
+const forcePostinstall = isPostinstall && args.has("--force");
 const canAutoInstall =
 	!isPostinstall ||
 	process.env.npm_config_global === "true" ||
 	forcePostinstall;
 
-const candidates = Object.entries({
-	...(pkg.dependencies || {}),
-	...(pkg.devDependencies || {}),
-})
-	.filter(([name, spec]) => isInstallerPackage(name, spec))
-	.map(([, spec]) =>
-		spec.startsWith("github:")
-			? `git:${spec.slice("github:".length)}`
-			: `npm:${spec.slice("npm:".length)}`,
+const candidates = [...new Set(PACKAGES)]
+	.filter((target) => target.startsWith("github:") || target.startsWith("npm:"))
+	.map((target) =>
+		target.startsWith("github:")
+			? `git:${target.slice("github:".length)}`
+			: `npm:${target.slice("npm:".length)}`,
 	)
 	.sort();
 
 if (candidates.length === 0) {
-	console.error(
-		"No se detectaron paquetes instalables desde este package.json.",
-	);
+	console.error("No se detectaron paquetes instalables en la lista interna.");
 	process.exit(1);
 }
 
@@ -60,6 +66,11 @@ if (isPostinstall && !canAutoInstall) {
 		"Postinstall sin instalación global; usa npm run install:orgm-pi o ejecuta manualmente.",
 	);
 	process.exit(0);
+}
+
+if (!pkg?.scripts || typeof pkg.scripts?.["install:orgm-pi"] !== "string") {
+	console.error("Script install:orgm-pi faltante en package.json.");
+	process.exit(1);
 }
 
 console.log("Instalando paquetes definidos por este instalador...");

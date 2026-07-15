@@ -17,28 +17,8 @@
   "files": [
     "README.md"
   ],
-  "dependencies": {
-    "@juicesharp/rpiv-ask-user-question": "npm:@juicesharp/rpiv-ask-user-question",
-    "@juicesharp/rpiv-todo": "npm:@juicesharp/rpiv-todo",
-    "@mariozechner/pi-coding-agent": "npm:@earendil-works/pi-coding-agent",
-    "@mariozechner/pi-tui": "npm:@earendil-works/pi-tui",
-    "gentle-engram": "npm:gentle-engram",
-    "pi-banner": "github:osmargm1202/pi-banner",
-    "pi-caveman": "github:osmargm1202/pi-caveman",
-    "pi-clear": "github:osmargm1202/pi-clear",
-    "pi-footer": "github:osmargm1202/pi-footer",
-    "pi-init": "github:osmargm1202/pi-init",
-    "pi-intercom": "npm:pi-intercom",
-    "pi-limit": "github:osmargm1202/pi-limit",
-    "pi-lens": "npm:pi-lens",
-    "pi-mcp-adapter": "npm:pi-mcp-adapter",
-    "pi-notify": "github:osmargm1202/pi-notify",
-    "pi-rename": "github:osmargm1202/pi-rename",
-    "pi-subagents-j0k3r": "npm:pi-subagents-j0k3r",
-    "pi-themes": "github:osmargm1202/pi-themes",
-    "pi-title": "github:osmargm1202/pi-title",
-    "pi-web-access": "npm:pi-web-access"
-  },
+  "dependencies": {},
+
   "scripts": {
     "pack:check": "npm pack --dry-run",
     "install:orgm-pi": "node scripts/install-orgm-pi-packages.mjs",

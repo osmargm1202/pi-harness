@@ -26,14 +26,10 @@ test("scripts de instalacion existen", () => {
 	assert.ok(Array.isArray(pkg.files) && pkg.files.includes("scripts/*.mjs"));
 });
 
-test("script detecta paquetes pi-* desde dependencias", () => {
-	const result = spawnSync(
-		"node",
-		["scripts/install-orgm-pi-packages.mjs", "--dry-run"],
-		{
-			encoding: "utf8",
-		},
-	);
+test("script incluye catálogo interno de paquetes", () => {
+	const result = spawnSync("node", ["scripts/install-orgm-pi-packages.mjs", "--dry-run"], {
+		encoding: "utf8",
+	});
 
 	assert.equal(result.status, 0, result.stderr || "script fallo");
 	const out = `${result.stdout ?? ""}${result.stderr ?? ""}`;
