@@ -50,11 +50,13 @@ const canAutoInstall =
 
 const candidates = [...new Set(PACKAGES)]
 	.filter((target) => target.startsWith("github:") || target.startsWith("npm:"))
-	.map((target) =>
-		target.startsWith("github:")
-			? `git:${target.slice("github:".length)}`
-			: `npm:${target.slice("npm:".length)}`,
-	)
+	.map((target) => {
+		if (target.startsWith("github:")) {
+			return `git:github/${target.slice("github:".length)}`;
+		}
+
+		return `npm:${target.slice("npm:".length)}`;
+	})
 	.sort();
 
 if (candidates.length === 0) {

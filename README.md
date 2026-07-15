@@ -40,16 +40,16 @@ npm run install:orgm-pi -- --dry-run
 
 Lista del instalador (ordenada):
 
-- `github:osmargm1202/pi-banner`
-- `github:osmargm1202/pi-caveman`
-- `github:osmargm1202/pi-clear`
-- `github:osmargm1202/pi-footer`
-- `github:osmargm1202/pi-init`
-- `github:osmargm1202/pi-limit`
-- `github:osmargm1202/pi-notify`
-- `github:osmargm1202/pi-rename`
-- `github:osmargm1202/pi-themes`
-- `github:osmargm1202/pi-title`
+- `git:github/osmargm1202/pi-banner`
+- `git:github/osmargm1202/pi-caveman`
+- `git:github/osmargm1202/pi-clear`
+- `git:github/osmargm1202/pi-footer`
+- `git:github/osmargm1202/pi-init`
+- `git:github/osmargm1202/pi-limit`
+- `git:github/osmargm1202/pi-notify`
+- `git:github/osmargm1202/pi-rename`
+- `git:github/osmargm1202/pi-themes`
+- `git:github/osmargm1202/pi-title`
 - `npm:@juicesharp/rpiv-ask-user-question`
 - `npm:@juicesharp/rpiv-todo`
 - `npm:gentle-engram`
@@ -63,8 +63,8 @@ Lista del instalador (ordenada):
 Puedes instalar/desinstalar individualmente con `pi` siempre:
 
 ```bash
-pi install git:github.com/osmargm1202/pi-footer
-pi uninstall git:github.com/osmargm1202/pi-footer
+pi install git:github/osmargm1202/pi-footer
+pi uninstall git:github/osmargm1202/pi-footer
 ```
 
 ## Verificación
