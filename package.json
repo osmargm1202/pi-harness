@@ -22,7 +22,7 @@
   "scripts": {
     "pack:check": "npm pack --dry-run",
     "install:orgm-pi": "node scripts/install-orgm-pi-packages.mjs",
-    "postinstall": "node scripts/install-orgm-pi-packages.mjs --postinstall"
+    "postinstall": "sh -c 'cd / && node scripts/install-orgm-pi-packages.mjs --postinstall'"
   },
   "bin": {
     "pi-harness": "scripts/install-orgm-pi-packages.mjs",
