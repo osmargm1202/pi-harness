@@ -1,53 +1,45 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import test from "node:test";
 
-test("pi-harness is bundle-only for ORGM banner/git runtime", () => {
-	let pkg;
+function readPkg() {
 	try {
-		const pkgRaw = readFileSync("package.json", "utf8");
-		pkg = JSON.parse(pkgRaw);
-	} catch (err) {
-		assert.fail(`Failed to read/parse package.json: ${String(err)}`);
+		const raw = readFileSync("package.json", "utf8");
+		return JSON.parse(raw);
+	} catch (error) {
+		assert.fail(`No se pudo leer package.json: ${String(error)}`);
 	}
-	assert(
-		!existsSync("extensions/orgm.ts"),
-		"orgm header/control plane belongs to pi-banner",
+}
+
+test("pi-harness no expone manifiesto pi", () => {
+	const pkg = readPkg();
+	assert.ok(!pkg.pi, "No debe existir el campo pi en package.json");
+});
+
+test("scripts de instalacion existen", () => {
+	const pkg = readPkg();
+	assert.equal(typeof pkg.scripts?.postinstall, "string");
+	assert.equal(typeof pkg.scripts?.["install:orgm-pi"], "string");
+	assert.ok(pkg.bin && pkg.bin["pi-harness"]);
+	assert.ok(pkg.bin && pkg.bin["pi-harness-install"]);
+	assert.ok(Array.isArray(pkg.files) && pkg.files.includes("scripts/*.mjs"));
+});
+
+test("script detecta paquetes pi-* desde dependencias", () => {
+	const result = spawnSync(
+		"node",
+		["scripts/install-orgm-pi-packages.mjs", "--dry-run"],
+		{
+			encoding: "utf8",
+		},
 	);
-	assert(
-		!existsSync("extensions/git.ts"),
-		"git automation should not be a pi-harness runtime extension",
-	);
-	assert(
-		!existsSync("prompts"),
-		"workflow prompts should not live in pi-harness",
-	);
-	assert(
-		!pkg.pi.extensions.includes("./extensions"),
-		"pi-harness should not load local runtime extensions",
-	);
-	assert(
-		!Object.hasOwn(pkg.pi, "prompts"),
-		"pi-harness should not load prompts",
-	);
-	assert(
-		!pkg.files.includes("prompts"),
-		"pi-harness package should not publish local prompts",
-	);
-	assert(
-		pkg.pi.extensions.includes("node_modules/pi-banner/extensions"),
-		"pi-harness should load pi-banner",
-	);
-	assert(
-		pkg.pi.extensions.includes("node_modules/pi-subagents-j0k3r/index.ts"),
-		"pi-harness should load subagent delegation runtime",
-	);
-	assert(
-		pkg.pi.extensions.includes("node_modules/pi-lens/dist/index.js"),
-		"pi-harness should load pi-lens",
-	);
-	assert(
-		pkg.pi.extensions.includes("node_modules/@juicesharp/rpiv-todo/index.ts"),
-		"pi-harness should load rpiv todo",
-	);
+
+	assert.equal(result.status, 0, result.stderr || "script fallo");
+	const out = `${result.stdout ?? ""}${result.stderr ?? ""}`;
+	assert.match(out, /pi install git:osmargm1202\/pi-banner/);
+	assert.match(out, /pi install npm:pi-lens/);
+	assert.match(out, /pi install npm:pi-web-access/);
+	assert.match(out, /pi install npm:@juicesharp\/rpiv-ask-user-question/);
+	assert.match(out, /pi install npm:gentle-engram/);
 });

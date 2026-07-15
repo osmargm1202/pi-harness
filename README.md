@@ -1,99 +1,76 @@
 # pi-harness
 
-ORGM Pi bundle/meta-package. Install this one package to load the full ORGM Pi stack.
+Instalador standalone para el stack de ORGM.
 
-## What this is now
+Ya no contiene manifiesto `pi` ni actúa como paquete bundle del runtime.
+Ahora su único rol es instalar de forma explícita los paquetes `pi-*` que este proyecto define.
 
-`pi-harness` is no longer the owner of large features. It is the ORGM distro package. It does not ship runtime extensions directly:
+## Qué hace
 
-- pins compatible ORGM packages as dependencies
-- loads their Pi resources from `node_modules/...`
-- leaves command/workflow prompts to focused packages
-- documents package boundaries and migration notes
+- Lee `dependencies` de este `package.json`.
+- Genera instalaciones `pi install` para cada paquete `pi-*`.
+- Ejecuta cada instalación de forma secuencial.
+- Acepta `github:` y `npm:` (incluyendo paquetes que no son de `osmargm1202`).
 
-## Install
-
-One-command ORGM stack install:
+## Instalación (global)
 
 ```bash
-pi install git:github.com/osmargm1202/pi-harness
+npm i -g pi-harness
 ```
 
-Selective install remains possible for individual packages:
+Al instalar en modo global, `postinstall` ejecuta el instalador y hace `pi install ...` por paquete.
+
+También puedes ejecutar manualmente el binario:
+
+```bash
+pi-harness
+pi-harness --dry-run
+```
+
+También está disponible por npm-script:
+
+```bash
+npm run install:orgm-pi
+npm run install:orgm-pi -- --dry-run
+```
+
+## Qué instala hoy
+
+Incluye paquetes `pi-*` desde `dependencies`:
+
+- `pi-banner` (github)
+- `pi-caveman` (github)
+- `pi-clear` (github)
+- `pi-footer` (github)
+- `pi-init` (github)
+- `pi-intercom` (npm)
+- `pi-limit` (github)
+- `pi-lens` (npm)
+- `pi-mcp-adapter` (npm)
+- `pi-notify` (github)
+- `pi-rename` (github)
+- `pi-subagents-j0k3r` (npm)
+- `pi-themes` (github)
+- `pi-title` (github)
+- `pi-web-access` (npm)
+- `@juicesharp/rpiv-ask-user-question` (npm)
+- `@juicesharp/rpiv-todo` (npm)
+- `gentle-engram` (npm)
+
+Puedes instalar/desinstalar individualmente con `pi` siempre:
 
 ```bash
 pi install git:github.com/osmargm1202/pi-footer
-pi install git:github.com/osmargm1202/pi-themes
-pi install npm:pi-lens
-pi install npm:pi-subagents-j0k3r
+pi uninstall git:github.com/osmargm1202/pi-footer
 ```
 
-## Bundled packages
-
-`pi-harness` depends on and loads:
-
-- `pi-caveman`: caveman runtime and shared state events.
-- `pi-footer`: Zentui-based editor/footer UI, ORGM title/caveman display, timer, and skill hook status.
-- `pi-themes`: ORGM themes.
-- `pi-subagents-j0k3r`: subagent orchestration and task delegation.
-- `pi-mcp-adapter`: MCP integration and MCP tool surfacing.
-- `pi-intercom`: session-to-session delegation coordination.
-- `gentle-engram`: persistent memory and compaction state.
-- `pi-web-access`: web search and URL fetch workflows.
-- `pi-lens`: LSP feedback, diagnostics, and code analysis tooling.
-- `pi-notify`: desktop/system notification behavior.
-- `pi-init`: `/orgm-init` project context generation and `/orgm-config-init` config initialization.
-- `pi-clear`: clear/reset helper commands.
-- `pi-limit`: `/orgm-limits` command and limit reporting helpers.
-- `pi-title`: title state/generation package and `/orgm-title`.
-- `@juicesharp/rpiv-ask-user-question`: structured clarifying-question tool.
-- `@juicesharp/rpiv-todo`: `/todos` command and `todo` tool.
-- `pi-banner`: ORGM header/control plane (`/orgm-*`) and banner scaffold package.
-- `pi-rename`: `/orgm-rename` command and rename helper workflows.
-
-## Local resources kept here
-
-- `docs/`: design, split, and migration notes.
-
-Runtime resources should live in focused packages.
-
-## Package boundaries
-
-`pi-harness` does not own:
-
-- editor/footer rendering, timer status, and skill status hooks → `pi-footer`
-- themes → `pi-themes`
-- subagents and delegated workstreams → `pi-subagents-j0k3r`
-- MCP plumbing → `pi-mcp-adapter`
-- inter-session coordination → `pi-intercom`
-- persistent memory → `gentle-engram`
-- web search/fetch runtime → `pi-web-access`
-- diagnostics and quality gates → `pi-lens`
-- notifications → `pi-notify`
-- init → `pi-init`
-- clear helpers → `pi-clear`
-- titles → `pi-title`
-- clarifying questions → `@juicesharp/rpiv-ask-user-question`
-- TODOs → `@juicesharp/rpiv-todo`
-- ORGM header/control plane and future banner/header work → `pi-banner`
-- caveman runtime → `pi-caveman`
-- limits → `pi-limit`
-- rename helpers → `pi-rename`
-
-## Development
+## Verificación
 
 ```bash
-npm install
+node --test tests/harness-bundle-only.test.mjs
 npm run pack:check
 ```
 
-Smoke bundle install:
+## Nota de seguridad
 
-```bash
-pi install git:github.com/osmargm1202/pi-harness
-pi list
-```
-
-## Security note
-
-Pi packages run executable extension code. Review package sources before installing, especially this bundle because it installs multiple ORGM packages.
+Pi instala código ejecutable de paquetes de terceros. Revisa origenes antes de actualizar.

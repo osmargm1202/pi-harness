@@ -1,68 +1,19 @@
 {
-  "name": "@osmargm1202/pi-harness",
+  "name": "pi-harness",
   "version": "0.1.0",
   "private": false,
-  "description": "ORGM Pi bundle/meta-package.",
+  "description": "Instalador standalone para el stack de ORGM (one-shot + instalación por paquetes).",
   "keywords": [
-    "pi-package",
     "pi",
-    "extensions",
+    "pi-package",
     "orgm",
-    "pi-caveman",
-    "pi-footer"
+    "installer",
+    "bundle"
   ],
   "license": "MIT",
   "files": [
     "README.md"
   ],
-  "pi": {
-    "extensions": [
-      "node_modules/pi-caveman/extensions",
-      "node_modules/pi-footer/extensions",
-      "node_modules/pi-notify/extensions",
-      "node_modules/pi-clear/extensions",
-      "node_modules/pi-limit/extensions",
-      "node_modules/pi-title/extensions",
-      "node_modules/pi-subagents-j0k3r/index.ts",
-      "node_modules/pi-banner/extensions",
-      "node_modules/pi-init/extensions",
-      "node_modules/pi-rename/extensions",
-      "node_modules/pi-mcp-adapter/index.ts",
-      "node_modules/pi-intercom/index.ts",
-      "node_modules/gentle-engram/index.ts",
-      "node_modules/pi-web-access/index.ts",
-      "node_modules/pi-lens/dist/index.js",
-      "node_modules/@juicesharp/rpiv-todo/index.ts",
-      "node_modules/@juicesharp/rpiv-ask-user-question/index.ts"
-    ],
-    "themes": [
-      "node_modules/pi-themes/themes"
-    ]
-  },
-  "peerDependencies": {
-    "@earendil-works/pi-agent-core": "*",
-    "@earendil-works/pi-ai": "*",
-    "@earendil-works/pi-coding-agent": "*",
-    "@earendil-works/pi-tui": "*",
-    "typebox": "*"
-  },
-  "peerDependenciesMeta": {
-    "@earendil-works/pi-agent-core": {
-      "optional": true
-    },
-    "@earendil-works/pi-ai": {
-      "optional": true
-    },
-    "@earendil-works/pi-coding-agent": {
-      "optional": true
-    },
-    "@earendil-works/pi-tui": {
-      "optional": true
-    },
-    "typebox": {
-      "optional": true
-    }
-  },
   "dependencies": {
     "@juicesharp/rpiv-ask-user-question": "npm:@juicesharp/rpiv-ask-user-question",
     "@juicesharp/rpiv-todo": "npm:@juicesharp/rpiv-todo",
@@ -86,6 +37,17 @@
     "pi-web-access": "npm:pi-web-access"
   },
   "scripts": {
-    "pack:check": "npm pack --dry-run"
-  }
+    "pack:check": "npm pack --dry-run",
+    "install:orgm-pi": "node scripts/install-orgm-pi-packages.mjs",
+    "postinstall": "node scripts/install-orgm-pi-packages.mjs --postinstall"
+  },
+  "bin": {
+    "pi-harness": "scripts/install-orgm-pi-packages.mjs",
+    "pi-harness-install": "scripts/install-orgm-pi-packages.mjs"
+  },
+  "files": [
+    "README.md",
+    "scripts/*.js",
+    "scripts/*.mjs"
+  ]
 }
