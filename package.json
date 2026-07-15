@@ -19,19 +19,21 @@
     "extensions": [
       "node_modules/pi-caveman/extensions",
       "node_modules/pi-footer/extensions",
-      "node_modules/pi-subagents/extensions",
       "node_modules/pi-notify/extensions",
       "node_modules/pi-clear/extensions",
       "node_modules/pi-limit/extensions",
       "node_modules/pi-title/extensions",
-      "node_modules/pi-ask/extensions",
-      "node_modules/pi-todo/extensions",
+      "node_modules/pi-subagents-j0k3r/index.ts",
       "node_modules/pi-banner/extensions",
       "node_modules/pi-init/extensions",
-      "node_modules/pi-rename/extensions"
-    ],
-    "prompts": [
-      "node_modules/pi-subagents/agents"
+      "node_modules/pi-rename/extensions",
+      "node_modules/pi-mcp-adapter/index.ts",
+      "node_modules/pi-intercom/index.ts",
+      "node_modules/gentle-engram/index.ts",
+      "node_modules/pi-web-access/index.ts",
+      "node_modules/pi-lens/dist/index.js",
+      "node_modules/@juicesharp/rpiv-todo/index.ts",
+      "node_modules/@juicesharp/rpiv-ask-user-question/index.ts"
     ],
     "themes": [
       "node_modules/pi-themes/themes"
@@ -62,19 +64,26 @@
     }
   },
   "dependencies": {
-    "pi-ask": "github:osmargm1202/pi-ask",
+    "@juicesharp/rpiv-ask-user-question": "npm:@juicesharp/rpiv-ask-user-question",
+    "@juicesharp/rpiv-todo": "npm:@juicesharp/rpiv-todo",
+    "@mariozechner/pi-coding-agent": "npm:@earendil-works/pi-coding-agent",
+    "@mariozechner/pi-tui": "npm:@earendil-works/pi-tui",
+    "gentle-engram": "npm:gentle-engram",
     "pi-banner": "github:osmargm1202/pi-banner",
     "pi-caveman": "github:osmargm1202/pi-caveman",
     "pi-clear": "github:osmargm1202/pi-clear",
     "pi-footer": "github:osmargm1202/pi-footer",
     "pi-init": "github:osmargm1202/pi-init",
+    "pi-intercom": "npm:pi-intercom",
     "pi-limit": "github:osmargm1202/pi-limit",
+    "pi-lens": "npm:pi-lens",
+    "pi-mcp-adapter": "npm:pi-mcp-adapter",
     "pi-notify": "github:osmargm1202/pi-notify",
     "pi-rename": "github:osmargm1202/pi-rename",
-    "pi-subagents": "github:osmargm1202/pi-subagents",
+    "pi-subagents-j0k3r": "npm:pi-subagents-j0k3r",
     "pi-themes": "github:osmargm1202/pi-themes",
     "pi-title": "github:osmargm1202/pi-title",
-    "pi-todo": "github:osmargm1202/pi-todo"
+    "pi-web-access": "npm:pi-web-access"
   },
   "scripts": {
     "pack:check": "npm pack --dry-run"

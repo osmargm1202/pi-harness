@@ -24,7 +24,8 @@ Selective install remains possible for individual packages:
 ```bash
 pi install git:github.com/osmargm1202/pi-footer
 pi install git:github.com/osmargm1202/pi-themes
-pi install git:github.com/osmargm1202/pi-subagents
+pi install npm:pi-lens
+pi install npm:pi-subagents-j0k3r
 ```
 
 ## Bundled packages
@@ -34,16 +35,21 @@ pi install git:github.com/osmargm1202/pi-subagents
 - `pi-caveman`: caveman runtime and shared state events.
 - `pi-footer`: Zentui-based editor/footer UI, ORGM title/caveman display, timer, and skill hook status.
 - `pi-themes`: ORGM themes.
-- `pi-subagents`: ORGM subagent prompts, deployment extension, and agent-status widgets.
+- `pi-subagents-j0k3r`: subagent orchestration and task delegation.
+- `pi-mcp-adapter`: MCP integration and MCP tool surfacing.
+- `pi-intercom`: session-to-session delegation coordination.
+- `gentle-engram`: persistent memory and compaction state.
+- `pi-web-access`: web search and URL fetch workflows.
+- `pi-lens`: LSP feedback, diagnostics, and code analysis tooling.
 - `pi-notify`: desktop/system notification behavior.
 - `pi-init`: `/orgm-init` project context generation and `/orgm-config-init` config initialization.
-- `pi-resume`: `/orgm-resume` handoff generation and `/orgm-session-resume` session switch helper.
 - `pi-clear`: clear/reset helper commands.
 - `pi-limit`: `/orgm-limits` command and limit reporting helpers.
 - `pi-title`: title state/generation package and `/orgm-title`.
-- `pi-ask`: ask/wrap command package and `ask_user_question` tool.
-- `pi-todo`: TODO command/state package and `todo` tool.
+- `@juicesharp/rpiv-ask-user-question`: structured clarifying-question tool.
+- `@juicesharp/rpiv-todo`: `/todos` command and `todo` tool.
 - `pi-banner`: ORGM header/control plane (`/orgm-*`) and banner scaffold package.
+- `pi-rename`: `/orgm-rename` command and rename helper workflows.
 
 ## Local resources kept here
 
@@ -57,16 +63,22 @@ Runtime resources should live in focused packages.
 
 - editor/footer rendering, timer status, and skill status hooks → `pi-footer`
 - themes → `pi-themes`
-- subagents and agent-status widgets → `pi-subagents`
+- subagents and delegated workstreams → `pi-subagents-j0k3r`
+- MCP plumbing → `pi-mcp-adapter`
+- inter-session coordination → `pi-intercom`
+- persistent memory → `gentle-engram`
+- web search/fetch runtime → `pi-web-access`
+- diagnostics and quality gates → `pi-lens`
 - notifications → `pi-notify`
-- init/resume → `pi-init`, `pi-resume`
+- init → `pi-init`
 - clear helpers → `pi-clear`
 - titles → `pi-title`
-- ask/wrap → `pi-ask`
-- TODOs → `pi-todo`
+- clarifying questions → `@juicesharp/rpiv-ask-user-question`
+- TODOs → `@juicesharp/rpiv-todo`
 - ORGM header/control plane and future banner/header work → `pi-banner`
 - caveman runtime → `pi-caveman`
 - limits → `pi-limit`
+- rename helpers → `pi-rename`
 
 ## Development
 
