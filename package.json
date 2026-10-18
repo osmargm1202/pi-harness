@@ -1,6 +1,6 @@
 {
   "name": "@osmargm1202/pi-harness",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "private": false,
   "description": "Instalador standalone para el stack de ORGM (one-shot + instalación por paquetes).",
   "publishConfig": {
@@ -21,6 +21,8 @@
   ],
   "dependencies": {},
   "scripts": {
+    "test": "node --test tests/harness-bundle-only.test.mjs tests/intercom-config.test.mjs",
+    "test:intercom": "node --test tests/intercom-wake.pi.test.mjs",
     "pack:check": "npm pack --dry-run",
     "install:orgm-pi": "node scripts/install-orgm-pi-packages.mjs",
     "postinstall": "node -e \"const path = require('node:path'); const { spawnSync } = require('node:child_process'); const pkg = process.env.npm_package_json; if (!pkg) process.exit(0); const script = path.join(path.dirname(pkg), 'scripts', 'install-orgm-pi-packages.mjs'); const result = spawnSync(process.execPath, [script, '--postinstall'], { stdio: 'inherit' }); process.exit(result.status ?? 0);\""

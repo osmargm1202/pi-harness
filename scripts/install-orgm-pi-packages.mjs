@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { configureIntercom } from "./configure-intercom.mjs";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const packagePath = path.join(ROOT, "..", "package.json");
@@ -47,6 +48,34 @@ const canAutoInstall =
 	!isPostinstall ||
 	process.env.npm_config_global === "true" ||
 	forcePostinstall;
+
+if (args.has("--help") || args.has("-h")) {
+	console.log(`Uso: pi-harness [--dry-run]
+     pi-harness --configure-intercom [--dry-run]
+
+Sin opciones: instala los paquetes del stack.
+--configure-intercom: configura únicamente Intercom (no instala paquetes).
+  Habilita turnos con mensajes nuevos y prioridad humana al estar ocupado.
+  Puede generar llamadas al modelo y consumo de tokens al recibir mensajes.
+  Conserva otras opciones y crea una copia de seguridad antes de cambiar el archivo.
+--dry-run, -d: muestra lo que se haría sin escribir ni instalar.
+--help, -h: muestra esta ayuda.`);
+	process.exit(0);
+}
+
+if (args.has("--configure-intercom")) {
+	if (isPostinstall) {
+		console.error("--configure-intercom requiere ejecución explícita; no se admite en postinstall.");
+		process.exit(1);
+	}
+	try {
+		configureIntercom({ dryRun });
+	} catch (error) {
+		console.error(`No se pudo configurar Intercom: ${error.message}`);
+		process.exit(1);
+	}
+	process.exit(0);
+}
 
 const candidates = [...new Set(PACKAGES)]
 	.filter((target) => target.startsWith("github:") || target.startsWith("npm:"))

@@ -67,12 +67,77 @@ pi install git:github.com/osmargm1202/pi-footer
 pi uninstall git:github.com/osmargm1202/pi-footer
 ```
 
+## Intercom: reactivar agentes al recibir mensajes
+
+Si los mensajes llegan pero la sesión receptora no empieza a trabajar, revisa
+`~/.pi/agent/intercom/config.json`. Con `"inboundTrigger": "replies"`, un `send`
+nuevo o un `ask` inicial se entrega, pero no inicia un turno en una sesión idle.
+La confirmación de entrega no implica que el agente haya ejecutado la tarea.
+
+Configura explícitamente la política de colaboración:
+
+```bash
+pi-harness --configure-intercom --dry-run
+pi-harness --configure-intercom
+```
+
+Desde un clon del repositorio, sin instalar ni reinstalar el stack:
+
+```bash
+node scripts/install-orgm-pi-packages.mjs --configure-intercom --dry-run
+node scripts/install-orgm-pi-packages.mjs --configure-intercom
+```
+
+La opción solo configura Intercom; no ejecuta `pi install`. Escribe:
+
+```json
+{
+  "enabled": true,
+  "inboundTrigger": "always",
+  "busyDelivery": "human-first",
+  "replyHint": true
+}
+```
+
+- `always` permite iniciar un turno con mensajes nuevos, tanto `send` como `ask`.
+- `human-first` da prioridad al input humano cuando el agente está ocupado; los
+  mensajes de otros agentes esperan un punto de entrega seguro.
+- Conserva el resto de opciones existentes, incluido `replyHint` si ya estaba
+  definido, y crea una copia exacta `config.json.backup-*` antes de modificarlo.
+- Respeta `PI_CODING_AGENT_DIR` si está definido. No sobrescribe JSON inválido ni
+  enlaces simbólicos: para configuraciones gestionadas con Nix, cambia el origen.
+- Es idempotente y `--dry-run` no escribe nada.
+
+**Ejecuta `/reload` o reinicia Pi en cada sesión receptora.** Intercom lee esta
+configuración al cargar la extensión. No hace falta instalar `pi-loop` ni otra
+extensión de reactivación. Esto funciona con sesiones vivas; no revive procesos
+cerrados ni crea sesiones nuevas.
+
+**Consumo de tokens:** los mensajes entrantes pueden iniciar llamadas al modelo.
+Evita intercambios de confirmación infinitos entre agentes. Por eso la opción es
+explícita: la instalación normal y `postinstall` no cambian tu política de Intercom.
+
 ## Verificación
 
 ```bash
-node --test tests/harness-bundle-only.test.mjs
+npm test
 npm run pack:check
 ```
+
+Prueba de integración opcional contra paquetes instalados (Pi 1.3.0 e Intercom
+0.17.1 verificados). Usa un broker aislado y un proveedor ficticio local: no accede
+a credenciales, no hace llamadas a modelos de pago y no toca sesiones reales.
+Reproduce que `replies` no inicia turnos con mensajes nuevos y comprueba que la
+configuración generada sí reactiva una `AgentSession` real con `send` y `ask`.
+
+```bash
+PI_INTERCOM_PACKAGE=/ruta/al/paquete/pi-intercom \
+PI_SDK_PACKAGE=/ruta/al/paquete/@earendil-works/pi-coding-agent \
+npm run test:intercom
+```
+
+Las rutas deben ser absolutas y apuntar a los directorios de los paquetes (con su
+`package.json`), no a los ejecutables. Sin ambas rutas, la prueba se omite.
 
 ## Nota de seguridad
 
