@@ -16,12 +16,13 @@
   "license": "MIT",
   "files": [
     "README.md",
+    "install.sh",
     "scripts/*.js",
     "scripts/*.mjs"
   ],
   "dependencies": {},
   "scripts": {
-    "test": "node --test tests/harness-bundle-only.test.mjs tests/intercom-config.test.mjs",
+    "test": "node --test tests/harness-bundle-only.test.mjs tests/intercom-config.test.mjs tests/install-sh.test.mjs",
     "test:intercom": "node --test tests/intercom-wake.pi.test.mjs",
     "pack:check": "npm pack --dry-run",
     "install:orgm-pi": "node scripts/install-orgm-pi-packages.mjs",

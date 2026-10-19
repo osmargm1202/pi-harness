@@ -1,35 +1,15 @@
 #!/usr/bin/env node
-import { readFileSync } from "node:fs";
-import { execSync } from "node:child_process";
+import { readFileSync, mkdtempSync, rmSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { configureIntercom } from "./configure-intercom.mjs";
+import { configurePi } from "./configure-pi.mjs";
+import { PACKAGES } from "./stack.mjs";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const packagePath = path.join(ROOT, "..", "package.json");
-
-// Stack to install: soporte mixto github:* y npm:*
-const PACKAGES = [
-	"github:osmargm1202/pi-banner",
-	"github:osmargm1202/pi-caveman",
-	"github:osmargm1202/pi-clear",
-	"github:osmargm1202/pi-footer",
-	"github:osmargm1202/pi-init",
-	"github:osmargm1202/pi-limit",
-	"github:osmargm1202/pi-notify",
-	"github:osmargm1202/pi-rename",
-	"github:osmargm1202/pi-themes",
-	"github:osmargm1202/pi-title",
-	"npm:@juicesharp/rpiv-ask-user-question",
-	"npm:@juicesharp/rpiv-todo",
-	"npm:gentle-engram",
-	"npm:pi-intercom",
-	"npm:@hypabolic/pi-hypa",
-	"npm:pi-lens",
-	"npm:pi-mcp-adapter",
-	"npm:pi-subagents-j0k3r",
-	"npm:pi-web-access",
-];
 
 let pkg;
 try {
@@ -42,6 +22,18 @@ try {
 
 const args = new Set(process.argv.slice(2));
 const dryRun = args.has("--dry-run") || args.has("-d");
+const setup = args.has("--setup");
+const knownArgs = new Set(["--dry-run", "-d", "--setup", "--configure-intercom", "--postinstall", "--force", "--help", "-h"]);
+for (const arg of args) {
+	if (!knownArgs.has(arg)) {
+		console.error(`Opción desconocida: ${arg}`);
+		process.exit(1);
+	}
+}
+// Preserve relative config paths even though pi install runs outside the caller's project.
+if (process.env.PI_CODING_AGENT_DIR?.trim()) {
+	process.env.PI_CODING_AGENT_DIR = path.resolve(process.env.PI_CODING_AGENT_DIR.trim());
+}
 const isPostinstall = args.has("--postinstall");
 const forcePostinstall = isPostinstall && args.has("--force");
 const canAutoInstall =
@@ -51,9 +43,11 @@ const canAutoInstall =
 
 if (args.has("--help") || args.has("-h")) {
 	console.log(`Uso: pi-harness [--dry-run]
+     pi-harness --setup [--dry-run]
      pi-harness --configure-intercom [--dry-run]
 
-Sin opciones: instala los paquetes del stack.
+Sin opciones: instala los paquetes fijados en scripts/stack.mjs.
+--setup: instala el stack, evita MCP duplicado y configura Intercom automáticamente.
 --configure-intercom: configura únicamente Intercom (no instala paquetes).
   Habilita turnos con mensajes nuevos y prioridad humana al estar ocupado.
   Puede generar llamadas al modelo y consumo de tokens al recibir mensajes.
@@ -61,6 +55,11 @@ Sin opciones: instala los paquetes del stack.
 --dry-run, -d: muestra lo que se haría sin escribir ni instalar.
 --help, -h: muestra esta ayuda.`);
 	process.exit(0);
+}
+
+if (setup && (isPostinstall || args.has("--configure-intercom"))) {
+	console.error("--setup es explícito y no se combina con --postinstall ni --configure-intercom.");
+	process.exit(1);
 }
 
 if (args.has("--configure-intercom")) {
@@ -77,16 +76,7 @@ if (args.has("--configure-intercom")) {
 	process.exit(0);
 }
 
-const candidates = [...new Set(PACKAGES)]
-	.filter((target) => target.startsWith("github:") || target.startsWith("npm:"))
-	.map((target) => {
-		if (target.startsWith("github:")) {
-			return `git:github.com/${target.slice("github:".length)}`;
-		}
-
-		return `npm:${target.slice("npm:".length)}`;
-	})
-	.sort();
+const candidates = [...new Set(PACKAGES)];
 
 if (candidates.length === 0) {
 	console.error("No se detectaron paquetes instalables en la lista interna.");
@@ -106,21 +96,33 @@ if (!pkg?.scripts || typeof pkg.scripts?.["install:orgm-pi"] !== "string") {
 }
 
 console.log("Instalando paquetes definidos por este instalador...");
-for (const target of candidates) {
-	const command = `pi install ${target}`;
-	console.log(`> ${command}`);
-
-	if (dryRun) {
-		continue;
+let installDir;
+try {
+	if (setup) {
+		// Fail before pi install can touch a malformed or externally managed configuration.
+		configurePi({ checkOnly: true });
+		configureIntercom({ checkOnly: true });
 	}
-
-	try {
-		execSync(command, { stdio: "inherit" });
-	} catch (error) {
-		const ref = String(error?.message || error);
-		console.error(`Fallo al instalar ${target}: ${ref}`);
-		process.exit(1);
+	// Avoid project trust prompts, project-level packages and resource execution from the caller's cwd.
+	if (!dryRun) installDir = mkdtempSync(path.join(tmpdir(), "pi-harness-install-"));
+	for (const target of candidates) {
+		console.log(`> pi install ${target}`);
+		if (!dryRun) {
+			try {
+				execFileSync("pi", ["install", target], { cwd: installDir, stdio: ["ignore", "inherit", "inherit"] });
+			} catch (error) {
+				throw new Error(`Fallo al instalar ${target}: ${error.message}`);
+			}
+		}
 	}
+	if (setup) {
+		configurePi({ dryRun });
+		configureIntercom({ dryRun });
+	}
+	console.log(dryRun ? "Vista previa completa; no se instaló ni escribió nada." : "Instalacion completa.");
+} catch (error) {
+	console.error(error.message);
+	process.exitCode = 1;
+} finally {
+	if (installDir) rmSync(installDir, { recursive: true, force: true });
 }
-
-console.log("Instalacion completa.");

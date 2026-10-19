@@ -4,7 +4,7 @@ import { homedir } from "node:os";
 import path from "node:path";
 
 /** Installation-time policy only; message delivery and agent lifecycle belong to pi-intercom. */
-export function configureIntercom({ dryRun = false } = {}) {
+export function configureIntercom({ dryRun = false, checkOnly = false } = {}) {
 	// Match pi-intercom/broker/paths.ts, including relative env overrides.
 	const configured = process.env.PI_CODING_AGENT_DIR?.trim();
 	const agentDir = configured ? path.resolve(configured) : path.join(homedir(), ".pi", "agent");
@@ -30,6 +30,7 @@ export function configureIntercom({ dryRun = false } = {}) {
 	next.inboundTrigger = "always";
 	next.busyDelivery = "human-first";
 	const changed = Object.keys(next).some((key) => next[key] !== current[key]);
+	if (checkOnly) return;
 	console.log(`Intercom: ${configPath}`);
 	if (dryRun) {
 		console.log(`Vista previa (sin escribir):\n${JSON.stringify(next, null, 2)}`);

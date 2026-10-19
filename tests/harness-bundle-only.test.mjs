@@ -37,10 +37,10 @@ test("script incluye catálogo interno de paquetes", () => {
 
 	assert.equal(result.status, 0, result.stderr || "script fallo");
 	const out = `${result.stdout ?? ""}${result.stderr ?? ""}`;
-	assert.match(out, /pi install git:github\.com\/osmargm1202\/pi-banner/);
-	assert.match(out, /pi install npm:pi-lens/);
-	assert.match(out, /pi install npm:pi-web-access/);
-	assert.match(out, /pi install npm:@juicesharp\/rpiv-ask-user-question/);
-	assert.match(out, /pi install npm:@hypabolic\/pi-hypa/);
-	assert.match(out, /pi install npm:gentle-engram/);
+	assert.match(out, /pi install git:github\.com\/osmargm1202\/pi-ask@[a-f0-9]{40}/);
+	assert.match(out, /pi install git:github\.com\/osmargm1202\/pi-subagents@[a-f0-9]{40}/);
+	assert.match(out, /pi install npm:pi-web-access@0\.42\.0/);
+	assert.match(out, /pi install npm:gentle-engram@0\.4\.2/);
+	assert.equal((out.match(/> pi install /g) ?? []).length, 11);
+	assert.doesNotMatch(out, /pi-banner|pi-lens|rpiv-|pi-hypa|j0k3r/);
 });
